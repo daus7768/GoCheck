@@ -70,6 +70,14 @@ export default function RootLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="(modals)/reminders"
+        options={{
+          presentation: 'card',
+          animation: Platform.OS === 'web' ? 'none' : 'slide_from_right',
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 
