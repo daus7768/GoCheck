@@ -18,11 +18,11 @@ const TONE_OPTIONS: { value: ReminderTone; label: string }[] = [
   { value: 'final', label: 'Final' },
 ];
 
-export function SettingsPane() {
+export function SettingsPane({ organizerId }: { organizerId: string }) {
   const { settings, setSetting, sent } = useReminderStore();
   const { bills } = useBillStore();
 
-  const { items: queueItems } = buildQueueItems(bills, sent, settings, '');
+  const { items: queueItems } = buildQueueItems(bills, sent, settings, organizerId);
   const hasOverdue = queueItems.some((item) => item.daysToDue < 0);
 
   return (
