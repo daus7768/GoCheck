@@ -129,8 +129,8 @@ describe('categoryBuckets', () => {
       participants: [{ id: 'p1', name: 'A', amount: 100, isPaid: true, paidAt: null, avatarColor: '' }],
     });
     const result = categoryBuckets([bill]);
-    expect(result[0].cat).toBe('other');
-    expect(result[0].amount).toBe(100);
+    expect(result[0]!.cat).toBe('other');
+    expect(result[0]!.amount).toBe(100);
   });
 
   it('sorts descending by amount', () => {
@@ -139,8 +139,8 @@ describe('categoryBuckets', () => {
       makeBill({ id: 'b2', category: 'travel', participants: [{ id: 'p2', name: 'B', amount: 200, isPaid: true, paidAt: null, avatarColor: '' }] }),
     ];
     const result = categoryBuckets(bills);
-    expect(result[0].cat).toBe('travel');
-    expect(result[1].cat).toBe('food');
+    expect(result[0]!.cat).toBe('travel');
+    expect(result[1]!.cat).toBe('food');
   });
 });
 
