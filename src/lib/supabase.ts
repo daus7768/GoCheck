@@ -30,6 +30,8 @@ export async function createBillInDB(payload: {
   due_date: string;
   status: string;
   share_link: string;
+  category?: string;
+  is_recurring?: string | null;
 }) {
   const { data, error } = await supabase
     .from('bills')

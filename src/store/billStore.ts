@@ -29,6 +29,8 @@ interface CreateBillArgs {
   dueDate: Date;
   reminderEnabled: boolean;
   groupPhotoUri?: string;
+  category?: 'travel' | 'food' | 'housing' | 'other';
+  isRecurring?: 'monthly' | 'yearly' | null;
 }
 
 interface BillStore {
@@ -73,6 +75,8 @@ export const useBillStore = create<BillStore>((set, get) => ({
         dueDate: row.due_date,
         status: row.status,
         shareLink: row.share_link,
+        category: (row.category ?? 'other') as Bill['category'],
+        isRecurring: (row.is_recurring ?? null) as Bill['isRecurring'],
         participants: (row.participants ?? []).map((p: Record<string, unknown>) => ({
           id: p['id'] as string,
           name: p['name'] as string,
@@ -126,6 +130,8 @@ export const useBillStore = create<BillStore>((set, get) => ({
         due_date: args.dueDate.toISOString(),
         status: 'active',
         share_link: shareCode,
+        category: args.category ?? 'other',
+        is_recurring: args.isRecurring ?? null,
       });
 
       // Insert participants
@@ -156,6 +162,8 @@ export const useBillStore = create<BillStore>((set, get) => ({
         dueDate: args.dueDate.toISOString(),
         status: 'active',
         shareLink: shareCode,
+        category: args.category ?? 'other',
+        isRecurring: args.isRecurring ?? null,
         groupPhotoUrl,
         participants: (participantRows ?? []).map((p, i) => {
           const srcParticipant = args.participants[i];

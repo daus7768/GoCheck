@@ -49,6 +49,8 @@ export interface Bill {
   dueDate: string;
   status: BillStatus;
   shareLink: string;
+  category?: 'travel' | 'food' | 'housing' | 'other';
+  isRecurring?: 'monthly' | 'yearly' | null;
   participants: Participant[];
   lineItems?: LineItemComputed[];
   taxRate?: number;
