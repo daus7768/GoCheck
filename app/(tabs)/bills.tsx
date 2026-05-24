@@ -15,6 +15,8 @@ import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
 import { useBillStore } from '../../src/store/billStore';
+import { useReminderStore } from '../../src/store/reminderStore';
+import { buildQueueItems } from '../../src/lib/queueUtils';
 import { getOrganizerId } from '../../src/lib/organizer';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill } from '../../src/types';
@@ -91,6 +93,9 @@ function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void;
 export default function BillsScreen() {
   const insets = useSafeAreaInsets();
   const { bills, fetchBills, isLoading } = useBillStore();
+  const { sent, settings } = useReminderStore();
+  const { items: queueItems } = buildQueueItems(bills, sent, settings, '');
+  const bellBadge = queueItems.length;
 
   const load = useCallback(async () => {
     const id = await getOrganizerId();
@@ -134,13 +139,29 @@ export default function BillsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.title}>My Bills</Text>
-        <Pressable
-          style={styles.headerCreateBtn}
-          onPress={() => router.push('/(modals)/create')}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Feather name="plus" size={20} color={colors.primary} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            style={styles.headerBtn}
+            onPress={() => router.push('/(modals)/reminders')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel="Reminders"
+          >
+            <Feather name="bell" size={20} color={colors.primary} />
+            {bellBadge > 0 && (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeCount}>{bellBadge > 99 ? '99+' : bellBadge}</Text>
+              </View>
+            )}
+          </Pressable>
+          <Pressable
+            style={styles.headerBtn}
+            onPress={() => router.push('/(modals)/create')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel="Create bill"
+          >
+            <Feather name="plus" size={20} color={colors.primary} />
+          </Pressable>
+        </View>
       </View>
 
       {isLoading && bills.length === 0 ? (
@@ -187,13 +208,36 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xl,
     color: colors.textPrimary,
   },
-  headerCreateBtn: {
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  headerBtn: {
     width: 36,
     height: 36,
     borderRadius: radius.full,
     backgroundColor: colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: colors.error,
+    borderRadius: radius.full,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  bellBadgeCount: {
+    fontFamily: typography.sansBold,
+    fontSize: 9,
+    color: colors.white,
+    lineHeight: 12,
   },
   list: {
     padding: spacing[4],
