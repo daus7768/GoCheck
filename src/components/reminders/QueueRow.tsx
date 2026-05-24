@@ -1,0 +1,226 @@
+import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { haptic } from '../../lib/haptics';
+import { useReminderStore } from '../../store/reminderStore';
+import { useBillStore } from '../../store/billStore';
+import { buildWhen, renderTemplate, formatCurrency } from '../../lib/reminderTemplates';
+import { computeReliability } from '../../lib/queueUtils';
+import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import type { QueueItem, ReminderRow, ReliabilityLabel } from '../../types';
+
+function getInitials(name: string): string {
+  return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+const RELIABILITY_CONFIG: Record<ReliabilityLabel, { label: string; color: string; bg: string }> = {
+  reliable: { label: 'Reliable', color: '#059669', bg: '#ECFDF5' },
+  'on-time': { label: 'On-time', color: '#4F46E5', bg: '#EEF2FF' },
+  slow: { label: 'Slow', color: '#D97706', bg: '#FFFBEB' },
+  'at-risk': { label: 'At-risk', color: '#DC2626', bg: '#FEF2F2' },
+};
+
+interface Props {
+  item: QueueItem;
+  remindersForItem: ReminderRow[];
+}
+
+export function QueueRow({ item, remindersForItem }: Props) {
+  const { settings, sendReminder } = useReminderStore();
+  const { bills } = useBillStore();
+
+  const reliability = computeReliability(item.participantName, bills);
+  const reliabilityConfig = reliability ? RELIABILITY_CONFIG[reliability] : null;
+  const askedCount = remindersForItem.filter(
+    (r) => r.billId === item.billId && r.participantId === item.participantId
+  ).length;
+
+  const isOverdue = item.daysToDue < 0;
+
+  const buildMessage = () => {
+    return renderTemplate(settings.tone, {
+      name: item.participantName,
+      bill: item.billTitle,
+      amount: formatCurrency(item.amount, item.currency),
+      when: buildWhen(item.daysToDue),
+      days: isOverdue ? Math.abs(item.daysToDue) : 0,
+      link: `https://gocheck.app/bill/${item.shareLink}`,
+    });
+  };
+
+  const handleWhatsApp = () => {
+    haptic.impact();
+    const message = buildMessage();
+    const encoded = encodeURIComponent(message);
+    const url = item.participantPhone
+      ? `https://wa.me/${item.participantPhone}?text=${encoded}`
+      : `https://wa.me/?text=${encoded}`;
+    Linking.openURL(url);
+    sendReminder(item, 'whatsapp');
+  };
+
+  const handleEmail = () => {
+    haptic.impact();
+    const message = buildMessage();
+    const subject = encodeURIComponent(`Reminder: ${item.billTitle}`);
+    const body = encodeURIComponent(message);
+    Linking.openURL(`mailto:${item.participantEmail}?subject=${subject}&body=${body}`);
+    sendReminder(item, 'email');
+  };
+
+  const dueLabelColor = isOverdue
+    ? colors.error
+    : item.daysToDue <= 3
+    ? colors.warning
+    : colors.textSecondary;
+  const dueLabel = isOverdue
+    ? `${Math.abs(item.daysToDue)}d overdue`
+    : item.daysToDue === 0
+    ? 'Due today'
+    : `Due in ${item.daysToDue}d`;
+
+  return (
+    <View style={styles.row}>
+      <View style={styles.left}>
+        {/* Avatar */}
+        <View style={[styles.avatar, { backgroundColor: item.participantAvatarColor }]}>
+          <Text style={styles.avatarText}>{getInitials(item.participantName)}</Text>
+        </View>
+
+        {/* Info */}
+        <View style={styles.info}>
+          {/* Name row */}
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>{item.participantName}</Text>
+            {/* Fixed-width reliability slot */}
+            <View style={styles.reliabilitySlot}>
+              {reliabilityConfig ? (
+                <View style={[styles.chip, { backgroundColor: reliabilityConfig.bg }]}>
+                  <Text style={[styles.chipText, { color: reliabilityConfig.color }]}>
+                    {reliabilityConfig.label}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            {askedCount > 0 && (
+              <View style={styles.askedChip}>
+                <Text style={styles.askedText}>asked {askedCount}×</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Bill + amount */}
+          <Text style={styles.billMeta} numberOfLines={1}>
+            {item.billTitle} · {formatCurrency(item.amount, item.currency)}
+          </Text>
+
+          {/* Due label */}
+          <Text style={[styles.dueLabel, { color: dueLabelColor }]}>{dueLabel}</Text>
+        </View>
+      </View>
+
+      {/* Channel buttons */}
+      <View style={styles.actions}>
+        <Pressable style={styles.waBtn} onPress={handleWhatsApp}>
+          <Feather name="message-circle" size={14} color="#25D366" />
+          <Text style={styles.waBtnText}>WhatsApp</Text>
+        </Pressable>
+        {item.participantEmail ? (
+          <Pressable style={styles.emailBtn} onPress={handleEmail}>
+            <Feather name="mail" size={14} color={colors.primary} />
+          </Pressable>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing[3],
+    marginBottom: spacing[2],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  left: { flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: spacing[2] },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  avatarText: {
+    fontFamily: typography.sansBold,
+    fontSize: fontSize.sm,
+    color: colors.white,
+  },
+  info: { flex: 1, gap: 2 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], flexWrap: 'wrap' },
+  name: {
+    fontFamily: typography.sansSemiBold,
+    fontSize: fontSize.base,
+    color: colors.textPrimary,
+    flexShrink: 1,
+  },
+  reliabilitySlot: { width: 60, height: 20 },
+  chip: {
+    borderRadius: radius.full,
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    alignSelf: 'flex-start',
+  },
+  chipText: { fontFamily: typography.sansMedium, fontSize: fontSize['2xs'] },
+  askedChip: {
+    backgroundColor: colors.gray100,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+  },
+  askedText: {
+    fontFamily: typography.sansMedium,
+    fontSize: fontSize['2xs'],
+    color: colors.textSecondary,
+  },
+  billMeta: {
+    fontFamily: typography.sansRegular,
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+  },
+  dueLabel: {
+    fontFamily: typography.sansMedium,
+    fontSize: fontSize.xs,
+  },
+  actions: { flexDirection: 'row', gap: spacing[2], alignItems: 'center' },
+  waBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    borderRadius: radius.md,
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1.5],
+  },
+  waBtnText: {
+    fontFamily: typography.sansMedium,
+    fontSize: fontSize.xs,
+    color: '#15803D',
+  },
+  emailBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.md,
+    backgroundColor: colors.primarySurface,
+    borderWidth: 1,
+    borderColor: colors.primaryBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
