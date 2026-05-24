@@ -65,7 +65,7 @@ export function BatchToast() {
       ? `https://wa.me/${item.participantPhone}?text=${encoded}`
       : `https://wa.me/?text=${encoded}`;
     await Linking.openURL(url);
-    sendReminder(item, 'whatsapp');
+    await sendReminder(item, 'whatsapp');
     advanceBatch();
   };
 

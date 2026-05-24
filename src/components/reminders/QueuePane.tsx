@@ -10,11 +10,11 @@ import { BatchToast } from './BatchToast';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
 import type { QueueItem, ReminderRow } from '../../types';
 
-export function QueuePane() {
+export function QueuePane({ organizerId }: { organizerId: string }) {
   const { sent, settings, sendReminder, startBatch, advanceBatch } = useReminderStore();
   const { bills } = useBillStore();
 
-  const { items, limitReached } = buildQueueItems(bills, sent, settings, '');
+  const { items, limitReached } = buildQueueItems(bills, sent, settings, organizerId);
 
   const remindersForItem = (item: QueueItem): ReminderRow[] =>
     sent.filter((r) => r.billId === item.billId && r.participantId === item.participantId);

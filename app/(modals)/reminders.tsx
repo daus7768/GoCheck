@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { colors, typography, fontSize, spacing, radius, animation } from '../../
 import { useReminderStore } from '../../src/store/reminderStore';
 import { useBillStore } from '../../src/store/billStore';
 import { buildQueueItems } from '../../src/lib/queueUtils';
+import { getOrganizerId } from '../../src/lib/organizer';
 import { QueuePane } from '../../src/components/reminders/QueuePane';
 import { SentPane } from '../../src/components/reminders/SentPane';
 import { SettingsPane } from '../../src/components/reminders/SettingsPane';
@@ -22,6 +23,7 @@ const TABS: { value: Tab; label: string }[] = [
 export default function RemindersScreen() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<Tab>('queue');
+  const [organizerId, setOrganizerId] = useState('');
   const { sent, settings, loadReminders, loadSettings } = useReminderStore();
   const { bills } = useBillStore();
 
@@ -47,11 +49,15 @@ export default function RemindersScreen() {
   }));
 
   useEffect(() => {
+    getOrganizerId().then(setOrganizerId);
     loadReminders();
     loadSettings();
   }, []);
 
-  const { items: queueItems } = buildQueueItems(bills, sent, settings, '');
+  const { items: queueItems } = useMemo(
+    () => buildQueueItems(bills, sent, settings, organizerId),
+    [bills, sent, settings, organizerId]
+  );
   const badgeCount = queueItems.length;
 
   return (
@@ -96,9 +102,9 @@ export default function RemindersScreen() {
 
       {/* Pane */}
       <View style={styles.pane}>
-        {activeTab === 'queue' && <QueuePane />}
+        {activeTab === 'queue' && <QueuePane organizerId={organizerId} />}
         {activeTab === 'sent' && <SentPane />}
-        {activeTab === 'settings' && <SettingsPane />}
+        {activeTab === 'settings' && <SettingsPane organizerId={organizerId} />}
       </View>
     </View>
   );
