@@ -218,3 +218,52 @@ describe('topReliability', () => {
     expect(topReliability([bill]).length).toBeLessThanOrEqual(5);
   });
 });
+
+// ── buildInsight ─────────────────────────────────────────────────────────────
+
+describe('buildInsight', () => {
+  it('returns null for empty data', () => {
+    expect(buildInsight([], 'MYR')).toBeNull();
+  });
+
+  it('returns no-recurring copy when recurringTotal is 0', () => {
+    const data = [
+      { label: 'Jun', year: 2026, monthIndex: 5, recurring: 0, expected: 1000 },
+      { label: 'Jul', year: 2026, monthIndex: 6, recurring: 0, expected: 500 },
+      { label: 'Aug', year: 2026, monthIndex: 7, recurring: 0, expected: 700 },
+    ];
+    const result = buildInsight(data, 'MYR');
+    expect(result).toContain('average monthly volume');
+  });
+
+  it('returns subscription-audit copy when recurring > 60% of total', () => {
+    const data = [
+      { label: 'Jun', year: 2026, monthIndex: 5, recurring: 800, expected: 100 },
+      { label: 'Jul', year: 2026, monthIndex: 6, recurring: 800, expected: 100 },
+      { label: 'Aug', year: 2026, monthIndex: 7, recurring: 800, expected: 100 },
+    ];
+    const result = buildInsight(data, 'MYR');
+    expect(result).toContain('recurring');
+    expect(result).toContain('auditing');
+  });
+
+  it('returns heads-up copy when peak is more than 1.5x the median', () => {
+    const data = [
+      { label: 'Jun', year: 2026, monthIndex: 5, recurring: 100, expected: 5000 },
+      { label: 'Jul', year: 2026, monthIndex: 6, recurring: 100, expected: 200 },
+      { label: 'Aug', year: 2026, monthIndex: 7, recurring: 100, expected: 200 },
+    ];
+    const result = buildInsight(data, 'MYR');
+    expect(result).toContain('Heads up');
+  });
+
+  it('returns default copy when peak is not dramatically higher than median', () => {
+    const data = [
+      { label: 'Jun', year: 2026, monthIndex: 5, recurring: 100, expected: 400 },
+      { label: 'Jul', year: 2026, monthIndex: 6, recurring: 100, expected: 350 },
+      { label: 'Aug', year: 2026, monthIndex: 7, recurring: 100, expected: 380 },
+    ];
+    const result = buildInsight(data, 'MYR');
+    expect(result).toContain('highest projected month');
+  });
+});
