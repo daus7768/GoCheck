@@ -195,6 +195,7 @@ export async function insertReminder(args: InsertReminderArgs): Promise<{ id: st
     .select('id')
     .single();
   if (error) throw error;
+  if (!data) throw new Error('insertReminder: no data returned');
   return data as { id: string };
 }
 
@@ -240,8 +241,15 @@ export async function loadSettings(organizerId: string): Promise<{
     .select('reminders')
     .eq('organizer_id', organizerId)
     .single();
-  if (error || !data) return { ...DEFAULT_SETTINGS };
-  return { ...DEFAULT_SETTINGS, ...(data.reminders as object) } as {
+  if (error) {
+    if (error.code === 'PGRST116') return { ...DEFAULT_SETTINGS };
+    throw error;
+  }
+  if (!data) return { ...DEFAULT_SETTINGS };
+  const overrides = typeof data.reminders === 'object' && data.reminders !== null
+    ? (data.reminders as Record<string, unknown>)
+    : {};
+  return { ...DEFAULT_SETTINGS, ...overrides } as {
     cadence: string;
     tone: string;
     skipPaid: boolean;
