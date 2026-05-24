@@ -88,8 +88,8 @@ export function buildInsight(data: ForecastMonth[], currency: Currency): string 
   const totals = data.map((m) => m.recurring + m.expected);
   const maxTotal = Math.max(...totals);
   const sorted = totals.slice().sort((a, b) => a - b);
-  const medTotal = sorted[Math.floor(sorted.length / 2)];
-  const peak = data[totals.indexOf(maxTotal)];
+  const medTotal = sorted[Math.floor(sorted.length / 2)] ?? 0;
+  const peak = (data[totals.indexOf(maxTotal)] ?? data[0])!;
   const recurringTotal = data.reduce((s, m) => s + m.recurring, 0);
   const totalAll = totals.reduce((s, t) => s + t, 0);
 
