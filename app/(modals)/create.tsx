@@ -175,6 +175,7 @@ export default function CreateBillScreen() {
   const [groupPhotoUri, setGroupPhotoUri] = useState<string | undefined>();
   const [addParticipantVisible, setAddParticipantVisible] = useState(false);
   const [ctaState, setCtaState] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [category, setCategory] = useState<'travel' | 'food' | 'housing' | 'other'>('other');
 
   // ── Derived values ──
   const totalAmount = parseFloat(amountRaw) || 0;
@@ -326,6 +327,8 @@ export default function CreateBillScreen() {
         dueDate,
         reminderEnabled,
         groupPhotoUri,
+        category,
+        isRecurring: null,
       });
 
       setCtaState('success');
@@ -484,6 +487,40 @@ export default function CreateBillScreen() {
                 />
               </View>
             </Field>
+
+            {/* Category picker */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Category</Text>
+              <View style={styles.chipRow}>
+                {(
+                  [
+                    { key: 'travel', label: '✈ Travel', color: '#4F46E5' },
+                    { key: 'food', label: '🍜 Food', color: '#f59e0b' },
+                    { key: 'housing', label: '🏠 Housing', color: '#10B981' },
+                    { key: 'other', label: '○ Other', color: '#94a3b8' },
+                  ] as const
+                ).map((item) => (
+                  <Pressable
+                    key={item.key}
+                    style={[
+                      styles.chip,
+                      category === item.key && { backgroundColor: item.color, borderColor: item.color },
+                    ]}
+                    onPress={() => setCategory(item.key)}
+                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                  >
+                    <Text
+                      style={[
+                        styles.chipLabel,
+                        category === item.key && { color: '#fff' },
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
           </Section>
 
           {/* ── Amount Block ──────────────────────────────────────── */}
@@ -1303,6 +1340,35 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
     lineHeight: fontSize.xs * 1.5,
+  },
+
+  // Category picker
+  fieldGroup: {
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontFamily: typography.sansMedium,
+    fontSize: 13,
+    color: colors.gray700,
+    marginBottom: 8,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.full,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  chipLabel: {
+    fontFamily: typography.sansMedium,
+    fontSize: 12,
+    color: colors.gray600,
   },
 
   // CTA bar
