@@ -47,23 +47,24 @@ export function QueueRow({ item, remindersForItem }: Props) {
     });
   };
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     haptic.impact();
     const message = buildMessage();
     const encoded = encodeURIComponent(message);
     const url = item.participantPhone
       ? `https://wa.me/${item.participantPhone}?text=${encoded}`
       : `https://wa.me/?text=${encoded}`;
-    Linking.openURL(url);
+    await Linking.openURL(url);
     sendReminder(item, 'whatsapp');
   };
 
-  const handleEmail = () => {
+  const handleEmail = async () => {
+    if (!item.participantEmail) return;
     haptic.impact();
     const message = buildMessage();
     const subject = encodeURIComponent(`Reminder: ${item.billTitle}`);
     const body = encodeURIComponent(message);
-    Linking.openURL(`mailto:${item.participantEmail}?subject=${subject}&body=${body}`);
+    await Linking.openURL(`mailto:${item.participantEmail}?subject=${subject}&body=${body}`);
     sendReminder(item, 'email');
   };
 
