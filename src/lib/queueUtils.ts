@@ -13,7 +13,7 @@ export function computeReliability(name: string, bills: Bill[]): ReliabilityLabe
   if (history.length === 0) return null;
   const avg = history.reduce((s, d) => s + d, 0) / history.length;
   if (avg < 0) return 'reliable';
-  if (avg === 0) return 'on-time';
+  if (Math.round(avg) === 0) return 'on-time';
   if (avg <= 7) return 'slow';
   return 'at-risk';
 }
@@ -65,10 +65,15 @@ export function buildQueueItems(
         const lastSent = sent
           .filter((r) => r.billId === bill.id && r.participantId === p.id)
           .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())[0];
-        const daysSinceLast = lastSent
-          ? Math.round((Date.now() - new Date(lastSent.sentAt).getTime()) / 86_400_000)
-          : Infinity;
-        const showSmart = dtd <= 3 || dtd <= 0 || daysSinceLast >= 3;
+        const todayMidnight = new Date();
+        todayMidnight.setHours(0, 0, 0, 0);
+        let daysSinceLast = Infinity;
+        if (lastSent) {
+          const sentDate = new Date(lastSent.sentAt);
+          sentDate.setHours(0, 0, 0, 0);
+          daysSinceLast = Math.round((todayMidnight.getTime() - sentDate.getTime()) / 86_400_000);
+        }
+        const showSmart = dtd <= 3 || daysSinceLast >= 3;
         if (!showSmart) continue;
       }
 
