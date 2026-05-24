@@ -67,7 +67,7 @@ export const colors = {
 export const typography = {
   sansRegular: 'DMSans_400Regular',
   sansMedium: 'DMSans_500Medium',
-  sansSemiBold: 'DMSans_600SemiBold',
+  sansSemiBold: 'DMSans_700Bold',
   sansBold: 'DMSans_700Bold',
   monoRegular: 'DMMono_400Regular',
   monoMedium: 'DMMono_500Medium',
