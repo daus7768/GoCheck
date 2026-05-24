@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { haptic, NotificationFeedbackType } from '../../lib/haptics';
 import type { Participant } from '../../types';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../theme/tokens';
 
@@ -59,11 +59,11 @@ export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: 
 
   const handleAdd = () => {
     if (!validate()) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      haptic.notification(NotificationFeedbackType.Error);
       return;
     }
 
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    haptic.notification(NotificationFeedbackType.Success);
 
     const participant: Participant = {
       id: `p_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,

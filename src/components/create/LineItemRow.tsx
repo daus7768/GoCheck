@@ -7,7 +7,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { haptic, ImpactFeedbackStyle } from '../../lib/haptics';
 import type { LineItem } from '../../types';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
 
@@ -29,7 +29,7 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
   }));
 
   const handleRemove = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptic.impact(ImpactFeedbackStyle.Medium);
     scale.value = withTiming(0.95, { duration: 120 });
     opacity.value = withTiming(0, { duration: 200 }, (done) => {
       if (done) runOnJS(onRemove)(item.id);
@@ -37,13 +37,13 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
   };
 
   const incrementQty = () => {
-    Haptics.selectionAsync();
+    haptic.selection();
     onUpdate(item.id, 'quantity', item.quantity + 1);
   };
 
   const decrementQty = () => {
     if (item.quantity <= 1) return;
-    Haptics.selectionAsync();
+    haptic.selection();
     onUpdate(item.id, 'quantity', item.quantity - 1);
   };
 
@@ -137,7 +137,7 @@ export function AddLineItemButton({ onPress }: { onPress: () => void }) {
       <Pressable
         style={styles.addBtn}
         onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          haptic.impact(ImpactFeedbackStyle.Light);
           onPress();
         }}
         onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); }}

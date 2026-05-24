@@ -7,7 +7,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { haptic, ImpactFeedbackStyle } from '../../lib/haptics';
 import type { Participant } from '../../types';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
 
@@ -42,7 +42,7 @@ export function ParticipantChip({ participant, onRemove }: ChipProps) {
   };
 
   const handleRemove = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptic.impact(ImpactFeedbackStyle.Light);
     scale.value = withTiming(0.8, { duration: 150 });
     opacity.value = withTiming(0, { duration: 150 }, (done) => {
       if (done) runOnJS(onRemove)(participant.id);

@@ -16,9 +16,8 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import * as Haptics from 'expo-haptics';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, addDays } from 'date-fns';
+import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from '../../src/lib/haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -34,7 +33,9 @@ import { LineItemRow, AddLineItemButton } from '../../src/components/create/Line
 import { CurrencySelector } from '../../src/components/create/CurrencySelector';
 import { CreateBillCTA } from '../../src/components/create/CreateBillCTA';
 import { AddParticipantModal } from '../../src/components/create/AddParticipantModal';
+import { DatePickerField } from '../../src/components/create/DatePickerField';
 import { useBillStore } from '../../src/store/billStore';
+import { getOrganizerId } from '../../src/lib/organizer';
 import type { Participant, LineItem, Currency, SplitType } from '../../src/types';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
@@ -208,7 +209,7 @@ export default function CreateBillScreen() {
     });
     if (!result.canceled && result.assets[0]) {
       setGroupPhotoUri(result.assets[0].uri);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      haptic.notification(NotificationFeedbackType.Success);
     }
   };
 
@@ -243,7 +244,7 @@ export default function CreateBillScreen() {
 
   // ── Line items ──
   const handleAddLineItem = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptic.impact(ImpactFeedbackStyle.Light);
     setLineItems((prev) => [
       ...prev,
       { id: generateId(), description: '', quantity: 1, unitPrice: 0 },
@@ -302,7 +303,7 @@ export default function CreateBillScreen() {
   // ── Submit ──
   const handleCreate = async () => {
     if (!validate()) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      haptic.notification(NotificationFeedbackType.Error);
       scrollRef.current?.scrollTo({ y: 0, animated: true });
       return;
     }
@@ -311,7 +312,7 @@ export default function CreateBillScreen() {
 
     try {
       await createBill({
-        organizerId: 'demo_organizer',
+        organizerId: await getOrganizerId(),
         title: title.trim(),
         description: description.trim() || undefined,
         currency,
@@ -378,7 +379,7 @@ export default function CreateBillScreen() {
         <Pressable
           onPress={() => {
             if (isFormDirty) {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              haptic.impact(ImpactFeedbackStyle.Light);
               // TODO: save draft
             }
           }}
@@ -711,7 +712,7 @@ export default function CreateBillScreen() {
               <Pressable
                 style={styles.dateChip}
                 onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  haptic.impact(ImpactFeedbackStyle.Light);
                   setShowDatePicker(true);
                 }}
                 accessibilityRole="button"
@@ -730,20 +731,14 @@ export default function CreateBillScreen() {
             </Field>
 
             {showDatePicker && (
-              <DateTimePicker
+              <DatePickerField
                 value={dueDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 minimumDate={addDays(new Date(), 1)}
-                onChange={(_, selected) => {
+                onChange={(selected) => {
                   setShowDatePicker(Platform.OS === 'ios');
-                  if (selected) {
-                    setDueDate(selected);
-                    Haptics.selectionAsync();
-                  }
+                  setDueDate(selected);
+                  haptic.selection();
                 }}
-                accentColor={colors.primary}
-                textColor={colors.textPrimary}
               />
             )}
 
@@ -757,7 +752,7 @@ export default function CreateBillScreen() {
                     key={days}
                     style={[styles.presetChip, active && styles.presetChipActive]}
                     onPress={() => {
-                      Haptics.selectionAsync();
+                      haptic.selection();
                       setDueDate(d);
                     }}
                   >
@@ -783,7 +778,7 @@ export default function CreateBillScreen() {
               <Switch
                 value={reminderEnabled}
                 onValueChange={(v) => {
-                  Haptics.selectionAsync();
+                  haptic.selection();
                   setReminderEnabled(v);
                 }}
                 trackColor={{ false: colors.gray200, true: colors.primaryLight }}
