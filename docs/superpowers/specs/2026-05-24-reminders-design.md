@@ -99,8 +99,10 @@ Layout (fixed height — no layout shift when reliability chip absent):
 **On channel button tap:**
 1. Construct message from `renderTemplate(tone, { name, bill, amount, when, days, link })`
 2. Open deep link (Linking.openURL)
-3. Insert row into Supabase `reminders` table immediately (optimistic)
-4. Append to `state.reminders.sent` in Zustand
+3. Append optimistic row to `state.reminders.sent` in Zustand immediately (with `syncFailed: false`)
+4. Insert row into Supabase `reminders` table with 3× exponential-backoff retry (100ms → 200ms → 400ms). On permanent failure, mark the row `syncFailed: true` — display a ⚠ icon on that row in the Sent tab. No removal from the list.
+
+**Ad-hoc send during active batch:** If the user taps an individual channel button while a batch is in progress, allow it. The ad-hoc send logs normally but does **not** advance `batchPointer`. The batch toast remains visible and continues from where it was.
 
 ### Empty state
 
@@ -135,7 +137,7 @@ Icon: `send`, title: **"No reminders sent yet"**, sub: **"Send your first remind
 
 ## Pane 3 — Settings
 
-Four white cards. Each setting writes through `store.setSetting('reminders.<key>', value)` which patches the Supabase `user_settings.reminders` jsonb blob **and** updates local Zustand state simultaneously.
+Three white cards. Each setting writes through `store.setSetting('reminders.<key>', value)` which patches the Supabase `user_settings.reminders` jsonb blob **and** updates local Zustand state simultaneously.
 
 ---
 
@@ -164,6 +166,8 @@ No auto-send ever occurs. The cron/scheduler is a future feature.
 
 Three pill buttons: **Friendly · Firm · Final**  
 Active = indigo background + white text. Inactive = slate-100 + slate-700.
+
+**Final tone availability:** The **Final** pill is disabled (opacity 0.4, non-pressable) when no participant in the current queue has `daysToDue < 0` (i.e. no one is overdue). Show a tooltip on long-press: *"Available when at least one participant is overdue."*
 
 Live preview block below pills (italic, slate-700):
 
@@ -199,12 +203,14 @@ All tokens used in `reminderTemplates.ts`:
 |-------|-------|
 | `{name}` | `participant.name` |
 | `{bill}` | `bill.title` |
-| `{amount}` | Formatted currency string e.g. `RM 45.00` |
+| `{amount}` | `formatCurrency(amount, bill.currency)` — e.g. `RM 45.00` |
 | `{when}` | `"today"` / `"in 3 days"` / `"5 days ago"` (computed from `bill.dueDate`) |
 | `{days}` | Integer days overdue (used in `final` tone only) |
 | `{link}` | `https://gocheck.app/bill/{bill.shareLink}` |
 
 No other tokens. Claude Code must not invent additional tokens.
+
+**`organizerId` source:** Always read from `AsyncStorage.getItem('gocheck_organizer_id')` via the existing `getOrganizerId()` function in `src/lib/organizer.ts`. Never hardcode or generate a new ID inline.
 
 ---
 
@@ -289,6 +295,7 @@ interface ReminderRow {
   recipientName: string;
   channel: string;
   sentAt: string;
+  syncFailed?: boolean;  // true when Supabase insert failed after 3 retries
 }
 
 interface QueueItem {
@@ -342,7 +349,7 @@ interface QueueItem {
 5. Reliability chip slot has fixed width — rows don't shift when chip absent
 6. Tone change updates preview text in same render frame
 7. WhatsApp always shown. Email shown only if `participant.email` exists. SMS hidden.
-8. All three settings (cadence, tone, skipPaid, maxPerWeek) round-trip through `user_settings.reminders` jsonb and survive reload
+8. All four settings (cadence, tone, skipPaid, maxPerWeek) round-trip through `user_settings.reminders` jsonb and survive reload
 9. Sent tab shows ⓘ note at top
 10. Empty queue → check-circle empty state, no batch card rendered
 11. Empty sent → send-icon empty state
