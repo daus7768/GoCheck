@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   FlatList,
   Pressable,
   ActivityIndicator,
-  Alert,
   Share,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -94,13 +93,19 @@ export default function BillsScreen() {
   const insets = useSafeAreaInsets();
   const { bills, fetchBills, isLoading } = useBillStore();
   const { sent, settings } = useReminderStore();
-  const { items: queueItems } = buildQueueItems(bills, sent, settings, '');
-  const bellBadge = queueItems.length;
+  const organizerIdRef = useRef('');
 
   const load = useCallback(async () => {
     const id = await getOrganizerId();
+    organizerIdRef.current = id;
     fetchBills(id);
   }, []);
+
+  const { items: queueItems } = useMemo(
+    () => buildQueueItems(bills, sent, settings, organizerIdRef.current),
+    [bills, sent, settings]
+  );
+  const bellBadge = queueItems.length;
 
   useEffect(() => {
     load();
@@ -232,6 +237,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: colors.white,
   },
   bellBadgeCount: {
     fontFamily: typography.sansBold,
