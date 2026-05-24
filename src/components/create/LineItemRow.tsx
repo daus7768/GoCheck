@@ -22,7 +22,6 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
   const subtotal = item.quantity * item.unitPrice;
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
-  const height = useSharedValue<number | undefined>(undefined);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

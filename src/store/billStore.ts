@@ -157,14 +157,17 @@ export const useBillStore = create<BillStore>((set, get) => ({
         status: 'active',
         shareLink: shareCode,
         groupPhotoUrl,
-        participants: (participantRows ?? []).map((p, i) => ({
-          id: p.id,
-          name: p.name,
-          email: p.email ?? undefined,
-          amount: Number(p.amount),
-          isPaid: false,
-          avatarColor: args.participants[i]?.avatarColor ?? '#4F46E5',
-        })),
+        participants: (participantRows ?? []).map((p, i) => {
+          const srcParticipant = args.participants[i];
+          return {
+            id: p.id,
+            name: p.name,
+            email: p.email ?? undefined,
+            amount: Number(p.amount),
+            isPaid: false,
+            avatarColor: srcParticipant?.avatarColor ?? '#4F46E5',
+          };
+        }),
         createdAt: billRow.created_at,
         updatedAt: billRow.updated_at,
       };

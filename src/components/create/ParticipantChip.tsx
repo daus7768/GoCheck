@@ -52,7 +52,7 @@ export function ParticipantChip({ participant, onRemove }: ChipProps) {
   return (
     <Animated.View
       style={animStyle}
-      onLayout={handleMount}
+      onLayout={() => handleMount()}
     >
       <View style={styles.chip}>
         <View style={[styles.avatar, { backgroundColor: participant.avatarColor }]}>
