@@ -43,13 +43,13 @@ export function QueuePane() {
     haptic.impact();
     startBatch(items);
     await openWALink(first);
-    sendReminder(first, 'whatsapp');
+    await sendReminder(first, 'whatsapp');
     advanceBatch();
   };
 
   const allData = [...items, ...limitReached];
 
-  if (allData.length === 0) {
+  if (items.length === 0 && limitReached.length === 0) {
     return (
       <View style={styles.empty}>
         <Feather name="check-circle" size={48} color={colors.gray300} />
@@ -111,7 +111,7 @@ export function QueuePane() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, position: 'relative' },
   list: { padding: spacing[4] },
   empty: {
     flex: 1,
