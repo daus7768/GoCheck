@@ -140,17 +140,124 @@ export async function updateBillStatus(billId: string, status: 'active' | 'compl
 // ─── Storage ───────────────────────────────────────────────────────────────────
 
 export async function uploadGroupPhoto(billId: string, uri: string): Promise<string> {
-  const response = await fetch(uri);
-  const blob = await response.blob();
-  const ext = uri.split('.').pop() ?? 'jpg';
-  const path = `group-photos/${billId}.${ext}`;
+  const path = `group-photos/${billId}.jpg`;
+
+  let fileData: Blob | Uint8Array;
+  let contentType = 'image/jpeg';
+
+  if (uri.startsWith('data:')) {
+    // Web: expo-image-picker returns a data: URI — decode base64 to binary
+    const commaIdx = uri.indexOf(',');
+    const header = uri.slice(0, commaIdx);
+    const base64 = uri.slice(commaIdx + 1);
+    contentType = header.match(/data:([^;]+)/)?.[1] ?? 'image/jpeg';
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    fileData = bytes;
+  } else {
+    // Native: fetch the local file URI as a blob
+    const response = await fetch(uri);
+    fileData = await response.blob();
+    contentType = (fileData as Blob).type || 'image/jpeg';
+  }
 
   const { error } = await supabase.storage
     .from('bill-assets')
-    .upload(path, blob, { upsert: true, contentType: `image/${ext}` });
+    .upload(path, fileData, { upsert: true, contentType });
 
   if (error) throw error;
 
   const { data } = supabase.storage.from('bill-assets').getPublicUrl(path);
   return data.publicUrl;
+}
+
+// ── Reminders ────────────────────────────────────────────────────────────────
+
+interface InsertReminderArgs {
+  organizer_id: string;
+  bill_id: string;
+  participant_id: string;
+  recipient_name: string;
+  channel: string;
+}
+
+export async function insertReminder(args: InsertReminderArgs): Promise<{ id: string }> {
+  const { data, error } = await supabase
+    .from('reminders')
+    .insert({
+      organizer_id: args.organizer_id,
+      bill_id: args.bill_id,
+      participant_id: args.participant_id,
+      recipient_name: args.recipient_name,
+      channel: args.channel,
+    })
+    .select('id')
+    .single();
+  if (error) throw error;
+  return data as { id: string };
+}
+
+export async function loadReminders(organizerId: string): Promise<Array<{
+  id: string;
+  bill_id: string;
+  participant_id: string;
+  recipient_name: string;
+  channel: string;
+  sent_at: string;
+}>> {
+  const { data, error } = await supabase
+    .from('reminders')
+    .select('id, bill_id, participant_id, recipient_name, channel, sent_at')
+    .eq('organizer_id', organizerId)
+    .order('sent_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as Array<{
+    id: string;
+    bill_id: string;
+    participant_id: string;
+    recipient_name: string;
+    channel: string;
+    sent_at: string;
+  }>;
+}
+
+const DEFAULT_SETTINGS = {
+  cadence: 'smart',
+  tone: 'friendly',
+  skipPaid: true,
+  maxPerWeek: 2,
+} as const;
+
+export async function loadSettings(organizerId: string): Promise<{
+  cadence: string;
+  tone: string;
+  skipPaid: boolean;
+  maxPerWeek: number;
+}> {
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('reminders')
+    .eq('organizer_id', organizerId)
+    .single();
+  if (error || !data) return { ...DEFAULT_SETTINGS };
+  return { ...DEFAULT_SETTINGS, ...(data.reminders as object) } as {
+    cadence: string;
+    tone: string;
+    skipPaid: boolean;
+    maxPerWeek: number;
+  };
+}
+
+export async function upsertSettings(
+  organizerId: string,
+  reminders: Record<string, unknown>
+): Promise<void> {
+  const { error } = await supabase
+    .from('user_settings')
+    .upsert(
+      { organizer_id: organizerId, reminders, updated_at: new Date().toISOString() },
+      { onConflict: 'organizer_id' }
+    );
+  if (error) throw error;
 }
