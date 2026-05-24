@@ -1,0 +1,293 @@
+import { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  Modal,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import type { Participant } from '../../types';
+import { colors, typography, fontSize, spacing, radius, shadow } from '../../theme/tokens';
+
+const AVATAR_PALETTE = [
+  '#4F46E5', '#10B981', '#F59E0B', '#EF4444',
+  '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16',
+];
+
+function randomAvatarColor(): string {
+  return AVATAR_PALETTE[Math.floor(Math.random() * AVATAR_PALETTE.length)] ?? '#4F46E5';
+}
+
+interface Props {
+  visible: boolean;
+  onClose: () => void;
+  onAdd: (participant: Participant) => void;
+  existingNames: string[];
+}
+
+export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: Props) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [nameError, setNameError] = useState('');
+  const insets = useSafeAreaInsets();
+  const nameRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+
+  const validate = (): boolean => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setNameError('Name is required');
+      return false;
+    }
+    if (trimmed.length < 2) {
+      setNameError('Name must be at least 2 characters');
+      return false;
+    }
+    if (existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
+      setNameError('A participant with this name already exists');
+      return false;
+    }
+    setNameError('');
+    return true;
+  };
+
+  const handleAdd = () => {
+    if (!validate()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    const participant: Participant = {
+      id: `p_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      name: name.trim(),
+      email: email.trim() || undefined,
+      amount: 0,
+      isPaid: false,
+      avatarColor: randomAvatarColor(),
+    };
+
+    onAdd(participant);
+    setName('');
+    setEmail('');
+    setNameError('');
+    onClose();
+  };
+
+  const handleClose = () => {
+    setName('');
+    setEmail('');
+    setNameError('');
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={handleClose}
+      onShow={() => {
+        setTimeout(() => nameRef.current?.focus(), 100);
+      }}
+    >
+      <KeyboardAvoidingView
+        style={styles.overlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <Pressable style={styles.backdrop} onPress={handleClose} />
+
+        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing[6]) }]}>
+          <View style={styles.handle} />
+
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Add Participant</Text>
+            <Pressable
+              onPress={handleClose}
+              style={styles.closeBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather name="x" size={20} color={colors.textSecondary} />
+            </Pressable>
+          </View>
+
+          {/* Name Input */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>
+              Name <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={[styles.inputWrapper, nameError ? styles.inputError : null]}>
+              <Feather name="user" size={16} color={nameError ? colors.error : colors.gray400} />
+              <TextInput
+                ref={nameRef}
+                style={styles.input}
+                value={name}
+                onChangeText={(v) => {
+                  setName(v);
+                  if (nameError) setNameError('');
+                }}
+                placeholder="e.g. Sarah Lim"
+                placeholderTextColor={colors.textTertiary}
+                autoCapitalize="words"
+                autoCorrect={false}
+                returnKeyType="next"
+                onSubmitEditing={() => emailRef.current?.focus()}
+                maxLength={60}
+              />
+            </View>
+            {nameError ? (
+              <Text style={styles.errorText}>{nameError}</Text>
+            ) : null}
+          </View>
+
+          {/* Email Input */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>
+              Email <Text style={styles.optional}>(optional)</Text>
+            </Text>
+            <View style={styles.inputWrapper}>
+              <Feather name="mail" size={16} color={colors.gray400} />
+              <TextInput
+                ref={emailRef}
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="sarah@example.com"
+                placeholderTextColor={colors.textTertiary}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleAdd}
+                maxLength={100}
+              />
+            </View>
+          </View>
+
+          {/* Add Button */}
+          <Pressable
+            style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.9 }]}
+            onPress={handleAdd}
+          >
+            <Feather name="user-plus" size={18} color={colors.white} />
+            <Text style={styles.addBtnText}>Add Participant</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius['3xl'],
+    borderTopRightRadius: radius['3xl'],
+    paddingTop: spacing[2],
+    paddingHorizontal: spacing[4],
+    ...shadow.lg,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: colors.gray200,
+    borderRadius: radius.full,
+    alignSelf: 'center',
+    marginBottom: spacing[5],
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing[6],
+  },
+  title: {
+    fontFamily: typography.sansBold,
+    fontSize: fontSize.lg,
+    color: colors.textPrimary,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    backgroundColor: colors.gray100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fieldGroup: {
+    marginBottom: spacing[4],
+  },
+  label: {
+    fontFamily: typography.sansMedium,
+    fontSize: fontSize.sm,
+    color: colors.textPrimary,
+    marginBottom: spacing[1.5],
+  },
+  required: {
+    color: colors.error,
+  },
+  optional: {
+    fontFamily: typography.sansRegular,
+    color: colors.textSecondary,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.gray50,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing[3],
+    height: 52,
+  },
+  inputError: {
+    borderColor: colors.error,
+    backgroundColor: colors.errorSurface,
+  },
+  input: {
+    flex: 1,
+    fontFamily: typography.sansRegular,
+    fontSize: fontSize.base,
+    color: colors.textPrimary,
+  },
+  errorText: {
+    fontFamily: typography.sansRegular,
+    fontSize: fontSize.xs,
+    color: colors.error,
+    marginTop: spacing[1],
+    marginLeft: spacing[1],
+  },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.primary,
+    borderRadius: radius.xl,
+    height: 56,
+    marginTop: spacing[2],
+    ...shadow.lg,
+  },
+  addBtnText: {
+    fontFamily: typography.sansSemiBold,
+    fontSize: fontSize.base,
+    color: colors.white,
+  },
+});
