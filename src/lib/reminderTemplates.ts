@@ -11,7 +11,7 @@ interface TemplateTokens {
   bill: string;
   amount: string;
   when: string;
-  days: number;
+  days?: number;
   link: string;
 }
 
@@ -26,12 +26,12 @@ export function renderTemplate(tone: ReminderTone, tokens: TemplateTokens): stri
     .replace(/{bill}/g, tokens.bill)
     .replace(/{amount}/g, tokens.amount)
     .replace(/{when}/g, tokens.when)
-    .replace(/{days}/g, String(tokens.days))
+    .replace(/{days}/g, String(tokens.days ?? 0))
     .replace(/{link}/g, tokens.link);
 }
 
 export const REMINDER_PREVIEWS: Record<ReminderTone, string> = {
-  friendly: `Hey {name}! Just a heads up — your share of "{bill}" ({amount}) is due {when}. Easy to settle from the link below. Cheers! 🙌`,
+  friendly: `Hey {name}! Just a heads up — your share of "{bill}" ({amount}) is due {when}. Easy to settle from the link below. Cheers! 🙌\n{link}`,
   firm: `Hi {name}, your share of "{bill}" ({amount}) is due {when}. Please settle at your earliest convenience: {link}`,
   final: `{name} — final reminder. {amount} for "{bill}" is overdue by {days} days. Please pay today: {link}`,
 };
