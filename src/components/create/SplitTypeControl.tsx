@@ -5,7 +5,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { haptic } from '../../lib/haptics';
 import type { SplitType } from '../../types';
 import { colors, typography, fontSize, radius, animation } from '../../theme/tokens';
 
@@ -48,7 +48,7 @@ export function SplitTypeControl({ value, onChange }: Props) {
   }));
 
   const handlePress = (seg: SplitType) => {
-    Haptics.selectionAsync();
+    haptic.selection();
     onChange(seg);
   };
 

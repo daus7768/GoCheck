@@ -10,7 +10,7 @@ import Animated, {
   interpolateColor,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from '../../lib/haptics';
 import { colors, typography, fontSize, radius, shadow } from '../../theme/tokens';
 
 type ButtonState = 'idle' | 'loading' | 'success';
@@ -32,7 +32,7 @@ export function CreateBillCTA({ onPress, state, disabled, label = 'Create Bill' 
       progress.value = withTiming(1, { duration: 300 });
       successScale.value = 0;
     } else if (state === 'success') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      haptic.notification(NotificationFeedbackType.Success);
       successScale.value = withSequence(
         withSpring(1.3, { damping: 10, stiffness: 300 }),
         withDelay(100, withSpring(1, { damping: 15, stiffness: 300 }))
@@ -68,7 +68,7 @@ export function CreateBillCTA({ onPress, state, disabled, label = 'Create Bill' 
 
   const handlePress = () => {
     if (state !== 'idle' || disabled) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptic.impact(ImpactFeedbackStyle.Medium);
     onPress();
   };
 

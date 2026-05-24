@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { haptic, ImpactFeedbackStyle } from '../../lib/haptics';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import type { Currency } from '../../types';
 import { SUPPORTED_CURRENCIES, CURRENCY_SYMBOLS, CURRENCY_LABELS } from '../../types';
@@ -31,7 +31,7 @@ export function CurrencySelector({ value, onChange }: Props) {
   }));
 
   const handleSelect = (currency: Currency) => {
-    Haptics.selectionAsync();
+    haptic.selection();
     onChange(currency);
     setOpen(false);
   };
@@ -42,7 +42,7 @@ export function CurrencySelector({ value, onChange }: Props) {
         <Pressable
           style={styles.chip}
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            haptic.impact(ImpactFeedbackStyle.Light);
             setOpen(true);
           }}
           onPressIn={() => { scale.value = withSpring(0.95, { damping: 20, stiffness: 400 }); }}
