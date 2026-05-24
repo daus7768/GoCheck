@@ -10,6 +10,7 @@ export interface Participant {
   id: string;
   name: string;
   email?: string;
+  phone?: string;
   amount: number;
   isPaid: boolean;
   paidAt?: string | null;
@@ -101,6 +102,46 @@ export interface Payment {
   confirmedAt?: string;
   timestamp: string;
 }
+
+export type ReminderChannel = 'whatsapp' | 'email';
+
+export type ReminderTone = 'friendly' | 'firm' | 'final';
+
+export type ReminderCadence = 'manual' | 'smart' | 'aggressive';
+
+export interface ReminderSettings {
+  cadence: ReminderCadence;
+  tone: ReminderTone;
+  skipPaid: boolean;
+  maxPerWeek: number;
+}
+
+export interface ReminderRow {
+  id: string;
+  billId: string;
+  participantId: string;
+  recipientName: string;
+  channel: ReminderChannel;
+  sentAt: string;
+  syncFailed?: boolean;
+}
+
+export interface QueueItem {
+  billId: string;
+  billTitle: string;
+  participantId: string;
+  participantName: string;
+  participantPhone?: string;
+  participantEmail?: string;
+  participantAvatarColor: string;
+  amount: number;
+  currency: Currency;
+  dueDate: string;
+  shareLink: string;
+  daysToDue: number;
+}
+
+export type ReliabilityLabel = 'reliable' | 'on-time' | 'slow' | 'at-risk';
 
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   MYR: 'RM',
