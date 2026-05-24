@@ -62,10 +62,16 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
     try {
       const organizerId = await getOrganizerId();
       const raw = await fetchSettings(organizerId);
+      const VALID_CADENCES: ReminderSettings['cadence'][] = ['manual', 'smart', 'aggressive'];
+      const VALID_TONES: ReminderSettings['tone'][] = ['friendly', 'firm', 'final'];
       set({
         settings: {
-          cadence: (raw.cadence as ReminderSettings['cadence']) ?? DEFAULT_SETTINGS.cadence,
-          tone: (raw.tone as ReminderSettings['tone']) ?? DEFAULT_SETTINGS.tone,
+          cadence: VALID_CADENCES.includes(raw.cadence as ReminderSettings['cadence'])
+            ? (raw.cadence as ReminderSettings['cadence'])
+            : DEFAULT_SETTINGS.cadence,
+          tone: VALID_TONES.includes(raw.tone as ReminderSettings['tone'])
+            ? (raw.tone as ReminderSettings['tone'])
+            : DEFAULT_SETTINGS.tone,
           skipPaid: typeof raw.skipPaid === 'boolean' ? raw.skipPaid : DEFAULT_SETTINGS.skipPaid,
           maxPerWeek: typeof raw.maxPerWeek === 'number' ? raw.maxPerWeek : DEFAULT_SETTINGS.maxPerWeek,
         },
