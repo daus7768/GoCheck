@@ -2,6 +2,7 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
+import type { UserProfile } from '../types';
 
 const supabaseUrl = (Constants.expoConfig?.extra?.supabaseUrl as string | undefined) ?? '';
 const supabaseAnonKey = (Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined) ?? '';
@@ -270,4 +271,60 @@ export async function upsertSettings(
       { onConflict: 'organizer_id' }
     );
   if (error) throw error;
+}
+
+// ─── Profile Operations ──────────────────────────────────────────────────────────
+
+function rowToProfile(row: Record<string, unknown>): UserProfile {
+  return {
+    id: row.id as string,
+    displayName: (row.display_name as string) ?? '',
+    avatarUrl: (row.avatar_url as string) ?? null,
+    defaultCurrency: (row.default_currency as UserProfile['defaultCurrency']) ?? 'MYR',
+    darkMode: Boolean(row.dark_mode),
+    offlineMode: Boolean(row.offline_mode),
+    paymentMethods: (row.payment_methods as UserProfile['paymentMethods']) ?? [],
+    notifPush: Boolean(row.notif_push),
+    notifEmail: Boolean(row.notif_email),
+    notifWhatsapp: Boolean(row.notif_whatsapp),
+    notifDueSoon: Boolean(row.notif_due_soon),
+    notifOverdue: Boolean(row.notif_overdue),
+    notifWeeklyDigest: Boolean(row.notif_weekly_digest),
+  };
+}
+
+export async function getProfile(userId: string): Promise<UserProfile | null> {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? rowToProfile(data as Record<string, unknown>) : null;
+}
+
+export async function upsertProfile(
+  profile: Partial<UserProfile> & { id: string }
+): Promise<UserProfile> {
+  const row: Record<string, unknown> = { id: profile.id };
+  if (profile.displayName !== undefined) row.display_name = profile.displayName;
+  if (profile.avatarUrl !== undefined) row.avatar_url = profile.avatarUrl;
+  if (profile.defaultCurrency !== undefined) row.default_currency = profile.defaultCurrency;
+  if (profile.darkMode !== undefined) row.dark_mode = profile.darkMode;
+  if (profile.offlineMode !== undefined) row.offline_mode = profile.offlineMode;
+  if (profile.paymentMethods !== undefined) row.payment_methods = profile.paymentMethods;
+  if (profile.notifPush !== undefined) row.notif_push = profile.notifPush;
+  if (profile.notifEmail !== undefined) row.notif_email = profile.notifEmail;
+  if (profile.notifWhatsapp !== undefined) row.notif_whatsapp = profile.notifWhatsapp;
+  if (profile.notifDueSoon !== undefined) row.notif_due_soon = profile.notifDueSoon;
+  if (profile.notifOverdue !== undefined) row.notif_overdue = profile.notifOverdue;
+  if (profile.notifWeeklyDigest !== undefined) row.notif_weekly_digest = profile.notifWeeklyDigest;
+
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .upsert(row, { onConflict: 'id' })
+    .select()
+    .single();
+  if (error) throw error;
+  return rowToProfile(data as Record<string, unknown>);
 }

@@ -177,3 +177,57 @@ export const SPLIT_TYPE_LABELS: Record<SplitType, string> = {
   percent: 'Percent',
   shares: 'Shares',
 };
+
+// ─── Profile & Auth ────────────────────────────────────────────────────────────
+
+export type PaymentMethodKey = 'duitnow' | 'card' | 'paypal' | 'bank';
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethodKey, string> = {
+  duitnow: 'DuitNow',
+  card: 'Card via Stripe',
+  paypal: 'PayPal',
+  bank: 'Bank Transfer',
+};
+
+export const PAYMENT_METHOD_SUBTITLES: Record<PaymentMethodKey, string> = {
+  duitnow: 'Instant transfer · MYR',
+  card: 'Visa ending 4242',
+  paypal: 'paypal.me/user',
+  bank: 'Direct bank transfer',
+};
+
+export interface UserProfile {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+  defaultCurrency: Currency;
+  darkMode: boolean;
+  offlineMode: boolean;
+  paymentMethods: PaymentMethodKey[];
+  notifPush: boolean;
+  notifEmail: boolean;
+  notifWhatsapp: boolean;
+  notifDueSoon: boolean;
+  notifOverdue: boolean;
+  notifWeeklyDigest: boolean;
+}
+
+export interface SecuritySettings {
+  pinEnabled: boolean;
+  biometricEnabled: boolean;
+  autoLockDuration: number; // seconds; -1 = never
+}
+
+export const AUTO_LOCK_OPTIONS: { label: string; value: number }[] = [
+  { label: '1 minute', value: 60 },
+  { label: '5 minutes', value: 300 },
+  { label: '15 minutes', value: 900 },
+  { label: '30 minutes', value: 1800 },
+  { label: 'Never', value: -1 },
+];
+
+export function autoLockLabel(seconds: number): string {
+  if (seconds === -1) return 'Never';
+  const option = AUTO_LOCK_OPTIONS.find(o => o.value === seconds);
+  return option ? `After ${option.label} idle` : 'After 5 minutes idle';
+}
