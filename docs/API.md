@@ -1,9 +1,7 @@
 # GoCheck API Documentation
 
-## Base URL
 
-**Development:** `http://localhost:5000/api`  
-**Production:** `https://api.gocheck.com/api` (TBD)
+
 
 ## Authentication
 
