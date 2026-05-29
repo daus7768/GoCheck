@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import Svg, { Rect, Text as SvgText, G } from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -12,7 +12,11 @@ import { formatCurrency } from '../../lib/reminderTemplates';
 import type { ForecastMonth } from '../../lib/reportsCompute';
 import type { Currency } from '../../types';
 
-const AnimatedRect = Animated.createAnimatedComponent(Rect);
+// On web, Animated.createAnimatedComponent(Rect) causes React DOM to receive
+// onStartShouldSetResponder which it doesn't recognise. Gate it to native only.
+const AnimatedRect = Platform.OS !== 'web'
+  ? Animated.createAnimatedComponent(Rect)
+  : null;
 
 interface Props {
   data: ForecastMonth[];
@@ -51,10 +55,7 @@ function BarGroup({
 
   const projectedProps = useAnimatedProps(() => {
     const h = expectedHeight * progress.value;
-    return {
-      y: chartHeight - totalBarH * progress.value,
-      height: h,
-    };
+    return { y: chartHeight - totalBarH * progress.value, height: h };
   });
 
   const recurringProps = useAnimatedProps(() => {
@@ -64,6 +65,31 @@ function BarGroup({
       height: h,
     };
   });
+
+  // On web AnimatedRect is null — use static Rect to avoid passing
+  // onStartShouldSetResponder to SVG DOM elements.
+  if (Platform.OS === 'web' || !AnimatedRect) {
+    return (
+      <G>
+        <Rect
+          x={x}
+          width={barWidth}
+          rx={3}
+          fill={isCurrent ? COLORS.projectedCurrent : COLORS.projected}
+          y={chartHeight - totalBarH}
+          height={expectedHeight}
+        />
+        <Rect
+          x={x}
+          width={barWidth}
+          rx={0}
+          fill={isCurrent ? COLORS.recurringCurrent : COLORS.recurring}
+          y={chartHeight - recurringHeight}
+          height={recurringHeight}
+        />
+      </G>
+    );
+  }
 
   return (
     <G>

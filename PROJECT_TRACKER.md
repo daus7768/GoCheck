@@ -28,7 +28,7 @@
 
 **Tasks:**
 - [ ] Initialize Node.js + Express server
-- [ ] Set up database (MongoDB or PostgreSQL)
+- [ ] Set up database (supabase)
 - [ ] Create Bill model/schema
 - [ ] Create Participant model/schema
 - [ ] Create Payment model/schema

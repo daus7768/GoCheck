@@ -25,7 +25,7 @@ GoCheck is a web app that helps groups split bills and track payments without th
 ### Prerequisites
 - Node.js 16+
 - npm or yarn
-- MongoDB or PostgreSQL
+- supabase
 
 ### Setup
 
@@ -88,7 +88,7 @@ GoCheck/
 
 - **Frontend:** React/TypeScript with responsive design
 - **Backend:** Node.js/Express REST API
-- **Database:** MongoDB/PostgreSQL
+- **Database:** supabase
 - **Hosting:** TBD (Vercel for frontend, Railway/Heroku for backend)
 - **Payment Flow:** Simulated (button confirmation, no real gateway)
 
