@@ -59,6 +59,16 @@ function ReliabilityRow({ item }: { item: ReliabilityResult }) {
         <Text style={styles.sub}>{avgLabel}</Text>
       </View>
       <View style={styles.scoreGroup}>
+        <View
+          style={[
+            styles.bandPill,
+            { backgroundColor: hexToRgba(item.band.color, 0.12) },
+          ]}
+        >
+          <Text style={[styles.bandText, { color: item.band.color }]}>
+            {item.band.label}
+          </Text>
+        </View>
         <View style={styles.barTrack}>
           <Animated.View
             style={[styles.barFill, barStyle, { backgroundColor: item.band.color }]}
@@ -142,9 +152,18 @@ const styles = StyleSheet.create({
     color: colors.gray400,
   },
   scoreGroup: {
-    width: 110,
+    width: 118,
     alignItems: 'flex-end',
-    gap: 3,
+    gap: 4,
+  },
+  bandPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+  },
+  bandText: {
+    fontFamily: typography.sansBold,
+    fontSize: 9,
   },
   barTrack: {
     width: '100%',

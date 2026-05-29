@@ -1,5 +1,7 @@
 import {
   computeTrend,
+  computeCollectedYtd,
+  computeCollectionRate,
   forecastMonths,
   categoryBuckets,
   reliabilityFor,
@@ -28,6 +30,41 @@ function makeBill(overrides: Partial<Bill> & { participants?: Bill['participants
     ...overrides,
   };
 }
+
+// ── computeCollectedYtd / computeCollectionRate ───────────────────────────────
+
+describe('computeCollectedYtd', () => {
+  it('sums paid amounts from the current year only', () => {
+    const bills = [
+      makeBill({
+        createdAt: new Date().toISOString(),
+        participants: [
+          { id: 'p1', name: 'A', amount: 50, isPaid: true, paidAt: new Date().toISOString(), avatarColor: '' },
+          { id: 'p2', name: 'B', amount: 200, isPaid: true, paidAt: '2020-01-01', avatarColor: '' },
+        ],
+      }),
+    ];
+    expect(computeCollectedYtd(bills)).toBe(50);
+  });
+});
+
+describe('computeCollectionRate', () => {
+  it('returns 0 when there are no participants', () => {
+    expect(computeCollectionRate([])).toBe(0);
+  });
+
+  it('returns rounded percent paid', () => {
+    const bills = [
+      makeBill({
+        participants: [
+          { id: 'p1', name: 'A', amount: 50, isPaid: true, paidAt: null, avatarColor: '' },
+          { id: 'p2', name: 'B', amount: 50, isPaid: false, paidAt: null, avatarColor: '' },
+        ],
+      }),
+    ];
+    expect(computeCollectionRate(bills)).toBe(50);
+  });
+});
 
 // ── computeTrend ──────────────────────────────────────────────────────────────
 
@@ -131,6 +168,22 @@ describe('categoryBuckets', () => {
     const result = categoryBuckets([bill]);
     expect(result[0]!.cat).toBe('other');
     expect(result[0]!.amount).toBe(100);
+  });
+
+  it('includes percent of total per category', () => {
+    const bills = [
+      makeBill({
+        category: 'food',
+        participants: [{ id: 'p1', name: 'A', amount: 75, isPaid: false, paidAt: null, avatarColor: '' }],
+      }),
+      makeBill({
+        category: 'travel',
+        participants: [{ id: 'p2', name: 'B', amount: 25, isPaid: false, paidAt: null, avatarColor: '' }],
+      }),
+    ];
+    const rows = categoryBuckets(bills);
+    expect(rows[0]?.percent).toBe(75);
+    expect(rows[1]?.percent).toBe(25);
   });
 
   it('sorts descending by amount', () => {

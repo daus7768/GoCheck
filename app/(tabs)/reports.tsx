@@ -15,6 +15,7 @@ import { ForecastCard } from '../../src/components/reports/ForecastCard';
 import { CategoryCard } from '../../src/components/reports/CategoryCard';
 import { ReliabilityCard } from '../../src/components/reports/ReliabilityCard';
 import { ExportCard } from '../../src/components/reports/ExportCard';
+import { ReportsSummaryStrip } from '../../src/components/reports/ReportsSummaryStrip';
 
 function SkeletonBlock({ height = 100 }: { height?: number }) {
   return <View style={[styles.skeleton, { height }]} />;
@@ -47,6 +48,9 @@ export default function ReportsScreen() {
     totalCollected,
     totalOutstanding,
     outstandingCount,
+    collectionRate,
+    totalBills,
+    activeBills,
     trendPercent,
     trendDirection,
     forecastData,
@@ -58,6 +62,7 @@ export default function ReportsScreen() {
   } = useReportsData(forecastRange);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
   useEffect(() => {
     if (bills.length === 0) {
@@ -69,6 +74,7 @@ export default function ReportsScreen() {
   const handleRefresh = async () => {
     setRefreshing(true);
     await refresh();
+    setLastRefreshed(new Date());
     setRefreshing(false);
   };
 
@@ -96,6 +102,11 @@ export default function ReportsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={[styles.header, shadow.sm]}>
         <Text style={styles.headerTitle}>Reports & Insights</Text>
+        {lastRefreshed !== null && bills.length > 0 && (
+          <Text style={styles.headerSub}>
+            Updated {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
+        )}
       </View>
 
       <ScrollView
@@ -113,10 +124,16 @@ export default function ReportsScreen() {
           <EmptyState />
         ) : (
           <>
+            <ReportsSummaryStrip
+              collectionRate={collectionRate}
+              totalBills={totalBills}
+              activeBills={activeBills}
+            />
             <StatCardRow
               totalCollected={totalCollected}
               totalOutstanding={totalOutstanding}
               outstandingCount={outstandingCount}
+              collectionRate={collectionRate}
               trendPercent={trendPercent}
               trendDirection={trendDirection}
               currency={currency}
@@ -154,6 +171,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.sansBold,
     fontSize: fontSize.lg,
     color: colors.gray900,
+  },
+  headerSub: {
+    fontFamily: typography.sansRegular,
+    fontSize: fontSize['2xs'],
+    color: colors.gray400,
+    marginTop: 2,
   },
   content: {
     padding: spacing[4],

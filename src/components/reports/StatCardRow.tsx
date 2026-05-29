@@ -8,6 +8,7 @@ interface Props {
   totalCollected: number;
   totalOutstanding: number;
   outstandingCount: number;
+  collectionRate: number;
   trendPercent: number | null;
   trendDirection: 'up' | 'down' | null;
   currency: Currency;
@@ -17,6 +18,7 @@ export function StatCardRow({
   totalCollected,
   totalOutstanding,
   outstandingCount,
+  collectionRate,
   trendPercent,
   trendDirection,
   currency,
@@ -27,14 +29,18 @@ export function StatCardRow({
       <View style={[styles.card, shadow.sm]}>
         <Text style={styles.eyebrowGreen}>COLLECTED (YTD)</Text>
         <Text style={styles.bigNumber}>{formatCurrency(totalCollected, currency)}</Text>
-        {trendDirection !== null && trendPercent !== null && (
-          <View style={trendDirection === 'up' ? styles.pillUp : styles.pillDown}>
-            <Text style={trendDirection === 'up' ? styles.pillTextUp : styles.pillTextDown}>
-              {trendDirection === 'up' ? '↗' : '↘'} {trendDirection === 'up' ? '+' : '−'}
-              {trendPercent}% vs last month
-            </Text>
-          </View>
-        )}
+        <View style={styles.metaRow}>
+          {trendDirection !== null && trendPercent !== null ? (
+            <View style={trendDirection === 'up' ? styles.pillUp : styles.pillDown}>
+              <Text style={trendDirection === 'up' ? styles.pillTextUp : styles.pillTextDown}>
+                {trendDirection === 'up' ? '↗' : '↘'} {trendDirection === 'up' ? '+' : '−'}
+                {trendPercent}% vs last month
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.rateSub}>{collectionRate}% collection rate</Text>
+          )}
+        </View>
       </View>
 
       {/* Card B — Outstanding */}
@@ -110,5 +116,14 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.gray500,
     marginTop: 4,
+  },
+  metaRow: {
+    minHeight: 20,
+    justifyContent: 'center',
+  },
+  rateSub: {
+    fontFamily: typography.sansRegular,
+    fontSize: 10,
+    color: colors.gray500,
   },
 });

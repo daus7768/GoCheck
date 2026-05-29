@@ -47,7 +47,12 @@ function BarRow({ row, maxAmount, currency }: BarRowProps) {
           />
         </View>
       </View>
-      <Text style={styles.amount}>{formatCurrency(row.amount, currency)}</Text>
+      <View style={styles.amountCol}>
+        <Text style={styles.amount}>{formatCurrency(row.amount, currency)}</Text>
+        {row.percent !== undefined && (
+          <Text style={styles.pct}>{row.percent}%</Text>
+        )}
+      </View>
     </View>
   );
 }
@@ -105,11 +110,19 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
+  amountCol: {
+    width: 72,
+    alignItems: 'flex-end',
+  },
   amount: {
     fontFamily: typography.monoMedium,
     fontSize: 11,
     color: colors.gray900,
-    width: 64,
-    textAlign: 'right',
+  },
+  pct: {
+    fontFamily: typography.sansRegular,
+    fontSize: 9,
+    color: colors.gray400,
+    marginTop: 1,
   },
 });
