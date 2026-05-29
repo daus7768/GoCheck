@@ -32,6 +32,8 @@ import { ParticipantChip, AddParticipantChip } from '../../src/components/create
 import { LineItemRow, AddLineItemButton } from '../../src/components/create/LineItemRow';
 import { CurrencySelector } from '../../src/components/create/CurrencySelector';
 import { CreateBillCTA } from '../../src/components/create/CreateBillCTA';
+import { BillCreatedSheet } from '../../src/components/bill/BillCreatedSheet';
+import type { Bill } from '../../src/types';
 import { AddParticipantModal } from '../../src/components/create/AddParticipantModal';
 import { DatePickerField } from '../../src/components/create/DatePickerField';
 import { useBillStore } from '../../src/store/billStore';
@@ -176,6 +178,8 @@ export default function CreateBillScreen() {
   const [addParticipantVisible, setAddParticipantVisible] = useState(false);
   const [ctaState, setCtaState] = useState<'idle' | 'loading' | 'success'>('idle');
   const [category, setCategory] = useState<'travel' | 'food' | 'housing' | 'other'>('other');
+  const [createdBill, setCreatedBill] = useState<Bill | null>(null);
+  const [showSuccessSheet, setShowSuccessSheet] = useState(false);
 
   // ── Derived values ──
   const totalAmount = parseFloat(amountRaw) || 0;
@@ -301,8 +305,30 @@ export default function CreateBillScreen() {
     return valid;
   };
 
+  const resetForm = useCallback(() => {
+    setTitle('');
+    setTitleError('');
+    setCurrency('MYR');
+    setAmountRaw('');
+    setAmountError('');
+    setSplitType('equal');
+    setParticipants([]);
+    setParticipantsError('');
+    setLineItems([]);
+    setTaxRateRaw('6');
+    setDueDate(addDays(new Date(), 7));
+    setShowDatePicker(false);
+    setDescription('');
+    setReminderEnabled(true);
+    setGroupPhotoUri(undefined);
+    setCategory('other');
+    setCtaState('idle');
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, []);
+
   // ── Submit ──
   const handleCreate = async () => {
+    if (showSuccessSheet) return;
     if (!validate()) {
       haptic.notification(NotificationFeedbackType.Error);
       scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -312,7 +338,7 @@ export default function CreateBillScreen() {
     setCtaState('loading');
 
     try {
-      await createBill({
+      const bill = await createBill({
         organizerId: await getOrganizerId(),
         title: title.trim(),
         description: description.trim() || undefined,
@@ -331,10 +357,9 @@ export default function CreateBillScreen() {
         isRecurring: null,
       });
 
-      setCtaState('success');
-      setTimeout(() => {
-        router.back();
-      }, 1200);
+      setCtaState('idle');
+      setCreatedBill(bill);
+      setShowSuccessSheet(true);
     } catch {
       setCtaState('idle');
       Alert.alert('Something went wrong', 'Could not create the bill. Please try again.', [
@@ -342,6 +367,21 @@ export default function CreateBillScreen() {
       ]);
     }
   };
+
+  const handleViewCreatedBill = useCallback(() => {
+    setShowSuccessSheet(false);
+    const id = createdBill?.id;
+    setCreatedBill(null);
+    if (id) {
+      router.replace(`/(modals)/bill/${id}`);
+    }
+  }, [createdBill?.id]);
+
+  const handleCreateAnother = useCallback(() => {
+    setShowSuccessSheet(false);
+    setCreatedBill(null);
+    resetForm();
+  }, [resetForm]);
 
   const isFormDirty = title.length > 0 || participants.length > 0 || lineItems.length > 0;
 
@@ -852,13 +892,23 @@ export default function CreateBillScreen() {
             onPress={handleCreate}
             state={ctaState}
             disabled={
+              showSuccessSheet ||
               ctaState !== 'idle' ||
+              isCreating ||
               title.trim().length < 3 ||
               participants.length < 2
             }
           />
         </View>
       </KeyboardAvoidingView>
+
+      <BillCreatedSheet
+        visible={showSuccessSheet}
+        bill={createdBill}
+        canShare={Boolean(createdBill?.shareLink)}
+        onViewBill={handleViewCreatedBill}
+        onCreateAnother={handleCreateAnother}
+      />
 
       {/* ── Add Participant Modal ──────────────────────────────────── */}
       <AddParticipantModal

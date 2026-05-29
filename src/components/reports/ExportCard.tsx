@@ -53,19 +53,29 @@ export function ExportCard({ bills, currency }: Props) {
       <Text style={styles.sub}>Download a full breakdown for accounting or tax filing.</Text>
       <View style={styles.btnRow}>
         <Pressable
-          style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}
+          style={({ pressed }) => [
+            styles.btn,
+            styles.btnCsv,
+            pressed && styles.btnPressed,
+          ]}
           onPress={handleCsv}
           disabled={isExportingCsv}
         >
           {isExportingCsv ? (
-            <ActivityIndicator size="small" color={colors.gray600} />
+            <ActivityIndicator size="small" color={colors.primary} />
           ) : (
-            <Feather name="download" size={14} color={colors.gray600} />
+            <Feather name="download" size={14} color={colors.primary} />
           )}
-          <Text style={styles.btnLabel}>{isExportingCsv ? 'Preparing…' : 'CSV'}</Text>
+          <Text style={[styles.btnLabel, styles.btnLabelPrimary]}>
+            {isExportingCsv ? 'Preparing…' : 'Export CSV'}
+          </Text>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}
+          style={({ pressed }) => [
+            styles.btn,
+            styles.btnPdf,
+            pressed && styles.btnPressed,
+          ]}
           onPress={handlePdf}
           disabled={isExportingPdf}
         >
@@ -74,7 +84,7 @@ export function ExportCard({ bills, currency }: Props) {
           ) : (
             <Feather name="file-text" size={14} color={colors.gray600} />
           )}
-          <Text style={styles.btnLabel}>{isExportingPdf ? 'Preparing…' : 'PDF'}</Text>
+          <Text style={styles.btnLabel}>{isExportingPdf ? 'Preparing…' : 'Export PDF'}</Text>
         </Pressable>
       </View>
     </View>
@@ -111,17 +121,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     borderWidth: 1.5,
-    borderColor: colors.border,
     borderRadius: radius.xl,
-    paddingVertical: 10,
+    paddingVertical: 11,
+  },
+  btnCsv: {
+    borderColor: colors.primaryBorder,
+    backgroundColor: colors.primarySurface,
+  },
+  btnPdf: {
+    borderColor: colors.border,
     backgroundColor: colors.surface,
   },
   btnPressed: {
-    backgroundColor: colors.gray50,
+    opacity: 0.85,
   },
   btnLabel: {
     fontFamily: typography.sansBold,
-    fontSize: 13,
+    fontSize: 12,
     color: colors.gray700,
+  },
+  btnLabelPrimary: {
+    color: colors.primary,
   },
 });

@@ -3,6 +3,8 @@ import { useBillStore } from '../store/billStore';
 import { getOrganizerId } from '../lib/organizer';
 import {
   computeTrend,
+  computeCollectedYtd,
+  computeCollectionRate,
   forecastMonths,
   categoryBuckets,
   topReliability,
@@ -18,6 +20,9 @@ export interface ReportsData {
   totalCollected: number;
   totalOutstanding: number;
   outstandingCount: number;
+  collectionRate: number;
+  totalBills: number;
+  activeBills: number;
   trendPercent: number | null;
   trendDirection: 'up' | 'down' | null;
   forecastData: ForecastMonth[];
@@ -38,12 +43,13 @@ export function useReportsData(forecastRange: ForecastRange = '6m'): ReportsData
 
   const currency: Currency = (bills[0]?.currency ?? 'MYR') as Currency;
 
-  const totalCollected = useMemo(
-    () =>
-      bills
-        .flatMap((b) => b.participants)
-        .filter((p) => p.isPaid)
-        .reduce((s, p) => s + p.amount, 0),
+  const totalCollected = useMemo(() => computeCollectedYtd(bills), [bills]);
+
+  const collectionRate = useMemo(() => computeCollectionRate(bills), [bills]);
+
+  const totalBills = bills.length;
+  const activeBills = useMemo(
+    () => bills.filter((b) => b.status === 'active').length,
     [bills]
   );
 
@@ -79,6 +85,9 @@ export function useReportsData(forecastRange: ForecastRange = '6m'): ReportsData
     totalCollected,
     totalOutstanding,
     outstandingCount,
+    collectionRate,
+    totalBills,
+    activeBills,
     trendPercent: trend?.percent ?? null,
     trendDirection: trend?.direction ?? null,
     forecastData,

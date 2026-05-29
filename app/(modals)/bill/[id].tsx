@@ -7,7 +7,6 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
-  Share,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +18,7 @@ import { supabase, markParticipantPaid, updateBillStatus, deleteBill } from '../
 import { getOrganizerId } from '../../../src/lib/organizer';
 import { CURRENCY_SYMBOLS } from '../../../src/types';
 import type { Bill } from '../../../src/types';
+import { shareBillLink } from '../../../src/lib/share';
 
 export default function BillDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -122,11 +122,7 @@ export default function BillDetailScreen() {
   };
 
   const handleShare = async () => {
-    const url = `https://gocheck.app/bill/${bill.shareLink}`;
-    await Share.share({
-      message: `Pay your share for "${bill.title}": ${url}`,
-      url,
-    });
+    await shareBillLink(bill);
   };
 
   const handleComplete = () => {

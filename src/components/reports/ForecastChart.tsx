@@ -1,5 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  Pressable,
+  type LayoutChangeEvent,
+} from 'react-native';
 import Svg, { Rect, Text as SvgText, G } from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -7,16 +14,13 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { colors, typography, fontSize } from '../../theme/tokens';
+import { colors, typography } from '../../theme/tokens';
 import { formatCurrency } from '../../lib/reminderTemplates';
 import type { ForecastMonth } from '../../lib/reportsCompute';
 import type { Currency } from '../../types';
 
-// On web, Animated.createAnimatedComponent(Rect) causes React DOM to receive
-// onStartShouldSetResponder which it doesn't recognise. Gate it to native only.
-const AnimatedRect = Platform.OS !== 'web'
-  ? Animated.createAnimatedComponent(Rect)
-  : null;
+const AnimatedRect =
+  Platform.OS !== 'web' ? Animated.createAnimatedComponent(Rect) : null;
 
 interface Props {
   data: ForecastMonth[];
@@ -34,7 +38,13 @@ const COLORS = {
   recurringCurrent: '#6ee7b7',
 };
 
-function BarGroup({
+function easeOutCubic(t: number): number {
+  return 1 - (1 - t) ** 3;
+}
+
+// ── Native animated bars (Reanimated + SVG — native only) ─────────────────────
+
+function NativeBarGroup({
   x,
   barWidth,
   expectedHeight,
@@ -66,30 +76,7 @@ function BarGroup({
     };
   });
 
-  // On web AnimatedRect is null — use static Rect to avoid passing
-  // onStartShouldSetResponder to SVG DOM elements.
-  if (Platform.OS === 'web' || !AnimatedRect) {
-    return (
-      <G>
-        <Rect
-          x={x}
-          width={barWidth}
-          rx={3}
-          fill={isCurrent ? COLORS.projectedCurrent : COLORS.projected}
-          y={chartHeight - totalBarH}
-          height={expectedHeight}
-        />
-        <Rect
-          x={x}
-          width={barWidth}
-          rx={0}
-          fill={isCurrent ? COLORS.recurringCurrent : COLORS.recurring}
-          y={chartHeight - recurringHeight}
-          height={recurringHeight}
-        />
-      </G>
-    );
-  }
+  if (!AnimatedRect) return null;
 
   return (
     <G>
@@ -111,16 +98,114 @@ function BarGroup({
   );
 }
 
+// ── Static bars (web + shared drawing) ────────────────────────────────────────
+
+function StaticBars({
+  data,
+  height,
+  maxValue,
+  svgWidth,
+  progress,
+}: {
+  data: ForecastMonth[];
+  height: number;
+  maxValue: number;
+  svgWidth: number;
+  progress: number;
+}) {
+  const chartWidth = svgWidth - Y_AXIS_WIDTH;
+  const barWidth = Math.max(4, (chartWidth - BAR_GAP * (data.length - 1)) / data.length);
+
+  return (
+    <>
+      {data.map((month, i) => {
+        const expectedH = (month.expected / maxValue) * height * progress;
+        const recurringH = (month.recurring / maxValue) * height * progress;
+        const x = Y_AXIS_WIDTH + i * (barWidth + BAR_GAP);
+        const isCurrent = i === 0;
+
+        return (
+          <G key={i}>
+            <Rect
+              x={x}
+              width={barWidth}
+              rx={3}
+              fill={isCurrent ? COLORS.projectedCurrent : COLORS.projected}
+              y={height - expectedH - recurringH}
+              height={expectedH}
+            />
+            <Rect
+              x={x}
+              width={barWidth}
+              rx={0}
+              fill={isCurrent ? COLORS.recurringCurrent : COLORS.recurring}
+              y={height - recurringH}
+              height={recurringH}
+            />
+          </G>
+        );
+      })}
+    </>
+  );
+}
+
+function ChartTooltip({
+  label,
+  top,
+  left,
+}: {
+  label: string;
+  top: number;
+  left: number;
+}) {
+  return (
+    <View
+      style={[
+        styles.tooltip,
+        { top: Math.max(4, top), left: Math.max(Y_AXIS_WIDTH, left) },
+      ]}
+      pointerEvents="none"
+    >
+      <Text style={styles.tooltipText}>{label}</Text>
+    </View>
+  );
+}
+
 export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) {
-  const progress = useSharedValue(0);
+  const isWeb = Platform.OS === 'web';
+  const nativeProgress = useSharedValue(0);
+  const [webProgress, setWebProgress] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [svgWidth, setSvgWidth] = useState(280);
 
+  const runWebAnimation = useCallback(() => {
+    const duration = 400;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      setWebProgress(easeOutCubic(t));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    setWebProgress(0);
+    requestAnimationFrame(tick);
+  }, []);
+
   useEffect(() => {
-    progress.value = 0;
-    progress.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) });
     setSelectedIndex(null);
-  }, [data]);
+    if (isWeb) {
+      runWebAnimation();
+    } else {
+      nativeProgress.value = 0;
+      nativeProgress.value = withTiming(1, {
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+      });
+    }
+  }, [data, isWeb, runWebAnimation, nativeProgress]);
+
+  const onLayout = (e: LayoutChangeEvent) => {
+    setSvgWidth(e.nativeEvent.layout.width);
+  };
 
   if (data.length === 0) return null;
 
@@ -128,15 +213,28 @@ export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) 
   const chartWidth = svgWidth - Y_AXIS_WIDTH;
   const barWidth = Math.max(4, (chartWidth - BAR_GAP * (data.length - 1)) / data.length);
   const xLabel = height + 16;
-
+  const progress = isWeb ? webProgress : 1;
   const yLabels = [maxValue, Math.round(maxValue * 0.66), Math.round(maxValue * 0.33), 0];
+
+  const handleBarPress = (index: number) => {
+    setSelectedIndex((prev) => (prev === index ? null : index));
+  };
+
+  const selectedMonth = selectedIndex !== null ? data[selectedIndex] : null;
+  const tooltipTop =
+    selectedIndex !== null && selectedMonth
+      ? height -
+        ((selectedMonth.recurring + selectedMonth.expected) / maxValue) * height -
+        36
+      : 0;
+  const tooltipLeft =
+    selectedIndex !== null
+      ? Y_AXIS_WIDTH + selectedIndex * (barWidth + BAR_GAP) + barWidth / 2 - 40
+      : 0;
 
   return (
     <View>
-      <View
-        onLayout={(e) => setSvgWidth(e.nativeEvent.layout.width)}
-        style={{ width: '100%' }}
-      >
+      <View onLayout={onLayout} style={styles.chartWrap}>
         <Svg width={svgWidth} height={height + 24}>
           {yLabels.map((val, i) => (
             <SvgText
@@ -152,68 +250,94 @@ export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) 
             </SvgText>
           ))}
 
-          {data.map((month, i) => {
-            const totalH = month.recurring + month.expected;
-            const barH = (totalH / maxValue) * height;
-            const expectedH = (month.expected / maxValue) * height;
-            const recurringH = (month.recurring / maxValue) * height;
-            const x = Y_AXIS_WIDTH + i * (barWidth + BAR_GAP);
+          {isWeb ? (
+            <StaticBars
+              data={data}
+              height={height}
+              maxValue={maxValue}
+              svgWidth={svgWidth}
+              progress={progress}
+            />
+          ) : (
+            data.map((month, i) => {
+              const expectedH = (month.expected / maxValue) * height;
+              const recurringH = (month.recurring / maxValue) * height;
+              const x = Y_AXIS_WIDTH + i * (barWidth + BAR_GAP);
+              return (
+                <G key={i}>
+                  <NativeBarGroup
+                    x={x}
+                    barWidth={barWidth}
+                    expectedHeight={expectedH}
+                    recurringHeight={recurringH}
+                    chartHeight={height}
+                    isCurrent={i === 0}
+                    progress={nativeProgress}
+                  />
+                  <SvgText
+                    x={x + barWidth / 2}
+                    y={xLabel}
+                    fontSize={9}
+                    fontFamily={typography.sansRegular}
+                    fill={colors.gray400}
+                    textAnchor="middle"
+                  >
+                    {month.label}
+                  </SvgText>
+                </G>
+              );
+            })
+          )}
 
-            return (
-              <G key={i}>
-                <BarGroup
-                  x={x}
-                  barWidth={barWidth}
-                  expectedHeight={expectedH}
-                  recurringHeight={recurringH}
-                  chartHeight={height}
-                  isCurrent={false}
-                  progress={progress}
-                />
-                <Rect
-                  x={x}
-                  y={0}
-                  width={barWidth}
-                  height={height}
-                  fill="transparent"
-                  onPress={() => setSelectedIndex(selectedIndex === i ? null : i)}
-                />
-                {selectedIndex === i && (
-                  <G>
-                    <Rect
-                      x={Math.min(x - 10, svgWidth - 80)}
-                      y={height - barH - 28}
-                      width={72}
-                      height={20}
-                      rx={4}
-                      fill="#1e1b4b"
-                    />
-                    <SvgText
-                      x={Math.min(x - 10, svgWidth - 80) + 36}
-                      y={height - barH - 14}
-                      fontSize={9}
-                      fontFamily={typography.monoMedium}
-                      fill="#fff"
-                      textAnchor="middle"
-                    >
-                      {formatCurrency(month.recurring + month.expected, currency)}
-                    </SvgText>
-                  </G>
-                )}
+          {isWeb &&
+            data.map((month, i) => {
+              const x = Y_AXIS_WIDTH + i * (barWidth + BAR_GAP);
+              return (
                 <SvgText
+                  key={`label-${i}`}
                   x={x + barWidth / 2}
                   y={xLabel}
                   fontSize={9}
                   fontFamily={typography.sansRegular}
-                  fill={colors.gray400}
+                  fill={selectedIndex === i ? colors.primary : colors.gray400}
                   textAnchor="middle"
                 >
                   {month.label}
                 </SvgText>
-              </G>
-            );
-          })}
+              );
+            })}
         </Svg>
+
+        {/* RN Pressables — avoids SVG onPress / Reanimated on DOM */}
+        <View
+          style={[styles.touchLayer, { height, left: Y_AXIS_WIDTH, width: chartWidth }]}
+        >
+          {data.map((_, i) => (
+            <Pressable
+              key={i}
+              style={({ pressed }) => [
+                styles.touchCol,
+                { width: barWidth + (i < data.length - 1 ? BAR_GAP : 0) },
+                pressed && styles.touchColPressed,
+                selectedIndex === i && styles.touchColSelected,
+              ]}
+              onPress={() => handleBarPress(i)}
+              accessibilityRole="button"
+              accessibilityLabel={`${data[i]!.label} forecast`}
+            />
+          ))}
+        </View>
+
+        {selectedMonth && selectedIndex !== null && (
+          <ChartTooltip
+            label={formatCurrency(
+              selectedMonth.recurring + selectedMonth.expected,
+              currency
+            )}
+            top={tooltipTop}
+            left={tooltipLeft}
+          />
+        )}
       </View>
 
       <View style={styles.legend}>
@@ -225,14 +349,61 @@ export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) 
           <View style={[styles.legendDot, { backgroundColor: COLORS.recurring }]} />
           <Text style={styles.legendLabel}>Recurring</Text>
         </View>
+        <Text style={styles.legendHint}>Tap a bar for details</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  chartWrap: {
+    width: '100%',
+    position: 'relative',
+  },
+  touchLayer: {
+    position: 'absolute',
+    top: 0,
+    flexDirection: 'row',
+  },
+  touchCol: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  touchColPressed: {
+    backgroundColor: 'rgba(79, 70, 229, 0.06)',
+  },
+  touchColSelected: {
+    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+  },
+  tooltip: {
+    position: 'absolute',
+    backgroundColor: '#1e1b4b',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    minWidth: 72,
+    alignItems: 'center',
+    zIndex: 10,
+    ...Platform.select({
+      web: { boxShadow: '0 4px 12px rgba(0,0,0,0.15)' } as object,
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 4,
+      },
+    }),
+  },
+  tooltipText: {
+    fontFamily: typography.monoMedium,
+    fontSize: 10,
+    color: '#fff',
+  },
   legend: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 12,
     marginTop: 4,
     marginBottom: 12,
@@ -251,5 +422,11 @@ const styles = StyleSheet.create({
     fontFamily: typography.sansRegular,
     fontSize: 10,
     color: colors.gray500,
+  },
+  legendHint: {
+    fontFamily: typography.sansRegular,
+    fontSize: 10,
+    color: colors.gray400,
+    marginLeft: 'auto',
   },
 });

@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { colors, typography, spacing, radius, shadow } from '../../theme/tokens';
 import { ForecastChart } from './ForecastChart';
-import { buildInsight } from '../../lib/reportsCompute';
+import { buildInsight, forecastPeriodTotal } from '../../lib/reportsCompute';
+import { formatCurrency } from '../../lib/reminderTemplates';
 import type { ForecastMonth } from '../../lib/reportsCompute';
 import type { Currency } from '../../types';
 import type { ForecastRange } from '../../hooks/useReportsData';
@@ -20,15 +21,27 @@ const RANGES: { key: ForecastRange; label: string }[] = [
   { key: '1y', label: '1Y' },
 ];
 
+const RANGE_TITLES: Record<ForecastRange, string> = {
+  '3m': '3-month forecast',
+  '6m': '6-month forecast',
+  '1y': '12-month forecast',
+};
+
 export function ForecastCard({ data, currency, range, onRangeChange }: Props) {
   const insight = buildInsight(data, currency);
+  const periodTotal = forecastPeriodTotal(data);
 
   return (
     <View style={[styles.card, shadow.sm]}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>6-Month forecast</Text>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>{RANGE_TITLES[range]}</Text>
           <Text style={styles.sub}>Projected outflow + recurring bills</Text>
+          {data.length > 0 && (
+            <Text style={styles.periodTotal}>
+              {formatCurrency(periodTotal, currency)} total projected
+            </Text>
+          )}
         </View>
         <View style={styles.segControl}>
           {RANGES.map((r) => (
@@ -71,6 +84,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: spacing[3],
+    gap: 8,
+  },
+  headerText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  periodTotal: {
+    fontFamily: typography.monoMedium,
+    fontSize: 11,
+    color: colors.primary,
+    marginTop: 4,
   },
   title: {
     fontFamily: typography.sansBold,

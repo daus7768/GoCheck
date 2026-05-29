@@ -1,4 +1,11 @@
-import { addMonths, differenceInDays, isSameMonth, subMonths, format } from 'date-fns';
+import {
+  addMonths,
+  differenceInDays,
+  isSameMonth,
+  subMonths,
+  format,
+  startOfYear,
+} from 'date-fns';
 import type { Bill, Currency } from '../types';
 import { formatCurrency } from './reminderTemplates';
 
@@ -15,6 +22,7 @@ export interface ForecastMonth {
 export interface CategoryRow {
   cat: Category;
   amount: number;
+  percent?: number;
 }
 
 export interface ReliabilityResult {
@@ -33,7 +41,33 @@ export function nextNMonths(n: number): { label: string; year: number; monthInde
   });
 }
 
-// ── Section 1: Trend ─────────────────────────────────────────────────────────
+// ── Section 1: Totals & trend ─────────────────────────────────────────────────
+
+/** Paid participant amounts with payment (or bill) date in the current calendar year. */
+export function computeCollectedYtd(bills: Bill[]): number {
+  const yearStart = startOfYear(new Date());
+  return bills
+    .flatMap((b) =>
+      b.participants
+        .filter((p) => p.isPaid)
+        .map((p) => ({ amount: p.amount, date: p.paidAt ?? b.createdAt }))
+    )
+    .filter(({ date }) => new Date(date) >= yearStart)
+    .reduce((s, { amount }) => s + amount, 0);
+}
+
+/** Share of participant amounts marked paid (0–100). */
+export function computeCollectionRate(bills: Bill[]): number {
+  const participants = bills.flatMap((b) => b.participants);
+  const total = participants.reduce((s, p) => s + p.amount, 0);
+  if (total === 0) return 0;
+  const paid = participants.filter((p) => p.isPaid).reduce((s, p) => s + p.amount, 0);
+  return Math.round((paid / total) * 100);
+}
+
+export function forecastPeriodTotal(data: ForecastMonth[]): number {
+  return data.reduce((s, m) => s + m.recurring + m.expected, 0);
+}
 
 export function computeTrend(
   bills: Bill[]
@@ -128,10 +162,15 @@ export function categoryBuckets(bills: Bill[]): CategoryRow[] {
     const total = bill.participants.reduce((s, p) => s + p.amount, 0);
     map[cat] = (map[cat] ?? 0) + total;
   }
-  return (Object.entries(map) as [Category, number][])
+  const rows = (Object.entries(map) as [Category, number][])
     .filter(([, amt]) => amt > 0)
     .sort(([, a], [, b]) => b - a)
     .map(([cat, amount]) => ({ cat, amount }));
+  const total = rows.reduce((s, r) => s + r.amount, 0);
+  return rows.map((r) => ({
+    ...r,
+    percent: total > 0 ? Math.round((r.amount / total) * 100) : 0,
+  }));
 }
 
 // ── Section 4: Reliability ────────────────────────────────────────────────────
