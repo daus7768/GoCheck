@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -95,10 +95,6 @@ export default function BillsScreen() {
   const { sent, settings } = useReminderStore();
   const sessionUserId = useProfileStore(s => s.session?.user.id) ?? '';
 
-  const load = useCallback(async () => {
-    fetchBills(sessionUserId);
-  }, [sessionUserId]);
-
   const { items: queueItems } = useMemo(
     () => buildQueueItems(bills, sent, settings, sessionUserId),
     [bills, sent, settings, sessionUserId]
@@ -107,8 +103,8 @@ export default function BillsScreen() {
 
   useEffect(() => {
     if (!sessionUserId) return;
-    load();
-  }, [sessionUserId]);
+    fetchBills(sessionUserId);
+  }, [fetchBills, sessionUserId]);
 
   const handleShare = async (bill: Bill) => {
     await shareBillLink(bill);
