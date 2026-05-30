@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useBillStore } from '../store/billStore';
-import { getOrganizerId } from '../lib/organizer';
+import { useProfileStore } from '../store/profileStore';
 import {
   computeTrend,
   computeCollectedYtd,
@@ -35,11 +35,12 @@ export interface ReportsData {
 
 export function useReportsData(forecastRange: ForecastRange = '6m'): ReportsData {
   const { bills, isLoading, fetchBills } = useBillStore();
+  const sessionUserId = useProfileStore(s => s.session?.user.id) ?? '';
 
   const refresh = useCallback(async () => {
-    const id = await getOrganizerId();
-    await fetchBills(id);
-  }, [fetchBills]);
+    if (!sessionUserId) return;
+    await fetchBills(sessionUserId);
+  }, [fetchBills, sessionUserId]);
 
   const currency: Currency = (bills[0]?.currency ?? 'MYR') as Currency;
 

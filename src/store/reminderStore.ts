@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { ReminderRow, ReminderSettings, QueueItem } from '../types';
-import { getOrganizerId } from '../lib/organizer';
+import { useProfileStore } from './profileStore';
 import {
   insertReminder,
   loadReminders as fetchReminders,
@@ -41,7 +41,7 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
   loadReminders: async () => {
     try {
       set({ isLoading: true });
-      const organizerId = await getOrganizerId();
+      const organizerId = useProfileStore.getState().session?.user.id ?? '';
       const rows = await fetchReminders(organizerId);
       const sent: ReminderRow[] = rows.map((r) => ({
         id: r.id,
@@ -60,7 +60,7 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
 
   loadSettings: async () => {
     try {
-      const organizerId = await getOrganizerId();
+      const organizerId = useProfileStore.getState().session?.user.id ?? '';
       const raw = await fetchSettings(organizerId);
       const VALID_CADENCES: ReminderSettings['cadence'][] = ['manual', 'smart', 'aggressive'];
       const VALID_TONES: ReminderSettings['tone'][] = ['friendly', 'firm', 'final'];
@@ -94,7 +94,7 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
     };
     set((s) => ({ sent: [row, ...s.sent] }));
 
-    const organizerId = await getOrganizerId();
+    const organizerId = useProfileStore.getState().session?.user.id ?? '';
     const delays = [100, 200, 400];
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
@@ -124,7 +124,7 @@ export const useReminderStore = create<ReminderStore>((set, get) => ({
     const next = { ...get().settings, [key]: value };
     set({ settings: next });
     try {
-      const organizerId = await getOrganizerId();
+      const organizerId = useProfileStore.getState().session?.user.id ?? '';
       await upsertSettings(organizerId, next as unknown as Record<string, unknown>);
     } catch {
       // settings saved locally even if Supabase fails

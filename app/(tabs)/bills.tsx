@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { colors, typography, fontSize, spacing, radius, shadow } from '../../src
 import { useBillStore } from '../../src/store/billStore';
 import { useReminderStore } from '../../src/store/reminderStore';
 import { buildQueueItems } from '../../src/lib/queueUtils';
-import { getOrganizerId } from '../../src/lib/organizer';
+import { useProfileStore } from '../../src/store/profileStore';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill } from '../../src/types';
 import { shareBillLink } from '../../src/lib/share';
@@ -93,23 +93,22 @@ export default function BillsScreen() {
   const insets = useSafeAreaInsets();
   const { bills, fetchBills, isLoading } = useBillStore();
   const { sent, settings } = useReminderStore();
-  const organizerIdRef = useRef('');
+  const sessionUserId = useProfileStore(s => s.session?.user.id) ?? '';
 
   const load = useCallback(async () => {
-    const id = await getOrganizerId();
-    organizerIdRef.current = id;
-    fetchBills(id);
-  }, []);
+    fetchBills(sessionUserId);
+  }, [sessionUserId]);
 
   const { items: queueItems } = useMemo(
-    () => buildQueueItems(bills, sent, settings, organizerIdRef.current),
-    [bills, sent, settings]
+    () => buildQueueItems(bills, sent, settings, sessionUserId),
+    [bills, sent, settings, sessionUserId]
   );
   const bellBadge = queueItems.length;
 
   useEffect(() => {
+    if (!sessionUserId) return;
     load();
-  }, []);
+  }, [sessionUserId]);
 
   const handleShare = async (bill: Bill) => {
     await shareBillLink(bill);

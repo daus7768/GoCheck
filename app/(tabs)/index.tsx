@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
 import { useBillStore } from '../../src/store/billStore';
 import { useReminderStore } from '../../src/store/reminderStore';
-import { getOrganizerId } from '../../src/lib/organizer';
+import { useProfileStore } from '../../src/store/profileStore';
 import { getBillStats } from '../../src/lib/billStats';
 import { computeReliability } from '../../src/lib/queueUtils';
 import { haptic } from '../../src/lib/haptics';
@@ -183,15 +183,13 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { bills, fetchBills, isLoading } = useBillStore();
   const { sendReminder } = useReminderStore();
-  const organizerIdRef = useRef('');
+  const sessionUserId = useProfileStore(s => s.session?.user.id) ?? '';
   const [filter, setFilter] = useState<FilterId>('active');
 
   useEffect(() => {
-    getOrganizerId().then((id) => {
-      organizerIdRef.current = id;
-      fetchBills(id);
-    });
-  }, []);
+    if (!sessionUserId) return;
+    fetchBills(sessionUserId);
+  }, [sessionUserId]);
 
   const activeBills = useMemo(
     () =>
@@ -228,7 +226,7 @@ export default function HomeScreen() {
     for (const bill of activeBills) {
       const stats = getBillStats(bill);
       for (const p of bill.participants) {
-        if (p.isPaid || p.id === organizerIdRef.current) continue;
+        if (p.isPaid || p.id === sessionUserId) continue;
         const reliability = computeReliability(p.name, bills);
         const score = reliabilityScore(reliability);
         const urgency =
