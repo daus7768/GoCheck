@@ -16,21 +16,39 @@ DELETE FROM public.bills
 -- ─── Change organizer_id to UUID FK ───────────────────────────────────────────
 ALTER TABLE public.bills
   ALTER COLUMN organizer_id TYPE UUID USING organizer_id::UUID;
-ALTER TABLE public.bills
-  ADD CONSTRAINT IF NOT EXISTS bills_organizer_id_fkey
-  FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'bills_organizer_id_fkey'
+  ) THEN
+    ALTER TABLE public.bills
+      ADD CONSTRAINT bills_organizer_id_fkey
+      FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 ALTER TABLE public.reminders
   ALTER COLUMN organizer_id TYPE UUID USING organizer_id::UUID;
-ALTER TABLE public.reminders
-  ADD CONSTRAINT IF NOT EXISTS reminders_organizer_id_fkey
-  FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'reminders_organizer_id_fkey'
+  ) THEN
+    ALTER TABLE public.reminders
+      ADD CONSTRAINT reminders_organizer_id_fkey
+      FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 ALTER TABLE public.user_settings
   ALTER COLUMN organizer_id TYPE UUID USING organizer_id::UUID;
-ALTER TABLE public.user_settings
-  ADD CONSTRAINT IF NOT EXISTS user_settings_organizer_id_fkey
-  FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'user_settings_organizer_id_fkey'
+  ) THEN
+    ALTER TABLE public.user_settings
+      ADD CONSTRAINT user_settings_organizer_id_fkey
+      FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- ─── Enable RLS ────────────────────────────────────────────────────────────────
 ALTER TABLE public.bills          ENABLE ROW LEVEL SECURITY;
