@@ -312,22 +312,18 @@ BEGIN
 END;
 $$;
 
--- ─── Notification trigger (requires pg_net extension + edge function deployed) ─
--- Before running this section:
---   1. Enable pg_net in Supabase Dashboard > Database > Extensions
---   2. Set in Supabase Dashboard > Settings > Database > Configuration > Custom config:
---        app.edge_function_url = https://<your-project-ref>.supabase.co/functions/v1
---        app.internal_secret   = <output of: openssl rand -hex 32>
+-- ─── Notification trigger ─────────────────────────────────────────────────────
+-- Requires pg_net extension enabled in Supabase Dashboard > Database > Extensions
 
 CREATE OR REPLACE FUNCTION public.notify_participant_paid()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   IF OLD.is_paid = false AND NEW.is_paid = true THEN
     PERFORM net.http_post(
-      url     := current_setting('app.edge_function_url', true) || '/notify-organizer',
+      url     := 'https://bccarnwtdqamedtlzdht.supabase.co/functions/v1/notify-organizer',
       headers := jsonb_build_object(
         'Content-Type',      'application/json',
-        'x-internal-secret', current_setting('app.internal_secret', true)
+        'x-internal-secret', '8d38ac0574825d7c3acbfa02404680ccfb927499478c12a11ef27c928b2a279c'
       ),
       body    := jsonb_build_object(
         'participant_id', NEW.id,
