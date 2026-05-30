@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View, Text, ScrollView, RefreshControl, StyleSheet,
   Pressable,
@@ -6,7 +6,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
+import { typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
+import { useTheme, type ThemeColors } from '../../src/theme/ThemeContext';
 import { useReportsData } from '../../src/hooks/useReportsData';
 import type { ForecastRange } from '../../src/hooks/useReportsData';
 import { useBillStore } from '../../src/store/billStore';
@@ -18,10 +19,13 @@ import { ExportCard } from '../../src/components/reports/ExportCard';
 import { ReportsSummaryStrip } from '../../src/components/reports/ReportsSummaryStrip';
 
 function SkeletonBlock({ height = 100 }: { height?: number }) {
-  return <View style={[styles.skeleton, { height }]} />;
+  const { colors } = useTheme();
+  return <View style={{ flex: 1, backgroundColor: colors.gray100, borderRadius: radius['2xl'], height }} />;
 }
 
 function EmptyState() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.emptyWrap}>
       <Feather name="bar-chart-2" size={48} color={colors.gray300} />
@@ -29,10 +33,7 @@ function EmptyState() {
       <Text style={styles.emptySub}>
         Create your first bill to start seeing insights here.
       </Text>
-      <Pressable
-        style={styles.emptyBtn}
-        onPress={() => router.push('/(modals)/create')}
-      >
+      <Pressable style={styles.emptyBtn} onPress={() => router.push('/(modals)/create')}>
         <Text style={styles.emptyBtnText}>Create a bill</Text>
       </Pressable>
     </View>
@@ -41,6 +42,8 @@ function EmptyState() {
 
 export default function ReportsScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { bills } = useBillStore();
   const [forecastRange, setForecastRange] = useState<ForecastRange>('6m');
 
@@ -154,73 +157,36 @@ export default function ReportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[4],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontFamily: typography.sansBold,
-    fontSize: fontSize.lg,
-    color: colors.gray900,
-  },
-  headerSub: {
-    fontFamily: typography.sansRegular,
-    fontSize: fontSize['2xs'],
-    color: colors.gray400,
-    marginTop: 2,
-  },
-  content: {
-    padding: spacing[4],
-    gap: 14,
-  },
-  skeletonRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  skeleton: {
-    flex: 1,
-    backgroundColor: colors.gray100,
-    borderRadius: radius['2xl'],
-  },
-  emptyWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-    gap: 12,
-  },
-  emptyTitle: {
-    fontFamily: typography.sansBold,
-    fontSize: fontSize.xl,
-    color: colors.gray700,
-  },
-  emptySub: {
-    fontFamily: typography.sansRegular,
-    fontSize: fontSize.sm,
-    color: colors.gray500,
-    textAlign: 'center',
-    maxWidth: 260,
-    lineHeight: 20,
-  },
-  emptyBtn: {
-    marginTop: 8,
-    backgroundColor: colors.primary,
-    borderRadius: radius.xl,
-    paddingHorizontal: spacing[5],
-    paddingVertical: spacing[3],
-  },
-  emptyBtnText: {
-    fontFamily: typography.sansBold,
-    fontSize: fontSize.sm,
-    color: colors.white,
-  },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    header: {
+      backgroundColor: c.surface,
+      paddingHorizontal: spacing[4], paddingVertical: spacing[4],
+      borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.border,
+      alignItems: 'center',
+    },
+    headerTitle: { fontFamily: typography.sansBold, fontSize: fontSize.lg, color: c.textPrimary },
+    headerSub: {
+      fontFamily: typography.sansRegular, fontSize: fontSize['2xs'],
+      color: c.textTertiary, marginTop: 2,
+    },
+    content: { padding: spacing[4], gap: 14 },
+    skeletonRow: { flexDirection: 'row', gap: 12 },
+    emptyWrap: {
+      flex: 1, alignItems: 'center', justifyContent: 'center',
+      paddingTop: 80, gap: 12,
+    },
+    emptyTitle: { fontFamily: typography.sansBold, fontSize: fontSize.xl, color: c.textPrimary },
+    emptySub: {
+      fontFamily: typography.sansRegular, fontSize: fontSize.sm,
+      color: c.textSecondary, textAlign: 'center', maxWidth: 260, lineHeight: 20,
+    },
+    emptyBtn: {
+      marginTop: 8, backgroundColor: c.primary,
+      borderRadius: radius.xl,
+      paddingHorizontal: spacing[5], paddingVertical: spacing[3],
+    },
+    emptyBtnText: { fontFamily: typography.sansBold, fontSize: fontSize.sm, color: c.white },
+  });
+}

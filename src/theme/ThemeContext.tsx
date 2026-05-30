@@ -19,6 +19,11 @@ export interface ThemeColors {
   primaryLight: string;
   primarySurface: string;
   primaryBorder: string;
+  secondary: string;
+  secondaryDark: string;
+  secondaryLight: string;
+  secondarySurface: string;
+  secondaryBorder: string;
   error: string;
   errorSurface: string;
   success: string;
@@ -26,6 +31,13 @@ export interface ThemeColors {
   warning: string;
   warningSurface: string;
   iconSurface: string;
+  gray100: string;
+  gray200: string;
+  gray300: string;
+  gray400: string;
+  gray500: string;
+  gray700: string;
+  gray900: string;
   white: string;
   black: string;
   transparent: string;
@@ -50,6 +62,11 @@ const LIGHT: ThemeColors = {
   primaryLight: '#6366F1',
   primarySurface: '#EEF2FF',
   primaryBorder: '#C7D2FE',
+  secondary: '#10B981',
+  secondaryDark: '#059669',
+  secondaryLight: '#34D399',
+  secondarySurface: '#ECFDF5',
+  secondaryBorder: '#A7F3D0',
   error: '#EF4444',
   errorSurface: '#FEF2F2',
   success: '#10B981',
@@ -57,6 +74,13 @@ const LIGHT: ThemeColors = {
   warning: '#F59E0B',
   warningSurface: '#FFFBEB',
   iconSurface: '#EEF2FF',
+  gray100: '#F3F4F6',
+  gray200: '#E5E7EB',
+  gray300: '#D1D5DB',
+  gray400: '#9CA3AF',
+  gray500: '#6B7280',
+  gray700: '#374151',
+  gray900: '#111827',
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
@@ -81,6 +105,11 @@ const DARK: ThemeColors = {
   primaryLight: '#818CF8',
   primarySurface: 'rgba(99,102,241,0.12)',
   primaryBorder: 'rgba(99,102,241,0.25)',
+  secondary: '#34D399',
+  secondaryDark: '#10B981',
+  secondaryLight: '#6EE7B7',
+  secondarySurface: 'rgba(52,211,153,0.12)',
+  secondaryBorder: 'rgba(52,211,153,0.25)',
   error: '#F87171',
   errorSurface: 'rgba(248,113,113,0.12)',
   success: '#34D399',
@@ -88,6 +117,13 @@ const DARK: ThemeColors = {
   warning: '#FBBF24',
   warningSurface: 'rgba(251,191,36,0.12)',
   iconSurface: 'rgba(99,102,241,0.15)',
+  gray100: '#1E1E2D',
+  gray200: 'rgba(255,255,255,0.08)',
+  gray300: '#3A3A55',
+  gray400: '#5A5A78',
+  gray500: '#8B8BA8',
+  gray700: '#B0B0C8',
+  gray900: '#F1F1F5',
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',

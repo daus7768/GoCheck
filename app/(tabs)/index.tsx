@@ -12,7 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle } from 'react-native-svg';
-import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
+import { typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
+import { useTheme, type ThemeColors } from '../../src/theme/ThemeContext';
 import { useBillStore } from '../../src/store/billStore';
 import { useReminderStore } from '../../src/store/reminderStore';
 import { getOrganizerId } from '../../src/lib/organizer';
@@ -33,29 +34,26 @@ function fmt(amount: number): string {
 
 function reliabilityScore(label: ReliabilityLabel | null): number {
   switch (label) {
-    case 'reliable':
-      return 95;
-    case 'on-time':
-      return 80;
-    case 'slow':
-      return 60;
-    case 'at-risk':
-      return 30;
-    default:
-      return 75;
+    case 'reliable': return 95;
+    case 'on-time':  return 80;
+    case 'slow':     return 60;
+    case 'at-risk':  return 30;
+    default:         return 75;
   }
 }
 
-const RELIABILITY_CHIP: Record<
+function getReliabilityChip(c: ThemeColors): Record<
   'reliable' | 'on-time' | 'slow' | 'at-risk' | 'new',
   { label: string; bg: string; text: string }
-> = {
-  reliable: { label: 'Reliable', bg: colors.secondarySurface, text: colors.secondaryDark },
-  'on-time': { label: 'On-time', bg: colors.primarySurface, text: colors.primary },
-  slow: { label: 'Slow', bg: colors.warningSurface, text: colors.warning },
-  'at-risk': { label: 'At risk', bg: colors.errorSurface, text: colors.error },
-  new: { label: 'New', bg: colors.gray100, text: colors.textSecondary },
-};
+> {
+  return {
+    reliable:  { label: 'Reliable',  bg: c.secondarySurface, text: c.secondaryDark },
+    'on-time': { label: 'On-time',   bg: c.primarySurface,   text: c.primary },
+    slow:      { label: 'Slow',      bg: c.warningSurface,   text: c.warning },
+    'at-risk': { label: 'At risk',   bg: c.errorSurface,     text: c.error },
+    new:       { label: 'New',       bg: c.gray100,          text: c.textSecondary },
+  };
+}
 
 function Donut({ pct }: { pct: number }) {
   const size = 78;
@@ -68,27 +66,19 @@ function Donut({ pct }: { pct: number }) {
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
         <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="rgba(255,255,255,0.22)"
-          strokeWidth={stroke}
-          fill="none"
+          cx={size / 2} cy={size / 2} r={r}
+          stroke="rgba(255,255,255,0.22)" strokeWidth={stroke} fill="none"
         />
         <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="#fff"
-          strokeWidth={stroke}
-          fill="none"
+          cx={size / 2} cy={size / 2} r={r}
+          stroke="#fff" strokeWidth={stroke} fill="none"
           strokeLinecap="round"
           strokeDasharray={`${filled} ${circ}`}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
-      <Text style={styles.donutPct}>{pct}%</Text>
-      <Text style={styles.donutSub}>COLLECTED</Text>
+      <Text style={{ fontFamily: typography.sansBold, fontSize: fontSize.lg, color: '#fff' }}>{pct}%</Text>
+      <Text style={{ fontFamily: typography.sansRegular, fontSize: 9, color: 'rgba(255,255,255,0.85)' }}>COLLECTED</Text>
     </View>
   );
 }
@@ -105,6 +95,8 @@ interface NudgeRow {
 }
 
 function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const stats = getBillStats(bill);
   const sym = CURRENCY_SYMBOLS[bill.currency] ?? bill.currency;
   const status = stats.done ? 'paid' : stats.overdue ? 'overdue' : stats.pct >= 50 ? 'partial' : 'unpaid';
@@ -126,9 +118,7 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
       <View style={styles.billRowTop}>
         <View style={styles.billRowTitleWrap}>
           <View style={styles.billRowTitleLine}>
-            <Text style={styles.billRowTitle} numberOfLines={1}>
-              {bill.title}
-            </Text>
+            <Text style={styles.billRowTitle} numberOfLines={1}>{bill.title}</Text>
             {bill.isRecurring ? (
               <View style={styles.recurringChip}>
                 <Feather name="repeat" size={9} color={colors.primary} />
@@ -155,14 +145,8 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
           </View>
         </View>
         <View style={styles.billRowAmountWrap}>
-          <Text style={styles.billRowAmount}>
-            {sym}
-            {fmt(bill.totalAmount)}
-          </Text>
-          <Text style={styles.billRowCollected}>
-            {sym}
-            {fmt(stats.collected)} in
-          </Text>
+          <Text style={styles.billRowAmount}>{sym}{fmt(bill.totalAmount)}</Text>
+          <Text style={styles.billRowCollected}>{sym}{fmt(stats.collected)} in</Text>
         </View>
       </View>
 
@@ -181,6 +165,8 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { bills, fetchBills, isLoading } = useBillStore();
   const { sendReminder } = useReminderStore();
   const organizerIdRef = useRef('');
@@ -202,7 +188,7 @@ export default function HomeScreen() {
           const sb = getBillStats(b);
           return Number(sb.overdue) - Number(sa.overdue) || sa.daysToDue - sb.daysToDue;
         }),
-    [bills]
+    [bills],
   );
 
   const overdueBills = useMemo(() => bills.filter((b) => getBillStats(b).overdue), [bills]);
@@ -217,7 +203,7 @@ export default function HomeScreen() {
         acc.remaining += s.remaining;
         return acc;
       },
-      { amount: 0, collected: 0, remaining: 0 }
+      { amount: 0, collected: 0, remaining: 0 },
     );
   }, [activeBills]);
 
@@ -272,11 +258,13 @@ export default function HomeScreen() {
   const sym = CURRENCY_SYMBOLS[activeBills[0]?.currency ?? 'MYR'] ?? 'RM';
 
   const filterTabs: { id: FilterId; label: string; count: number }[] = [
-    { id: 'active', label: 'Active', count: activeBills.length },
-    { id: 'overdue', label: 'Overdue', count: overdueBills.length },
+    { id: 'active',    label: 'Active',    count: activeBills.length },
+    { id: 'overdue',   label: 'Overdue',   count: overdueBills.length },
     { id: 'recurring', label: 'Recurring', count: recurringBills.length },
-    { id: 'all', label: 'All', count: bills.length },
+    { id: 'all',       label: 'All',       count: bills.length },
   ];
+
+  const reliabilityChip = useMemo(() => getReliabilityChip(colors), [colors]);
 
   function handleNudge(row: NudgeRow) {
     haptic.impact();
@@ -298,14 +286,13 @@ export default function HomeScreen() {
           >
             <LinearGradient
               colors={[colors.primaryLight, colors.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
               style={styles.topAvatar}
             >
               <Text style={styles.topAvatarText}>G</Text>
             </LinearGradient>
           </Pressable>
-          <Text style={styles.topTitle}>SettleUp</Text>
+          <Text style={styles.topTitle}>GoCheck</Text>
           <Pressable
             onPress={() => router.push('/(modals)/reminders')}
             accessibilityRole="button"
@@ -325,8 +312,7 @@ export default function HomeScreen() {
         {/* Hero */}
         <LinearGradient
           colors={[colors.primaryLight, colors.primaryDark]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={styles.hero}
         >
           <View style={styles.heroBlobTop} />
@@ -338,9 +324,7 @@ export default function HomeScreen() {
                 {isLoading && bills.length === 0 ? (
                   <ActivityIndicator color={colors.white} style={{ alignSelf: 'flex-start', marginVertical: spacing[2] }} />
                 ) : (
-                  <Text style={styles.heroAmount}>
-                    {sym} {fmt(totals.remaining)}
-                  </Text>
+                  <Text style={styles.heroAmount}>{sym} {fmt(totals.remaining)}</Text>
                 )}
                 <Text style={styles.heroSub}>
                   from{' '}
@@ -356,12 +340,8 @@ export default function HomeScreen() {
               <View style={[styles.splitFill, { width: `${overallPct}%` }]} />
             </View>
             <View style={styles.splitLabels}>
-              <Text style={styles.splitLabel}>
-                Collected {sym} {fmt(totals.collected)}
-              </Text>
-              <Text style={styles.splitLabel}>
-                Total {sym} {fmt(totals.amount)}
-              </Text>
+              <Text style={styles.splitLabel}>Collected {sym} {fmt(totals.collected)}</Text>
+              <Text style={styles.splitLabel}>Total {sym} {fmt(totals.amount)}</Text>
             </View>
           </View>
         </LinearGradient>
@@ -386,7 +366,7 @@ export default function HomeScreen() {
             </View>
             <View style={{ gap: spacing[2] }}>
               {needsNudge.map((row) => {
-                const chip = RELIABILITY_CHIP[row.reliability ?? 'new'];
+                const chip = reliabilityChip[row.reliability ?? 'new'];
                 const initial = row.item.participantName.charAt(0).toUpperCase();
                 const s = CURRENCY_SYMBOLS[row.item.currency] ?? row.item.currency;
                 return (
@@ -396,9 +376,7 @@ export default function HomeScreen() {
                     </View>
                     <View style={styles.nudgeInfo}>
                       <View style={styles.nudgeNameLine}>
-                        <Text style={styles.nudgeName} numberOfLines={1}>
-                          {row.item.participantName}
-                        </Text>
+                        <Text style={styles.nudgeName} numberOfLines={1}>{row.item.participantName}</Text>
                         <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
                           <Text style={[styles.relChipText, { color: chip.text }]}>{chip.label}</Text>
                         </View>
@@ -415,10 +393,7 @@ export default function HomeScreen() {
                       </Text>
                     </View>
                     <View style={styles.nudgeRight}>
-                      <Text style={styles.nudgeAmount}>
-                        {s}
-                        {fmt(row.item.amount)}
-                      </Text>
+                      <Text style={styles.nudgeAmount}>{s}{fmt(row.item.amount)}</Text>
                       <Pressable
                         onPress={() => handleNudge(row)}
                         accessibilityRole="button"
@@ -460,10 +435,7 @@ export default function HomeScreen() {
               return (
                 <Pressable
                   key={t.id}
-                  onPress={() => {
-                    haptic.selection();
-                    setFilter(t.id);
-                  }}
+                  onPress={() => { haptic.selection(); setFilter(t.id); }}
                   accessibilityRole="button"
                   accessibilityLabel={`${t.label} bills`}
                   accessibilityState={{ selected: active }}
@@ -509,245 +481,169 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  scroll: { paddingBottom: spacing[12] },
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    scroll: { paddingBottom: spacing[12] },
 
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing[5],
-    paddingBottom: spacing[3],
-  },
-  topAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.white,
-    ...shadow.sm,
-  },
-  topAvatarText: { fontFamily: typography.sansBold, fontSize: fontSize.sm, color: colors.white },
-  topTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base, color: colors.textPrimary },
-  bellBtn: { padding: spacing[1.5] },
-  bellBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    minWidth: 16,
-    height: 16,
-    paddingHorizontal: 4,
-    borderRadius: radius.full,
-    backgroundColor: colors.error,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bellBadgeText: { fontFamily: typography.sansBold, fontSize: 9, color: colors.white },
+    topBar: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      paddingHorizontal: spacing[5], paddingBottom: spacing[3],
+    },
+    topAvatar: {
+      width: 36, height: 36, borderRadius: radius.full,
+      alignItems: 'center', justifyContent: 'center',
+      borderWidth: 2, borderColor: c.white, ...shadow.sm,
+    },
+    topAvatarText: { fontFamily: typography.sansBold, fontSize: fontSize.sm, color: c.white },
+    topTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base, color: c.textPrimary },
+    bellBtn: { padding: spacing[1.5] },
+    bellBadge: {
+      position: 'absolute', top: 0, right: 0,
+      minWidth: 16, height: 16, paddingHorizontal: 4,
+      borderRadius: radius.full, backgroundColor: c.error,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    bellBadgeText: { fontFamily: typography.sansBold, fontSize: 9, color: c.white },
 
-  hero: {
-    marginHorizontal: spacing[4],
-    borderRadius: radius.xl,
-    padding: spacing[5],
-    overflow: 'hidden',
-    ...shadow.lg,
-  },
-  heroBlobTop: {
-    position: 'absolute',
-    top: -50,
-    right: -40,
-    width: 180,
-    height: 180,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  heroBlobBottom: {
-    position: 'absolute',
-    bottom: -70,
-    left: -30,
-    width: 140,
-    height: 140,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  heroContent: { position: 'relative' },
-  heroEyebrow: {
-    fontFamily: typography.sansBold,
-    fontSize: fontSize.xs,
-    color: 'rgba(255,255,255,0.85)',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  heroMainRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: spacing[4],
-    marginTop: spacing[1.5],
-  },
-  heroAmountWrap: { flex: 1, minWidth: 0 },
-  heroAmount: {
-    fontFamily: typography.sansBold,
-    fontSize: fontSize['3xl'],
-    color: colors.white,
-    letterSpacing: -0.5,
-  },
-  heroSub: {
-    fontFamily: typography.sansRegular,
-    fontSize: fontSize.sm,
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: spacing[2],
-  },
-  heroSubBold: { fontFamily: typography.sansBold, color: colors.white },
-  donutPct: { fontFamily: typography.sansBold, fontSize: fontSize.lg, color: colors.white },
-  donutSub: { fontFamily: typography.sansRegular, fontSize: 9, color: 'rgba(255,255,255,0.85)' },
-  splitTrack: {
-    marginTop: spacing[3.5],
-    height: 6,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    overflow: 'hidden',
-  },
-  splitFill: { height: '100%', backgroundColor: colors.white, borderRadius: radius.full },
-  splitLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing[1.5] },
-  splitLabel: { fontFamily: typography.sansRegular, fontSize: fontSize['2xs'], color: 'rgba(255,255,255,0.85)' },
+    hero: {
+      marginHorizontal: spacing[4], borderRadius: radius.xl,
+      padding: spacing[5], overflow: 'hidden', ...shadow.lg,
+    },
+    heroBlobTop: {
+      position: 'absolute', top: -50, right: -40,
+      width: 180, height: 180, borderRadius: radius.full,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+    },
+    heroBlobBottom: {
+      position: 'absolute', bottom: -70, left: -30,
+      width: 140, height: 140, borderRadius: radius.full,
+      backgroundColor: 'rgba(255,255,255,0.05)',
+    },
+    heroContent: { position: 'relative' },
+    heroEyebrow: {
+      fontFamily: typography.sansBold, fontSize: fontSize.xs,
+      color: 'rgba(255,255,255,0.85)', letterSpacing: 1, textTransform: 'uppercase',
+    },
+    heroMainRow: {
+      flexDirection: 'row', alignItems: 'flex-end',
+      gap: spacing[4], marginTop: spacing[1.5],
+    },
+    heroAmountWrap: { flex: 1, minWidth: 0 },
+    heroAmount: {
+      fontFamily: typography.sansBold, fontSize: fontSize['3xl'],
+      color: c.white, letterSpacing: -0.5,
+    },
+    heroSub: {
+      fontFamily: typography.sansRegular, fontSize: fontSize.sm,
+      color: 'rgba(255,255,255,0.85)', marginTop: spacing[2],
+    },
+    heroSubBold: { fontFamily: typography.sansBold, color: c.white },
+    splitTrack: {
+      marginTop: spacing[3.5], height: 6, borderRadius: radius.full,
+      backgroundColor: 'rgba(255,255,255,0.22)', overflow: 'hidden',
+    },
+    splitFill: { height: '100%', backgroundColor: c.white, borderRadius: radius.full },
+    splitLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing[1.5] },
+    splitLabel: { fontFamily: typography.sansRegular, fontSize: fontSize['2xs'], color: 'rgba(255,255,255,0.85)' },
 
-  section: { marginHorizontal: spacing[4], marginTop: spacing[4] },
-  sectionHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: spacing[2],
-  },
-  sectionHeadLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
-  sectionTitle: { fontFamily: typography.sansBold, fontSize: fontSize.sm, color: colors.textPrimary },
-  nudgeCount: {
-    backgroundColor: colors.warningSurface,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing[2],
-    paddingVertical: 2,
-  },
-  nudgeCountText: { fontFamily: typography.sansBold, fontSize: fontSize['2xs'], color: colors.warning },
-  seeAll: { fontFamily: typography.sansMedium, fontSize: fontSize.xs, color: colors.primary },
+    section: { marginHorizontal: spacing[4], marginTop: spacing[4] },
+    sectionHead: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      paddingBottom: spacing[2],
+    },
+    sectionHeadLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
+    sectionTitle: { fontFamily: typography.sansBold, fontSize: fontSize.sm, color: c.textPrimary },
+    nudgeCount: {
+      backgroundColor: c.warningSurface, borderRadius: radius.full,
+      paddingHorizontal: spacing[2], paddingVertical: 2,
+    },
+    nudgeCountText: { fontFamily: typography.sansBold, fontSize: fontSize['2xs'], color: c.warning },
+    seeAll: { fontFamily: typography.sansMedium, fontSize: fontSize.xs, color: c.primary },
 
-  nudgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[3],
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing[3],
-    ...shadow.sm,
-  },
-  nudgeAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nudgeAvatarText: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: colors.white },
-  nudgeInfo: { flex: 1, minWidth: 0 },
-  nudgeNameLine: { flexDirection: 'row', alignItems: 'center', gap: spacing[1.5] },
-  nudgeName: { fontFamily: typography.sansSemiBold, fontSize: fontSize.sm, color: colors.textPrimary, flexShrink: 1 },
-  relChip: { borderRadius: radius.full, paddingHorizontal: spacing[1.5], paddingVertical: 1 },
-  relChipText: { fontFamily: typography.sansBold, fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.3 },
-  nudgeMeta: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: colors.textSecondary, marginTop: 1 },
-  nudgeMetaOverdue: { fontFamily: typography.sansSemiBold, color: colors.error },
-  nudgeRight: { alignItems: 'flex-end', gap: spacing[1.5] },
-  nudgeAmount: { fontFamily: typography.monoMedium, fontSize: fontSize.sm, color: colors.textPrimary },
-  waBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.full,
-    backgroundColor: WHATSAPP,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: WHATSAPP_SHADOW,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
+    nudgeRow: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing[3],
+      backgroundColor: c.surface, borderRadius: radius.lg,
+      padding: spacing[3], ...shadow.sm,
+    },
+    nudgeAvatar: {
+      width: 40, height: 40, borderRadius: radius.full,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    nudgeAvatarText: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: c.white },
+    nudgeInfo: { flex: 1, minWidth: 0 },
+    nudgeNameLine: { flexDirection: 'row', alignItems: 'center', gap: spacing[1.5] },
+    nudgeName: { fontFamily: typography.sansSemiBold, fontSize: fontSize.sm, color: c.textPrimary, flexShrink: 1 },
+    relChip: { borderRadius: radius.full, paddingHorizontal: spacing[1.5], paddingVertical: 1 },
+    relChipText: { fontFamily: typography.sansBold, fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.3 },
+    nudgeMeta: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: c.textSecondary, marginTop: 1 },
+    nudgeMetaOverdue: { fontFamily: typography.sansSemiBold, color: c.error },
+    nudgeRight: { alignItems: 'flex-end', gap: spacing[1.5] },
+    nudgeAmount: { fontFamily: typography.monoMedium, fontSize: fontSize.sm, color: c.textPrimary },
+    waBtn: {
+      width: 32, height: 32, borderRadius: radius.full,
+      backgroundColor: WHATSAPP, alignItems: 'center', justifyContent: 'center',
+      shadowColor: WHATSAPP_SHADOW,
+      shadowOffset: { width: 0, height: 2 }, shadowOpacity: 1, shadowRadius: 6, elevation: 3,
+    },
 
-  billsHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: spacing[2],
-  },
-  newBillBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1.5],
-    ...shadow.sm,
-  },
-  newBillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs, color: colors.white },
+    billsHead: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      paddingBottom: spacing[2],
+    },
+    newBillBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing[1],
+      backgroundColor: c.primary, borderRadius: radius.full,
+      paddingHorizontal: spacing[3], paddingVertical: spacing[1.5], ...shadow.sm,
+    },
+    newBillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs, color: c.white },
 
-  filterRow: { gap: spacing[1.5], paddingVertical: spacing[1], paddingBottom: spacing[3] },
-  filterPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1.5],
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1.5],
-    borderRadius: radius.full,
-  },
-  filterPillActive: { backgroundColor: colors.gray900 },
-  filterPillIdle: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.gray200 },
-  filterPillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs, color: colors.textSecondary },
-  filterPillTextActive: { color: colors.white },
-  filterBadge: {
-    backgroundColor: colors.gray100,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing[1.5],
-    paddingVertical: 1,
-    minWidth: 18,
-    alignItems: 'center',
-  },
-  filterBadgeActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
-  filterBadgeText: { fontFamily: typography.sansMedium, fontSize: fontSize['2xs'], color: colors.textSecondary },
-  filterBadgeTextActive: { color: colors.white },
+    filterRow: { gap: spacing[1.5], paddingVertical: spacing[1], paddingBottom: spacing[3] },
+    filterPill: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing[1.5],
+      paddingHorizontal: spacing[3], paddingVertical: spacing[1.5], borderRadius: radius.full,
+    },
+    filterPillActive: { backgroundColor: c.gray900 },
+    filterPillIdle: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.gray200 },
+    filterPillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs, color: c.textSecondary },
+    filterPillTextActive: { color: c.textInverse },
+    filterBadge: {
+      backgroundColor: c.gray100, borderRadius: radius.full,
+      paddingHorizontal: spacing[1.5], paddingVertical: 1,
+      minWidth: 18, alignItems: 'center',
+    },
+    filterBadgeActive: { backgroundColor: 'rgba(128,128,128,0.2)' },
+    filterBadgeText: { fontFamily: typography.sansMedium, fontSize: fontSize['2xs'], color: c.textSecondary },
+    filterBadgeTextActive: { color: c.textInverse },
 
-  billRow: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing[3.5],
-    gap: spacing[2.5],
-    ...shadow.md,
-  },
-  billRowTop: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing[2.5] },
-  billRowTitleWrap: { flex: 1, minWidth: 0 },
-  billRowTitleLine: { flexDirection: 'row', alignItems: 'center', gap: spacing[1.5] },
-  billRowTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base, color: colors.textPrimary, flexShrink: 1 },
-  recurringChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: colors.primarySurface,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing[1.5],
-    paddingVertical: 1,
-  },
-  recurringChipText: { fontFamily: typography.sansBold, fontSize: 9, color: colors.primary, letterSpacing: 0.3 },
-  billRowMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], marginTop: 3 },
-  billRowMetaText: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: colors.textSecondary },
-  billRowMetaOverdue: { fontFamily: typography.sansMedium, fontSize: fontSize.xs, color: colors.error },
-  billRowAmountWrap: { alignItems: 'flex-end' },
-  billRowAmount: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: colors.textPrimary },
-  billRowCollected: { fontFamily: typography.monoRegular, fontSize: fontSize['2xs'], color: colors.textSecondary, marginTop: 2 },
-  billRowBottom: { flexDirection: 'row', alignItems: 'center', gap: spacing[2.5] },
-  billRowBar: { flex: 1 },
-  billRowBarTrack: { height: 5, borderRadius: radius.full, backgroundColor: colors.gray100, overflow: 'hidden' },
-  billRowBarFill: { height: '100%', borderRadius: radius.full },
+    billRow: {
+      backgroundColor: c.surface, borderRadius: radius.lg,
+      padding: spacing[3.5], gap: spacing[2.5], ...shadow.md,
+    },
+    billRowTop: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing[2.5] },
+    billRowTitleWrap: { flex: 1, minWidth: 0 },
+    billRowTitleLine: { flexDirection: 'row', alignItems: 'center', gap: spacing[1.5] },
+    billRowTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base, color: c.textPrimary, flexShrink: 1 },
+    recurringChip: {
+      flexDirection: 'row', alignItems: 'center', gap: 3,
+      backgroundColor: c.primarySurface, borderRadius: radius.full,
+      paddingHorizontal: spacing[1.5], paddingVertical: 1,
+    },
+    recurringChipText: { fontFamily: typography.sansBold, fontSize: 9, color: c.primary, letterSpacing: 0.3 },
+    billRowMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], marginTop: 3 },
+    billRowMetaText: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: c.textSecondary },
+    billRowMetaOverdue: { fontFamily: typography.sansMedium, fontSize: fontSize.xs, color: c.error },
+    billRowAmountWrap: { alignItems: 'flex-end' },
+    billRowAmount: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: c.textPrimary },
+    billRowCollected: { fontFamily: typography.monoRegular, fontSize: fontSize['2xs'], color: c.textSecondary, marginTop: 2 },
+    billRowBottom: { flexDirection: 'row', alignItems: 'center', gap: spacing[2.5] },
+    billRowBar: { flex: 1 },
+    billRowBarTrack: { height: 5, borderRadius: radius.full, backgroundColor: c.gray100, overflow: 'hidden' },
+    billRowBarFill: { height: '100%', borderRadius: radius.full },
 
-  loadingWrap: { paddingVertical: spacing[12], alignItems: 'center' },
-  empty: { alignItems: 'center', paddingVertical: spacing[10], gap: spacing[2] },
-  emptyTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.md, color: colors.textPrimary },
-  emptySub: { fontFamily: typography.sansRegular, fontSize: fontSize.sm, color: colors.textSecondary },
-});
+    loadingWrap: { paddingVertical: spacing[12], alignItems: 'center' },
+    empty: { alignItems: 'center', paddingVertical: spacing[10], gap: spacing[2] },
+    emptyTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.md, color: c.textPrimary },
+    emptySub: { fontFamily: typography.sansRegular, fontSize: fontSize.sm, color: c.textSecondary },
+  });
+}

@@ -12,7 +12,8 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
-import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
+import { typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
+import { useTheme, type ThemeColors } from '../../src/theme/ThemeContext';
 import { useBillStore } from '../../src/store/billStore';
 import { useReminderStore } from '../../src/store/reminderStore';
 import { buildQueueItems } from '../../src/lib/queueUtils';
@@ -21,6 +22,8 @@ import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill } from '../../src/types';
 
 function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void; onShare: () => void }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const paidCount = bill.participants.filter((p) => p.isPaid).length;
   const total = bill.participants.length;
   const percent = total > 0 ? Math.round((paidCount / total) * 100) : 0;
@@ -91,6 +94,8 @@ function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void;
 
 export default function BillsScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { bills, fetchBills, isLoading } = useBillStore();
   const { sent, settings } = useReminderStore();
   const organizerIdRef = useRef('');
@@ -103,7 +108,7 @@ export default function BillsScreen() {
 
   const { items: queueItems } = useMemo(
     () => buildQueueItems(bills, sent, settings, organizerIdRef.current),
-    [bills, sent, settings]
+    [bills, sent, settings],
   );
   const bellBadge = queueItems.length;
 
@@ -113,10 +118,7 @@ export default function BillsScreen() {
 
   const handleShare = async (bill: Bill) => {
     const url = `https://gocheck.app/bill/${bill.shareLink}`;
-    await Share.share({
-      message: `Pay your share for "${bill.title}": ${url}`,
-      url,
-    });
+    await Share.share({ message: `Pay your share for "${bill.title}": ${url}`, url });
   };
 
   const renderEmpty = () => {
@@ -177,10 +179,7 @@ export default function BillsScreen() {
         <FlatList
           data={bills}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={[
-            styles.list,
-            { paddingBottom: insets.bottom + spacing[6] },
-          ]}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing[6] }]}
           renderItem={({ item }) => (
             <BillCard
               bill={item}
@@ -196,210 +195,98 @@ export default function BillsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[5],
-    backgroundColor: colors.surface,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  title: {
-    fontFamily: typography.sansBold,
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-  },
-  headerBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.full,
-    backgroundColor: colors.primarySurface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bellBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: colors.error,
-    borderRadius: radius.full,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-    borderWidth: 1.5,
-    borderColor: colors.white,
-  },
-  bellBadgeCount: {
-    fontFamily: typography.sansBold,
-    fontSize: 9,
-    color: colors.white,
-    lineHeight: 12,
-  },
-  list: {
-    padding: spacing[4],
-    gap: spacing[3],
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius['2xl'],
-    padding: spacing[4],
-    ...shadow.sm,
-  },
-  cardHeader: {
-    marginBottom: spacing[3],
-  },
-  cardTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    marginBottom: spacing[1],
-  },
-  cardTitle: {
-    flex: 1,
-    fontFamily: typography.sansBold,
-    fontSize: fontSize.base,
-    color: colors.textPrimary,
-  },
-  cardDesc: {
-    fontFamily: typography.sansRegular,
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-  },
-  badge: {
-    backgroundColor: colors.primarySurface,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing[2.5],
-    paddingVertical: 3,
-  },
-  badgeDone: { backgroundColor: colors.secondarySurface },
-  badgeText: {
-    fontFamily: typography.sansMedium,
-    fontSize: fontSize.xs,
-    color: colors.primary,
-  },
-  badgeTextDone: { color: colors.secondary },
-  progressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    marginBottom: spacing[3],
-  },
-  progressBarTrack: {
-    flex: 1,
-    height: 6,
-    backgroundColor: colors.gray100,
-    borderRadius: radius.full,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: colors.secondary,
-    borderRadius: radius.full,
-  },
-  progressLabel: {
-    fontFamily: typography.monoMedium,
-    fontSize: fontSize.xs,
-    color: colors.secondary,
-    width: 32,
-    textAlign: 'right',
-  },
-  cardMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[3],
-    marginBottom: spacing[3],
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-  },
-  metaText: {
-    fontFamily: typography.sansRegular,
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
-  },
-  cardAmount: {
-    flex: 1,
-    fontFamily: typography.monoMedium,
-    fontSize: fontSize.xs,
-    color: colors.textPrimary,
-    textAlign: 'right',
-  },
-  cardActions: {
-    flexDirection: 'row',
-    gap: spacing[2],
-    paddingTop: spacing[3],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[1.5],
-    paddingVertical: spacing[2.5],
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.primarySurface,
-    backgroundColor: colors.primarySurface,
-  },
-  actionBtnText: {
-    fontFamily: typography.sansMedium,
-    fontSize: fontSize.sm,
-    color: colors.primary,
-  },
-  actionBtnFilled: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  actionBtnFilledText: {
-    fontFamily: typography.sansMedium,
-    fontSize: fontSize.sm,
-    color: colors.white,
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[3],
-    padding: spacing[6],
-  },
-  emptyTitle: {
-    fontFamily: typography.sansSemiBold,
-    fontSize: fontSize.lg,
-    color: colors.textPrimary,
-  },
-  emptyHint: {
-    fontFamily: typography.sansRegular,
-    fontSize: fontSize.base,
-    color: colors.textSecondary,
-  },
-  createBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    backgroundColor: colors.primary,
-    borderRadius: radius.xl,
-    paddingHorizontal: spacing[5],
-    paddingVertical: spacing[3],
-    marginTop: spacing[2],
-  },
-  createBtnText: {
-    fontFamily: typography.sansSemiBold,
-    fontSize: fontSize.base,
-    color: colors.white,
-  },
-});
+function makeStyles(c: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    header: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      paddingHorizontal: spacing[4], paddingVertical: spacing[5],
+      backgroundColor: c.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.border,
+    },
+    title: { fontFamily: typography.sansBold, fontSize: fontSize.xl, color: c.textPrimary },
+    headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
+    headerBtn: {
+      width: 36, height: 36, borderRadius: radius.full,
+      backgroundColor: c.primarySurface, alignItems: 'center', justifyContent: 'center',
+    },
+    bellBadge: {
+      position: 'absolute', top: -2, right: -2,
+      backgroundColor: c.error, borderRadius: radius.full,
+      minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center',
+      paddingHorizontal: 3, borderWidth: 1.5, borderColor: c.white,
+    },
+    bellBadgeCount: { fontFamily: typography.sansBold, fontSize: 9, color: c.white, lineHeight: 12 },
+    list: { padding: spacing[4], gap: spacing[3] },
+    card: {
+      backgroundColor: c.surface, borderRadius: radius['2xl'],
+      padding: spacing[4], ...shadow.sm,
+    },
+    cardHeader: { marginBottom: spacing[3] },
+    cardTitleRow: {
+      flexDirection: 'row', alignItems: 'center',
+      gap: spacing[2], marginBottom: spacing[1],
+    },
+    cardTitle: {
+      flex: 1, fontFamily: typography.sansBold,
+      fontSize: fontSize.base, color: c.textPrimary,
+    },
+    cardDesc: { fontFamily: typography.sansRegular, fontSize: fontSize.sm, color: c.textSecondary },
+    badge: {
+      backgroundColor: c.primarySurface, borderRadius: radius.full,
+      paddingHorizontal: spacing[2.5], paddingVertical: 3,
+    },
+    badgeDone: { backgroundColor: c.secondarySurface },
+    badgeText: { fontFamily: typography.sansMedium, fontSize: fontSize.xs, color: c.primary },
+    badgeTextDone: { color: c.secondary },
+    progressRow: {
+      flexDirection: 'row', alignItems: 'center',
+      gap: spacing[2], marginBottom: spacing[3],
+    },
+    progressBarTrack: {
+      flex: 1, height: 6, backgroundColor: c.gray100,
+      borderRadius: radius.full, overflow: 'hidden',
+    },
+    progressBarFill: { height: '100%', backgroundColor: c.secondary, borderRadius: radius.full },
+    progressLabel: {
+      fontFamily: typography.monoMedium, fontSize: fontSize.xs,
+      color: c.secondary, width: 32, textAlign: 'right',
+    },
+    cardMeta: {
+      flexDirection: 'row', alignItems: 'center',
+      gap: spacing[3], marginBottom: spacing[3],
+    },
+    metaItem: { flexDirection: 'row', alignItems: 'center', gap: spacing[1] },
+    metaText: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: c.textSecondary },
+    cardAmount: {
+      flex: 1, fontFamily: typography.monoMedium,
+      fontSize: fontSize.xs, color: c.textPrimary, textAlign: 'right',
+    },
+    cardActions: {
+      flexDirection: 'row', gap: spacing[2],
+      paddingTop: spacing[3],
+      borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.divider,
+    },
+    actionBtn: {
+      flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      gap: spacing[1.5], paddingVertical: spacing[2.5],
+      borderRadius: radius.lg, borderWidth: 1,
+      borderColor: c.primarySurface, backgroundColor: c.primarySurface,
+    },
+    actionBtnText: { fontFamily: typography.sansMedium, fontSize: fontSize.sm, color: c.primary },
+    actionBtnFilled: { backgroundColor: c.primary, borderColor: c.primary },
+    actionBtnFilledText: { fontFamily: typography.sansMedium, fontSize: fontSize.sm, color: c.white },
+    centered: {
+      flex: 1, alignItems: 'center', justifyContent: 'center',
+      gap: spacing[3], padding: spacing[6],
+    },
+    emptyTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.lg, color: c.textPrimary },
+    emptyHint: { fontFamily: typography.sansRegular, fontSize: fontSize.base, color: c.textSecondary },
+    createBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing[2],
+      backgroundColor: c.primary, borderRadius: radius.xl,
+      paddingHorizontal: spacing[5], paddingVertical: spacing[3], marginTop: spacing[2],
+    },
+    createBtnText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base, color: c.white },
+  });
+}
