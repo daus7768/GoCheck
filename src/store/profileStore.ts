@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { Session } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { supabase, getProfile, upsertProfile } from '../lib/supabase';
 import type { UserProfile, SecuritySettings } from '../types';
 
@@ -80,6 +82,25 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         });
       }
       set({ profile });
+
+      // Register Expo push token for payment notifications
+      try {
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status === 'granted') {
+          const extra = Constants.expoConfig?.extra as Record<string, unknown> | undefined;
+          const eas = extra?.eas as Record<string, unknown> | undefined;
+          const projectId = eas?.projectId as string | undefined;
+          const { data: token } = await Notifications.getExpoPushTokenAsync(
+            projectId ? { projectId } : undefined
+          );
+          if (token && token !== profile.expoPushToken) {
+            const updated = await upsertProfile({ id: session.user.id, expoPushToken: token });
+            set({ profile: updated });
+          }
+        }
+      } catch {
+        // Push tokens not available in web or certain simulators — safe to ignore
+      }
     } finally {
       set({ isLoading: false });
     }

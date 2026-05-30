@@ -18,8 +18,17 @@ import { colors } from '../src/theme/tokens';
 import { ThemeProvider } from '../src/theme/ThemeContext';
 import { useProfileStore } from '../src/store/profileStore';
 import { supabase } from '../src/lib/supabase';
+import * as Notifications from 'expo-notifications';
 
 SplashScreen.preventAutoHideAsync();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
