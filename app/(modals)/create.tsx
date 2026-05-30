@@ -37,7 +37,7 @@ import type { Bill } from '../../src/types';
 import { AddParticipantModal } from '../../src/components/create/AddParticipantModal';
 import { DatePickerField } from '../../src/components/create/DatePickerField';
 import { useBillStore } from '../../src/store/billStore';
-import { getOrganizerId } from '../../src/lib/organizer';
+import { useProfileStore } from '../../src/store/profileStore';
 import type { Participant, LineItem, Currency, SplitType } from '../../src/types';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
@@ -155,6 +155,7 @@ const sectionStyles = StyleSheet.create({
 export default function CreateBillScreen() {
   const insets = useSafeAreaInsets();
   const { createBill, isCreating } = useBillStore();
+  const sessionUserId = useProfileStore(s => s.session?.user.id) ?? '';
   const scrollRef = useRef<ScrollView>(null);
   const titleRef = useRef<TextInput>(null);
   const descRef = useRef<TextInput>(null);
@@ -390,7 +391,7 @@ export default function CreateBillScreen() {
 
     try {
       const bill = await createBill({
-        organizerId: await getOrganizerId(),
+        organizerId: sessionUserId,
         title: title.trim(),
         description: description.trim() || undefined,
         currency,

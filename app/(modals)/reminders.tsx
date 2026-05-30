@@ -8,7 +8,7 @@ import { colors, typography, fontSize, spacing, radius, animation } from '../../
 import { useReminderStore } from '../../src/store/reminderStore';
 import { useBillStore } from '../../src/store/billStore';
 import { buildQueueItems } from '../../src/lib/queueUtils';
-import { getOrganizerId } from '../../src/lib/organizer';
+import { useProfileStore } from '../../src/store/profileStore';
 import { QueuePane } from '../../src/components/reminders/QueuePane';
 import { SentPane } from '../../src/components/reminders/SentPane';
 import { SettingsPane } from '../../src/components/reminders/SettingsPane';
@@ -23,7 +23,7 @@ const TABS: { value: Tab; label: string }[] = [
 export default function RemindersScreen() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<Tab>('queue');
-  const [organizerId, setOrganizerId] = useState('');
+  const organizerId = useProfileStore(s => s.session?.user.id) ?? '';
   const { sent, settings, loadReminders, loadSettings } = useReminderStore();
   const { bills } = useBillStore();
 
@@ -49,7 +49,6 @@ export default function RemindersScreen() {
   }));
 
   useEffect(() => {
-    getOrganizerId().then(setOrganizerId);
     loadReminders();
     loadSettings();
   }, []);

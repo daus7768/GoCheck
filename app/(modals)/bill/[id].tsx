@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../../src/theme/tokens';
 import { useBillStore } from '../../../src/store/billStore';
 import { markParticipantPaid, markParticipantUnpaid, updateBillStatus, deleteBill } from '../../../src/lib/supabase';
-import { getOrganizerId } from '../../../src/lib/organizer';
+import { useProfileStore } from '../../../src/store/profileStore';
 import { CURRENCY_SYMBOLS } from '../../../src/types';
 import type { Bill } from '../../../src/types';
 import { shareBillLink, getBillShareUrl } from '../../../src/lib/share';
@@ -24,6 +24,7 @@ export default function BillDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { bills, fetchBills } = useBillStore();
+  const sessionUserId = useProfileStore(s => s.session?.user.id) ?? '';
   const [bill, setBill] = useState<Bill | null>(null);
   const [paying, setPaying] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -34,7 +35,7 @@ export default function BillDetailScreen() {
   }, [bills, id]);
 
   const reload = async () => {
-    const orgId = await getOrganizerId();
+    const orgId = sessionUserId;
     await fetchBills(orgId);
     const updated = useBillStore.getState().bills.find((b) => b.id === id);
     if (updated) setBill(updated);
@@ -158,7 +159,7 @@ export default function BillDetailScreen() {
         onPress: async () => {
           setActionLoading(true);
           try {
-            const orgId = await getOrganizerId();
+            const orgId = sessionUserId;
             await deleteBill(bill.id, orgId);
             await reload();
             router.back();
