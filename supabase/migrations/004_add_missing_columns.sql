@@ -1,5 +1,4 @@
--- Migration 004: Add missing columns and tables
--- Run in Supabase Dashboard → SQL Editor
+-- Migration 004: Add missing columns and tables (idempotent — safe to re-run)
 
 -- ─── bills: add group_photo_url, split_type, tax_rate ────────────────────────
 ALTER TABLE bills
@@ -28,6 +27,10 @@ CREATE TABLE IF NOT EXISTS line_items (
 CREATE INDEX IF NOT EXISTS idx_line_items_bill_id ON line_items(bill_id);
 
 ALTER TABLE line_items ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "line_items_select" ON line_items;
+DROP POLICY IF EXISTS "line_items_insert" ON line_items;
+DROP POLICY IF EXISTS "line_items_update" ON line_items;
+DROP POLICY IF EXISTS "line_items_delete" ON line_items;
 CREATE POLICY "line_items_select" ON line_items FOR SELECT USING (true);
 CREATE POLICY "line_items_insert" ON line_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "line_items_update" ON line_items FOR UPDATE USING (true);
@@ -48,6 +51,9 @@ CREATE INDEX IF NOT EXISTS idx_reminders_organizer ON reminders(organizer_id);
 CREATE INDEX IF NOT EXISTS idx_reminders_bill_part ON reminders(bill_id, participant_id);
 
 ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "reminders_select" ON reminders;
+DROP POLICY IF EXISTS "reminders_insert" ON reminders;
+DROP POLICY IF EXISTS "reminders_delete" ON reminders;
 CREATE POLICY "reminders_select" ON reminders FOR SELECT USING (true);
 CREATE POLICY "reminders_insert" ON reminders FOR INSERT WITH CHECK (true);
 CREATE POLICY "reminders_delete" ON reminders FOR DELETE USING (true);
@@ -61,6 +67,9 @@ CREATE TABLE IF NOT EXISTS user_settings (
 );
 
 ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "user_settings_select" ON user_settings;
+DROP POLICY IF EXISTS "user_settings_insert" ON user_settings;
+DROP POLICY IF EXISTS "user_settings_update" ON user_settings;
 CREATE POLICY "user_settings_select" ON user_settings FOR SELECT USING (true);
 CREATE POLICY "user_settings_insert" ON user_settings FOR INSERT WITH CHECK (true);
 CREATE POLICY "user_settings_update" ON user_settings FOR UPDATE USING (true);
