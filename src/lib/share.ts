@@ -1,11 +1,16 @@
 import { Share, Platform } from 'react-native';
+import Constants from 'expo-constants';
 import type { Bill, Currency } from '../types';
 import { CURRENCY_SYMBOLS } from '../types';
 
-export const BILL_SHARE_BASE = 'https://gocheck.app/bill';
+function getShareBase(): string {
+  const configured = (Constants.expoConfig?.extra?.shareBaseUrl as string | undefined);
+  if (configured) return configured.replace(/\/$/, '');
+  return 'https://gocheck.app/share';
+}
 
 export function getBillShareUrl(shareLink: string): string {
-  return `${BILL_SHARE_BASE}/${shareLink}`;
+  return `${getShareBase()}/${shareLink}`;
 }
 
 export function formatBillAmount(amount: number, currency: Currency): string {

@@ -32,6 +32,9 @@ export async function createBillInDB(payload: {
   share_link: string;
   category?: string;
   is_recurring?: string | null;
+  group_photo_url?: string;
+  split_type?: string;
+  tax_rate?: number;
 }) {
   const { data, error } = await supabase
     .from('bills')
@@ -48,8 +51,12 @@ export async function createParticipantsInDB(
     bill_id: string;
     name: string;
     email?: string;
+    phone?: string;
     amount: number;
     is_paid: boolean;
+    avatar_color?: string;
+    shares?: number | null;
+    percent?: number | null;
   }>
 ) {
   const { data, error } = await supabase
@@ -59,6 +66,24 @@ export async function createParticipantsInDB(
 
   if (error) throw error;
   return data;
+}
+
+export async function createLineItemsInDB(
+  items: Array<{
+    bill_id: string;
+    description: string;
+    quantity: number;
+    unit_price: number;
+  }>
+) {
+  if (items.length === 0) return [];
+  const { data, error } = await supabase
+    .from('line_items')
+    .insert(items)
+    .select();
+
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function createShareLinkInDB(payload: {
@@ -80,8 +105,15 @@ export async function getBillByShareLink(code: string) {
   const { data, error } = await supabase
     .from('bills')
     .select(`
-      *,
-      participants (*)
+      id, title, description, total_amount, currency, due_date, status, share_link,
+      category, is_recurring, group_photo_url, split_type, tax_rate,
+      created_at, updated_at,
+      participants (
+        id, name, email, phone, amount, is_paid, paid_at, avatar_color, shares, percent
+      ),
+      line_items (
+        id, description, quantity, unit_price
+      )
     `)
     .eq('share_link', code)
     .single();
@@ -94,8 +126,15 @@ export async function getOrganizerBills(organizerId: string) {
   const { data, error } = await supabase
     .from('bills')
     .select(`
-      *,
-      participants (*)
+      id, title, description, total_amount, currency, due_date, status, share_link,
+      category, is_recurring, group_photo_url, split_type, tax_rate,
+      created_at, updated_at,
+      participants (
+        id, name, email, phone, amount, is_paid, paid_at, avatar_color, shares, percent
+      ),
+      line_items (
+        id, description, quantity, unit_price
+      )
     `)
     .eq('organizer_id', organizerId)
     .order('created_at', { ascending: false });
@@ -108,6 +147,19 @@ export async function markParticipantPaid(participantId: string, billId: string)
   const { data, error } = await supabase
     .from('participants')
     .update({ is_paid: true, paid_at: new Date().toISOString() })
+    .eq('id', participantId)
+    .eq('bill_id', billId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function markParticipantUnpaid(participantId: string, billId: string) {
+  const { data, error } = await supabase
+    .from('participants')
+    .update({ is_paid: false, paid_at: null })
     .eq('id', participantId)
     .eq('bill_id', billId)
     .select()
@@ -148,7 +200,6 @@ export async function uploadGroupPhoto(billId: string, uri: string): Promise<str
   let contentType = 'image/jpeg';
 
   if (uri.startsWith('data:')) {
-    // Web: expo-image-picker returns a data: URI — decode base64 to binary
     const commaIdx = uri.indexOf(',');
     const header = uri.slice(0, commaIdx);
     const base64 = uri.slice(commaIdx + 1);
@@ -158,7 +209,6 @@ export async function uploadGroupPhoto(billId: string, uri: string): Promise<str
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     fileData = bytes;
   } else {
-    // Native: fetch the local file URI as a blob
     const response = await fetch(uri);
     fileData = await response.blob();
     contentType = (fileData as Blob).type || 'image/jpeg';

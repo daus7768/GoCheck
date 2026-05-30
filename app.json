@@ -45,6 +45,7 @@
     "extra": {
       "supabaseUrl": "https://bccarnwtdqamedtlzdht.supabase.co",
       "supabaseAnonKey": "sb_publishable_VzCR4JOptTjishRkubio-A_PrQQ-UTr",
+      "shareBaseUrl": "https://gocheck.app/share",
       "eas": {
         "projectId": "YOUR_EAS_PROJECT_ID"
       }

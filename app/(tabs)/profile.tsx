@@ -285,7 +285,7 @@ export default function ProfileScreen() {
         </Pressable>
 
         <Text style={styles.footer}>
-          SettleUp v{APP_VERSION} · Split it. Share it. Settle it.
+          GoCheck v{APP_VERSION} · Split it. Share it. Settle it.
         </Text>
       </ScrollView>
     </View>
