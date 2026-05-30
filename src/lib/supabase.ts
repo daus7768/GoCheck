@@ -104,23 +104,34 @@ export async function createShareLinkInDB(payload: {
 
 export async function getBillByShareLink(code: string) {
   const { data, error } = await supabase
-    .from('bills')
-    .select(`
-      id, title, description, total_amount, currency, due_date, status, share_link,
-      category, is_recurring, group_photo_url, split_type, tax_rate,
-      created_at, updated_at,
-      participants (
-        id, name, email, phone, amount, is_paid, paid_at, avatar_color, shares, percent
-      ),
-      line_items (
-        id, description, quantity, unit_price
-      )
-    `)
-    .eq('share_link', code)
-    .single();
-
+    .rpc('get_bill_by_share_link', { p_code: code });
   if (error) throw error;
-  return data;
+  if (!data) throw new Error('Bill not found');
+  return data as {
+    id: string;
+    title: string;
+    description: string | null;
+    total_amount: number;
+    currency: string;
+    due_date: string;
+    status: string;
+    share_link: string;
+    category: string | null;
+    is_recurring: string | null;
+    group_photo_url: string | null;
+    split_type: string | null;
+    tax_rate: number | null;
+    created_at: string;
+    updated_at: string;
+    participants: Array<{
+      id: string; name: string; email: string | null; phone: string | null;
+      amount: number; is_paid: boolean; paid_at: string | null;
+      avatar_color: string; shares: number | null; percent: number | null;
+    }>;
+    line_items: Array<{
+      id: string; description: string; quantity: number; unit_price: number;
+    }>;
+  };
 }
 
 export async function getOrganizerBills(organizerId: string) {
@@ -153,6 +164,19 @@ export async function markParticipantPaid(participantId: string, billId: string)
     .select()
     .single();
 
+  if (error) throw error;
+  return data;
+}
+
+export async function markParticipantPaidByShareLink(
+  shareCode: string,
+  participantId: string
+): Promise<{ id: string; bill_id: string; is_paid: boolean; paid_at: string } | { already_paid: boolean }> {
+  const { data, error } = await supabase
+    .rpc('mark_participant_paid', {
+      p_share_code: shareCode,
+      p_participant_id: participantId,
+    });
   if (error) throw error;
   return data;
 }
@@ -340,6 +364,7 @@ function rowToProfile(row: Record<string, unknown>): UserProfile {
     notifDueSoon: Boolean(row.notif_due_soon ?? true),
     notifOverdue: Boolean(row.notif_overdue ?? true),
     notifWeeklyDigest: Boolean(row.notif_weekly_digest),
+    expoPushToken: (row.expo_push_token as string | null) ?? undefined,
   };
 }
 
@@ -370,6 +395,7 @@ export async function upsertProfile(profile: Partial<UserProfile> & { id: string
   if (profile.notifDueSoon !== undefined) row.notif_due_soon = profile.notifDueSoon;
   if (profile.notifOverdue !== undefined) row.notif_overdue = profile.notifOverdue;
   if (profile.notifWeeklyDigest !== undefined) row.notif_weekly_digest = profile.notifWeeklyDigest;
+  if (profile.expoPushToken !== undefined) row.expo_push_token = profile.expoPushToken;
 
   const { data, error } = await supabase
     .from('user_profiles')

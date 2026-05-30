@@ -211,6 +211,7 @@ export interface UserProfile {
   notifDueSoon: boolean;
   notifOverdue: boolean;
   notifWeeklyDigest: boolean;
+  expoPushToken?: string;
 }
 
 export interface SecuritySettings {
