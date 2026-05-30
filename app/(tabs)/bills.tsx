@@ -6,7 +6,6 @@ import {
   FlatList,
   Pressable,
   ActivityIndicator,
-  Share,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +18,7 @@ import { buildQueueItems } from '../../src/lib/queueUtils';
 import { getOrganizerId } from '../../src/lib/organizer';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill } from '../../src/types';
+import { shareBillLink } from '../../src/lib/share';
 
 function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void; onShare: () => void }) {
   const paidCount = bill.participants.filter((p) => p.isPaid).length;
@@ -112,11 +112,7 @@ export default function BillsScreen() {
   }, []);
 
   const handleShare = async (bill: Bill) => {
-    const url = `https://gocheck.app/bill/${bill.shareLink}`;
-    await Share.share({
-      message: `Pay your share for "${bill.title}": ${url}`,
-      url,
-    });
+    await shareBillLink(bill);
   };
 
   const renderEmpty = () => {

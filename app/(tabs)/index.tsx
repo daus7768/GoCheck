@@ -305,7 +305,7 @@ export default function HomeScreen() {
               <Text style={styles.topAvatarText}>G</Text>
             </LinearGradient>
           </Pressable>
-          <Text style={styles.topTitle}>SettleUp</Text>
+          <Text style={styles.topTitle}>GoCheck</Text>
           <Pressable
             onPress={() => router.push('/(modals)/reminders')}
             accessibilityRole="button"

@@ -51,10 +51,11 @@ export interface Bill {
   shareLink: string;
   category?: 'travel' | 'food' | 'housing' | 'other';
   isRecurring?: 'monthly' | 'yearly' | null;
-  participants: Participant[];
-  lineItems?: LineItemComputed[];
+  splitType?: SplitType;
   taxRate?: number;
   groupPhotoUrl?: string;
+  participants: Participant[];
+  lineItems?: LineItemComputed[];
   createdAt: string;
   updatedAt: string;
 }

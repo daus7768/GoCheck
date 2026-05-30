@@ -241,10 +241,35 @@ export default function CreateBillScreen() {
   }, [splitType, effectiveTotal]);
 
   const handleParticipantAmountChange = (id: string, value: string) => {
-    const amount = parseFloat(value) || 0;
-    setParticipants((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, amount } : p))
-    );
+    const num = parseFloat(value) || 0;
+    setParticipants((prev) => {
+      const updated = prev.map((p) => {
+        if (p.id !== id) return p;
+        if (splitType === 'percent') {
+          // Store in percent field; derive amount from total
+          const amount = effectiveTotal > 0 ? (num / 100) * effectiveTotal : 0;
+          return { ...p, percent: num, amount };
+        }
+        if (splitType === 'shares') {
+          // Store in shares field; recompute all amounts proportionally
+          return { ...p, shares: num };
+        }
+        // custom or equal
+        return { ...p, amount: num };
+      });
+
+      if (splitType === 'shares') {
+        const totalShares = updated.reduce((s, p) => s + (p.shares ?? 0), 0);
+        return updated.map((p) => ({
+          ...p,
+          amount: totalShares > 0 && effectiveTotal > 0
+            ? Math.round(((p.shares ?? 0) / totalShares) * effectiveTotal * 100) / 100
+            : 0,
+        }));
+      }
+
+      return updated;
+    });
   };
 
   // ── Line items ──
@@ -298,6 +323,32 @@ export default function CreateBillScreen() {
     if (participants.length < 2) {
       setParticipantsError('Add at least 2 participants');
       valid = false;
+    } else if (splitType === 'percent') {
+      const total = participants.reduce((s, p) => s + (p.percent ?? 0), 0);
+      if (Math.abs(total - 100) > 0.01) {
+        setParticipantsError(`Percentages must add up to 100% (currently ${total.toFixed(1)}%)`);
+        valid = false;
+      } else {
+        setParticipantsError('');
+      }
+    } else if (splitType === 'custom') {
+      const amountTotal = participants.reduce((s, p) => s + p.amount, 0);
+      if (effectiveTotal > 0 && Math.abs(amountTotal - effectiveTotal) > 0.02) {
+        setParticipantsError(
+          `Amounts must sum to ${CURRENCY_SYMBOLS[currency]}${effectiveTotal.toFixed(2)} (currently ${CURRENCY_SYMBOLS[currency]}${amountTotal.toFixed(2)})`
+        );
+        valid = false;
+      } else {
+        setParticipantsError('');
+      }
+    } else if (splitType === 'shares') {
+      const hasShares = participants.every((p) => (p.shares ?? 0) > 0);
+      if (!hasShares) {
+        setParticipantsError('All participants need at least 1 share');
+        valid = false;
+      } else {
+        setParticipantsError('');
+      }
     } else {
       setParticipantsError('');
     }
@@ -685,7 +736,13 @@ export default function CreateBillScreen() {
                       )}
                       <TextInput
                         style={styles.customInput}
-                        value={p.amount === 0 ? '' : String(p.amount)}
+                        value={
+                          splitType === 'percent'
+                            ? (p.percent === 0 || p.percent == null ? '' : String(p.percent))
+                            : splitType === 'shares'
+                            ? (p.shares === 0 || p.shares == null ? '' : String(p.shares))
+                            : (p.amount === 0 ? '' : String(p.amount))
+                        }
                         onChangeText={(v) => handleParticipantAmountChange(p.id, v)}
                         placeholder="0"
                         placeholderTextColor={colors.textTertiary}
@@ -694,6 +751,20 @@ export default function CreateBillScreen() {
                         textAlign="right"
                       />
                     </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Percent/shares computed amounts preview */}
+            {(splitType === 'percent' || splitType === 'shares') && participants.length > 0 && effectiveTotal > 0 && (
+              <View style={styles.equalPreview}>
+                {participants.map((p) => (
+                  <View key={p.id} style={styles.equalPreviewRow}>
+                    <Text style={styles.equalPreviewName} numberOfLines={1}>{p.name}</Text>
+                    <Text style={styles.equalPreviewAmount}>
+                      = {currencySymbol}{p.amount.toFixed(2)}
+                    </Text>
                   </View>
                 ))}
               </View>

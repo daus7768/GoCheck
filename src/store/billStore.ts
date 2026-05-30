@@ -1,12 +1,15 @@
 import { create } from 'zustand';
-import type { Bill, Participant, LineItem, Currency, SplitType } from '../types';
+import type { Bill, Participant, LineItem, LineItemComputed, Currency, SplitType } from '../types';
 import {
   createBillInDB,
   createParticipantsInDB,
+  createLineItemsInDB,
   createShareLinkInDB,
   getOrganizerBills,
   uploadGroupPhoto,
+  deleteBill as deleteBillFromDB,
 } from '../lib/supabase';
+import { colors } from '../theme/tokens';
 
 function generateShareCode(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -15,6 +18,10 @@ function generateShareCode(): string {
 
 function generateId(): string {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function pickAvatarColor(index: number): string {
+  return colors.avatar[index % colors.avatar.length] ?? '#4F46E5';
 }
 
 interface CreateBillArgs {
@@ -34,23 +41,47 @@ interface CreateBillArgs {
 }
 
 interface BillStore {
-  // State
   bills: Bill[];
   isLoading: boolean;
   isCreating: boolean;
   error: string | null;
   lastCreatedBill: Bill | null;
-
-  // Draft state for create flow
   draft: Partial<CreateBillArgs>;
 
-  // Actions
   fetchBills: (organizerId: string) => Promise<void>;
   createBill: (args: CreateBillArgs) => Promise<Bill>;
+  deleteBill: (billId: string, organizerId: string) => Promise<void>;
   clearError: () => void;
   clearLastCreated: () => void;
   setDraft: (partial: Partial<CreateBillArgs>) => void;
   resetDraft: () => void;
+}
+
+function mapParticipantRow(p: Record<string, unknown>, index: number): Participant {
+  return {
+    id: p['id'] as string,
+    name: p['name'] as string,
+    email: (p['email'] as string | undefined) ?? undefined,
+    phone: (p['phone'] as string | undefined) ?? undefined,
+    amount: Number(p['amount']),
+    isPaid: Boolean(p['is_paid']),
+    paidAt: (p['paid_at'] as string | null) ?? null,
+    avatarColor: (p['avatar_color'] as string | undefined) ?? pickAvatarColor(index),
+    shares: (p['shares'] as number | null | undefined) ?? undefined,
+    percent: (p['percent'] as number | null | undefined) ?? undefined,
+  };
+}
+
+function mapLineItemRow(li: Record<string, unknown>): LineItemComputed {
+  const qty = Number(li['quantity']);
+  const price = Number(li['unit_price']);
+  return {
+    id: li['id'] as string,
+    description: (li['description'] as string) ?? '',
+    quantity: qty,
+    unitPrice: price,
+    subtotal: qty * price,
+  };
 }
 
 export const useBillStore = create<BillStore>((set, get) => ({
@@ -65,30 +96,29 @@ export const useBillStore = create<BillStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const rows = await getOrganizerBills(organizerId);
-      const bills: Bill[] = (rows ?? []).map((row) => ({
-        id: row.id,
-        organizerId: row.organizer_id,
-        title: row.title,
-        description: row.description ?? undefined,
-        totalAmount: Number(row.total_amount),
-        currency: row.currency as Currency,
-        dueDate: row.due_date,
-        status: row.status,
-        shareLink: row.share_link,
-        category: (row.category ?? 'other') as Bill['category'],
-        isRecurring: (row.is_recurring ?? null) as Bill['isRecurring'],
-        participants: (row.participants ?? []).map((p: Record<string, unknown>) => ({
-          id: p['id'] as string,
-          name: p['name'] as string,
-          email: p['email'] as string | undefined,
-          amount: Number(p['amount']),
-          isPaid: Boolean(p['is_paid']),
-          paidAt: p['paid_at'] as string | null,
-          avatarColor: '#4F46E5',
-        })),
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      }));
+      const bills: Bill[] = (rows ?? []).map((row) => {
+        const r = row as Record<string, unknown>;
+        return {
+        id: r['id'] as string,
+        organizerId: r['organizer_id'] as string,
+        title: r['title'] as string,
+        description: (r['description'] as string | undefined) ?? undefined,
+        totalAmount: Number(r['total_amount']),
+        currency: r['currency'] as Currency,
+        dueDate: r['due_date'] as string,
+        status: r['status'] as Bill['status'],
+        shareLink: r['share_link'] as string,
+        category: ((r['category'] as string | undefined) ?? 'other') as Bill['category'],
+        isRecurring: ((r['is_recurring'] as string | null | undefined) ?? null) as Bill['isRecurring'],
+        groupPhotoUrl: (r['group_photo_url'] as string | undefined) ?? undefined,
+        splitType: ((r['split_type'] as string | undefined) ?? 'equal') as SplitType,
+        taxRate: Number(r['tax_rate'] ?? 0),
+        participants: ((r['participants'] ?? []) as Record<string, unknown>[]).map(mapParticipantRow),
+        lineItems: ((r['line_items'] ?? []) as Record<string, unknown>[]).map(mapLineItemRow),
+        createdAt: r['created_at'] as string,
+        updatedAt: r['updated_at'] as string,
+        };
+      });
       set({ bills, isLoading: false });
     } catch (err) {
       set({
@@ -103,7 +133,6 @@ export const useBillStore = create<BillStore>((set, get) => ({
     try {
       const shareCode = generateShareCode();
 
-      // Calculate total from line items or use participant amounts
       const lineItemSubtotal = args.lineItems.reduce(
         (sum, item) => sum + item.quantity * item.unitPrice,
         0
@@ -113,14 +142,12 @@ export const useBillStore = create<BillStore>((set, get) => ({
         ? lineItemSubtotal + taxAmount
         : args.participants.reduce((sum, p) => sum + p.amount, 0);
 
-      // Upload group photo if provided
       let groupPhotoUrl: string | undefined;
       if (args.groupPhotoUri) {
         const tempId = generateId();
         groupPhotoUrl = await uploadGroupPhoto(tempId, args.groupPhotoUri);
       }
 
-      // Insert bill
       const billRow = await createBillInDB({
         organizer_id: args.organizerId,
         title: args.title,
@@ -132,20 +159,34 @@ export const useBillStore = create<BillStore>((set, get) => ({
         share_link: shareCode,
         category: args.category ?? 'other',
         is_recurring: args.isRecurring ?? null,
+        group_photo_url: groupPhotoUrl,
+        split_type: args.splitType,
+        tax_rate: args.taxRate,
       });
 
-      // Insert participants
       const participantRows = await createParticipantsInDB(
-        args.participants.map((p) => ({
+        args.participants.map((p, i) => ({
           bill_id: billRow.id,
           name: p.name,
           email: p.email,
+          phone: p.phone,
           amount: p.amount,
           is_paid: false,
+          avatar_color: p.avatarColor ?? pickAvatarColor(i),
+          shares: p.shares ?? null,
+          percent: p.percent ?? null,
         }))
       );
 
-      // Insert share link record
+      const lineItemRows = await createLineItemsInDB(
+        args.lineItems.map((li) => ({
+          bill_id: billRow.id,
+          description: li.description,
+          quantity: li.quantity,
+          unit_price: li.unitPrice,
+        }))
+      );
+
       await createShareLinkInDB({
         code: shareCode,
         bill_id: billRow.id,
@@ -165,17 +206,26 @@ export const useBillStore = create<BillStore>((set, get) => ({
         category: args.category ?? 'other',
         isRecurring: args.isRecurring ?? null,
         groupPhotoUrl,
-        participants: (participantRows ?? []).map((p, i) => {
-          const srcParticipant = args.participants[i];
-          return {
-            id: p.id,
-            name: p.name,
-            email: p.email ?? undefined,
-            amount: Number(p.amount),
-            isPaid: false,
-            avatarColor: srcParticipant?.avatarColor ?? '#4F46E5',
-          };
-        }),
+        splitType: args.splitType,
+        taxRate: args.taxRate,
+        participants: (participantRows ?? []).map((p, i) => ({
+          id: p.id,
+          name: p.name,
+          email: p.email ?? undefined,
+          phone: p.phone ?? undefined,
+          amount: Number(p.amount),
+          isPaid: false,
+          avatarColor: (p.avatar_color as string | undefined) ?? pickAvatarColor(i),
+          shares: (p.shares as number | undefined) ?? undefined,
+          percent: (p.percent as number | undefined) ?? undefined,
+        })),
+        lineItems: (lineItemRows ?? []).map((li) => ({
+          id: li.id,
+          description: li.description,
+          quantity: Number(li.quantity),
+          unitPrice: Number(li.unit_price),
+          subtotal: Number(li.quantity) * Number(li.unit_price),
+        })),
         createdAt: billRow.created_at,
         updatedAt: billRow.updated_at,
       };
@@ -191,6 +241,16 @@ export const useBillStore = create<BillStore>((set, get) => ({
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create bill';
       set({ isCreating: false, error: message });
+      throw err;
+    }
+  },
+
+  deleteBill: async (billId, organizerId) => {
+    try {
+      await deleteBillFromDB(billId, organizerId);
+      set((state) => ({ bills: state.bills.filter((b) => b.id !== billId) }));
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Failed to delete bill' });
       throw err;
     }
   },

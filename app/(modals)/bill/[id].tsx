@@ -14,11 +14,11 @@ import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../../src/theme/tokens';
 import { useBillStore } from '../../../src/store/billStore';
-import { supabase, markParticipantPaid, updateBillStatus, deleteBill } from '../../../src/lib/supabase';
+import { markParticipantPaid, markParticipantUnpaid, updateBillStatus, deleteBill } from '../../../src/lib/supabase';
 import { getOrganizerId } from '../../../src/lib/organizer';
 import { CURRENCY_SYMBOLS } from '../../../src/types';
 import type { Bill } from '../../../src/types';
-import { shareBillLink } from '../../../src/lib/share';
+import { shareBillLink, getBillShareUrl } from '../../../src/lib/share';
 
 export default function BillDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -96,11 +96,7 @@ export default function BillDetailScreen() {
         onPress: async () => {
           setPaying(participantId);
           try {
-            await supabase
-              .from('participants')
-              .update({ is_paid: false, paid_at: null })
-              .eq('id', participantId)
-              .eq('bill_id', bill.id);
+            await markParticipantUnpaid(participantId, bill.id);
             setBill((prev) =>
               prev
                 ? {
@@ -126,7 +122,15 @@ export default function BillDetailScreen() {
   };
 
   const handleComplete = () => {
-    Alert.alert('Complete Bill', 'Mark this bill as complete?', [
+    const unpaidCount = bill.participants.filter((p) => !p.isPaid).length;
+    const title = unpaidCount > 0
+      ? `${unpaidCount} participant${unpaidCount > 1 ? 's' : ''} still unpaid`
+      : 'Mark bill as complete?';
+    const message = unpaidCount > 0
+      ? 'Some participants haven\'t paid yet. Mark as complete anyway?'
+      : 'This will close the bill. You can still view it afterwards.';
+
+    Alert.alert(title, message, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Complete',
@@ -245,7 +249,7 @@ export default function BillDetailScreen() {
             <Feather name="link" size={16} color={colors.primary} />
             <View>
               <Text style={styles.shareLinkLabel}>Share Link</Text>
-              <Text style={styles.shareLinkCode}>gocheck.app/bill/{bill.shareLink}</Text>
+              <Text style={styles.shareLinkCode} numberOfLines={1}>{getBillShareUrl(bill.shareLink)}</Text>
             </View>
           </View>
           <Pressable onPress={handleShare} style={styles.shareLinkBtn}>
@@ -258,12 +262,13 @@ export default function BillDetailScreen() {
           <Text style={styles.sectionTitle}>Participants ({totalCount})</Text>
           {bill.participants.map((p) => (
             <View key={p.id} style={styles.participantRow}>
-              <View style={[styles.avatar, { backgroundColor: p.isPaid ? colors.secondary : colors.gray300 }]}>
+              <View style={[styles.avatar, { backgroundColor: p.avatarColor ?? (p.isPaid ? colors.secondary : colors.gray300) }]}>
                 <Text style={styles.avatarText}>{p.name.slice(0, 1).toUpperCase()}</Text>
               </View>
               <View style={styles.participantInfo}>
                 <Text style={styles.participantName}>{p.name}</Text>
                 {p.email ? <Text style={styles.participantEmail}>{p.email}</Text> : null}
+                {!p.email && p.phone ? <Text style={styles.participantEmail}>{p.phone}</Text> : null}
                 {p.isPaid && p.paidAt ? (
                   <Text style={styles.paidAt}>Paid {format(new Date(p.paidAt), 'dd MMM, HH:mm')}</Text>
                 ) : null}
