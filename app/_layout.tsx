@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Platform, View, StyleSheet } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -15,8 +15,44 @@ import {
   DMMono_500Medium,
 } from '@expo-google-fonts/dm-mono';
 import { colors } from '../src/theme/tokens';
+import { ThemeProvider } from '../src/theme/ThemeContext';
+import { useProfileStore } from '../src/store/profileStore';
+import { supabase } from '../src/lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
+
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const segments = useSegments();
+  const { session, sessionInitialized, setSession, loadProfile, loadSecurity } = useProfileStore();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) loadProfile();
+    });
+
+    loadSecurity();
+
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!sessionInitialized) return;
+    const inAuth = (segments as string[])[0] === 'auth';
+    if (!session && !inAuth) {
+      router.replace('/auth/sign-in' as any);
+    } else if (session && inAuth) {
+      router.replace('/(tabs)' as any);
+    }
+  }, [session, sessionInitialized, segments]);
+
+  return <>{children}</>;
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -26,6 +62,9 @@ export default function RootLayout() {
     DMMono_400Regular,
     DMMono_500Medium,
   });
+
+  const profile = useProfileStore((s) => s.profile);
+  const isDark = profile?.darkMode ?? false;
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
@@ -37,15 +76,18 @@ export default function RootLayout() {
     return null;
   }
 
+  const bgColor = isDark ? '#0A0A0F' : colors.background;
+
   const app = (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
+        contentStyle: { backgroundColor: bgColor },
         animation: Platform.OS === 'web' ? 'none' : 'default',
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen
         name="(modals)/create"
         options={{
@@ -83,14 +125,18 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <StatusBar style="dark" backgroundColor={colors.background} />
-      {Platform.OS === 'web' ? (
-        <View style={styles.webContainer}>
-          <View style={styles.webPhone}>{app}</View>
-        </View>
-      ) : (
-        app
-      )}
+      <ThemeProvider isDark={isDark}>
+        <AuthGuard>
+          <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={bgColor} />
+          {Platform.OS === 'web' ? (
+            <View style={styles.webContainer}>
+              <View style={[styles.webPhone, { backgroundColor: bgColor }]}>{app}</View>
+            </View>
+          ) : (
+            app
+          )}
+        </AuthGuard>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
@@ -107,7 +153,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 430,
     flex: 1,
-    backgroundColor: colors.background,
     overflow: 'hidden',
     // @ts-ignore — web-only shadow
     boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 8px 48px rgba(0,0,0,0.14)',

@@ -11,17 +11,29 @@
       "resizeMode": "contain",
       "backgroundColor": "#4F46E5"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.gocheck.app"
+      "bundleIdentifier": "com.gocheck.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "GoCheck uses Face ID to protect your account.",
+        "NSCameraUsageDescription": "GoCheck uses your camera to add group photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#4F46E5"
       },
-      "package": "com.gocheck.app"
+      "package": "com.gocheck.app",
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -36,7 +48,8 @@
           "photosPermission": "GoCheck uses your photos to add a group photo to bills.",
           "cameraPermission": "GoCheck uses your camera to take a group photo."
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

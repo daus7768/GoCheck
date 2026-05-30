@@ -1,372 +1,343 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
-import { useSettingsStore, type PaymentMethodKey } from '../../src/store/settingsStore';
-import { useBillStore } from '../../src/store/billStore';
+import { useTheme } from '../../src/theme/ThemeContext';
+import { useProfileStore } from '../../src/store/profileStore';
 import { SettingSection } from '../../src/components/profile/SettingSection';
 import { SettingRow } from '../../src/components/profile/SettingRow';
 import { ToggleV2 } from '../../src/components/profile/ToggleV2';
-import { haptic, NotificationFeedbackType } from '../../src/lib/haptics';
-import { CURRENCY_SYMBOLS, SUPPORTED_CURRENCIES } from '../../src/types';
+import { haptic } from '../../src/lib/haptics';
+import {
+  CURRENCY_SYMBOLS,
+  SUPPORTED_CURRENCIES,
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_METHOD_SUBTITLES,
+  type PaymentMethodKey,
+} from '../../src/types';
 
 const APP_VERSION = '2.0';
 
+const ALL_PAYMENT_METHODS: PaymentMethodKey[] = ['duitnow', 'card', 'paypal', 'bank_transfer'];
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const {
-    profileName,
-    defaultCurrency,
-    darkMode,
-    notifications,
-    security,
-    paymentMethods,
-    offline,
-    setDefaultCurrency,
-    setDarkMode,
-    setNotification,
-    setSecurity,
-    setPaymentMethodEnabled,
-    setOffline,
-    reset,
-  } = useSettingsStore();
-  const bills = useBillStore((s) => s.bills);
+  const { colors: c } = useTheme();
+  const { session, profile, updateProfile, signOut } = useProfileStore();
 
-  const recurringCount = bills.filter((b) => b.isRecurring).length;
+  const displayName = profile?.displayName ?? session?.user?.email?.split('@')[0] ?? 'Organizer';
+  const email = session?.user?.email ?? '';
+  const avatarUrl = profile?.avatarUrl ?? null;
+  const initial = (displayName.trim()[0] ?? 'O').toUpperCase();
+
+  const defaultCurrency = profile?.defaultCurrency ?? 'MYR';
+  const darkMode = profile?.darkMode ?? false;
+  const paymentMethods = profile?.paymentMethods ?? [];
+  const notifPush = profile?.notifPush ?? true;
+  const notifEmail = profile?.notifEmail ?? true;
+  const notifWhatsapp = profile?.notifWhatsapp ?? false;
+  const notifDueSoon = profile?.notifDueSoon ?? true;
+  const notifOverdue = profile?.notifOverdue ?? true;
+  const notifWeeklyDigest = profile?.notifWeeklyDigest ?? false;
+
   const symbol = CURRENCY_SYMBOLS[defaultCurrency];
-  const initial = (profileName.trim()[0] ?? 'Y').toUpperCase();
 
   function cycleCurrency() {
     const idx = SUPPORTED_CURRENCIES.indexOf(defaultCurrency);
     const next = SUPPORTED_CURRENCIES[(idx + 1) % SUPPORTED_CURRENCIES.length] ?? 'MYR';
     haptic.selection();
-    setDefaultCurrency(next);
+    updateProfile({ defaultCurrency: next });
   }
 
-  function confirmReset() {
+  function togglePaymentMethod(key: PaymentMethodKey) {
+    haptic.selection();
+    const next = paymentMethods.includes(key)
+      ? paymentMethods.filter((k) => k !== key)
+      : [...paymentMethods, key];
+    updateProfile({ paymentMethods: next });
+  }
+
+  function confirmSignOut() {
     Alert.alert(
-      'Reset demo data?',
-      'This restores all settings to their defaults. Your bills are not affected.',
+      'Sign out?',
+      'You will need to sign in again to manage your bills.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Reset',
+          text: 'Sign Out',
           style: 'destructive',
           onPress: () => {
-            haptic.notification(NotificationFeedbackType.Success);
-            reset();
+            haptic.selection();
+            signOut();
           },
         },
       ]
     );
   }
 
-  const PAYMENT_ICON: Record<PaymentMethodKey, React.ComponentProps<typeof Feather>['name']> = {
-    duitnow: 'smartphone',
-    card: 'credit-card',
-    paypal: 'dollar-sign',
-    bank: 'home',
-  };
-  const paymentOrder: PaymentMethodKey[] = ['duitnow', 'card', 'paypal', 'bank'];
-
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + spacing[2] }]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Profile header */}
-        <View style={styles.profileHeader}>
-          <LinearGradient
-            colors={[colors.primaryLight, colors.primaryDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.avatar}
-          >
-            <Text style={styles.avatarInitial}>{initial}</Text>
-          </LinearGradient>
-          <Text style={styles.profileName}>{profileName}</Text>
-          <Text style={styles.profileSub}>
-            Organizer · {paymentMethods.duitnow.id}
-          </Text>
+    <ScrollView
+      style={[styles.container, { backgroundColor: c.background }]}
+      contentContainerStyle={{ paddingBottom: insets.bottom + spacing[8] }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + spacing[5] }]}>
+        <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Profile</Text>
+      </View>
+
+      {/* Profile card */}
+      <View style={[styles.profileCard, { backgroundColor: c.surface }]}>
+        <View style={styles.avatarWrapper}>
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatarFallback, { backgroundColor: colors.primary }]}>
+              <Text style={styles.avatarInitial}>{initial}</Text>
+            </View>
+          )}
+          <View style={[styles.organizerBadge, { backgroundColor: colors.primarySurface }]}>
+            <Feather name="shield" size={10} color={colors.primary} />
+            <Text style={styles.organizerBadgeText}>Organizer</Text>
+          </View>
         </View>
 
-        {/* Security */}
-        <SettingSection title="Security">
-          <SettingRow
-            icon="lock"
-            label="Biometric unlock"
-            sub="Face ID / Touch ID on launch"
-            right={
-              <ToggleV2
-                on={security.biometric}
-                onChange={(v) => setSecurity('biometric', v)}
-                accessibilityLabel="Biometric unlock"
-              />
-            }
-          />
-          <SettingRow
-            icon="key"
-            label="PIN code"
-            sub={security.pinSet ? '4-digit PIN set' : 'Set a 4-digit PIN'}
-            right={
-              <View style={[styles.badge, security.pinSet && styles.badgeActive]}>
-                <Text style={[styles.badgeText, security.pinSet && styles.badgeTextActive]}>
-                  {security.pinSet ? 'Active' : 'Set'}
-                </Text>
-              </View>
-            }
-            onPress={() => setSecurity('pinSet', !security.pinSet)}
-          />
-          <SettingRow
-            icon="clock"
-            label="Auto-lock"
-            sub={`After ${security.autoLockMinutes} min idle`}
-            right={<Feather name="chevron-right" size={16} color={colors.gray400} />}
-            onPress={() =>
-              setSecurity('autoLockMinutes', security.autoLockMinutes >= 15 ? 1 : security.autoLockMinutes + 4)
-            }
-            last
-          />
-        </SettingSection>
+        <View style={styles.profileInfo}>
+          <Text style={[styles.profileName, { color: c.textPrimary }]}>{displayName}</Text>
+          {email ? (
+            <Text style={[styles.profileEmail, { color: c.textSecondary }]}>{email}</Text>
+          ) : null}
+        </View>
+      </View>
 
-        {/* Notifications */}
-        <SettingSection title="Notifications">
-          <SettingRow
-            icon="bell"
-            label="Push notifications"
-            right={
-              <ToggleV2
-                on={notifications.push}
-                onChange={(v) => setNotification('push', v)}
-                accessibilityLabel="Push notifications"
-              />
-            }
-          />
-          <SettingRow
-            icon="mail"
-            label="Email alerts"
-            right={
-              <ToggleV2
-                on={notifications.email}
-                onChange={(v) => setNotification('email', v)}
-                accessibilityLabel="Email alerts"
-              />
-            }
-          />
-          <SettingRow
-            icon="message-circle"
-            label="WhatsApp linked"
-            sub="Send reminders via WhatsApp"
-            right={
-              <ToggleV2
-                on={notifications.whatsapp}
-                onChange={(v) => setNotification('whatsapp', v)}
-                accessibilityLabel="WhatsApp reminders"
-              />
-            }
-          />
-          <SettingRow
-            icon="calendar"
-            label="Due-soon alerts"
-            sub="3 days before each bill is due"
-            right={
-              <ToggleV2
-                on={notifications.dueSoon}
-                onChange={(v) => setNotification('dueSoon', v)}
-                accessibilityLabel="Due-soon alerts"
-              />
-            }
-          />
-          <SettingRow
-            icon="alert-circle"
-            label="Overdue alerts"
-            right={
-              <ToggleV2
-                on={notifications.overdue}
-                onChange={(v) => setNotification('overdue', v)}
-                accessibilityLabel="Overdue alerts"
-              />
-            }
-          />
-          <SettingRow
-            icon="file-text"
-            label="Weekly digest"
-            sub="Sundays at 6 PM"
-            right={
-              <ToggleV2
-                on={notifications.weeklyDigest}
-                onChange={(v) => setNotification('weeklyDigest', v)}
-                accessibilityLabel="Weekly digest"
-              />
-            }
-            last
-          />
-        </SettingSection>
+      {/* Account section */}
+      <SettingSection title="Account">
+        <SettingRow
+          label="Default Currency"
+          sub={`${symbol} ${defaultCurrency} — tap to change`}
+          onPress={cycleCurrency}
+          icon="dollar-sign"
+          right={
+            <Text style={styles.rowValue}>{symbol}</Text>
+          }
+        />
+        <SettingRow
+          label="Dark Mode"
+          icon="moon"
+          last
+          right={
+            <ToggleV2
+              on={darkMode}
+              onChange={(v) => updateProfile({ darkMode: v })}
+              accessibilityLabel="Toggle dark mode"
+            />
+          }
+        />
+      </SettingSection>
 
-        {/* Payment methods */}
-        <SettingSection title="Payment methods">
-          {paymentOrder.map((key, i) => {
-            const m = paymentMethods[key];
-            return (
-              <SettingRow
-                key={key}
-                icon={PAYMENT_ICON[key]}
-                label={m.label}
-                sub={m.id}
-                last={i === paymentOrder.length - 1}
-                right={
-                  <ToggleV2
-                    on={m.enabled}
-                    onChange={(v) => setPaymentMethodEnabled(key, v)}
-                    accessibilityLabel={`${m.label} payment method`}
-                  />
-                }
-              />
-            );
-          })}
-        </SettingSection>
-
-        {/* Bills */}
-        <SettingSection title="Bills">
+      {/* Payment Methods */}
+      <SettingSection title="Payment Methods">
+        {ALL_PAYMENT_METHODS.map((key, i) => (
           <SettingRow
-            icon="repeat"
-            label="Recurring bills"
-            sub={`${recurringCount} active recurring ${recurringCount === 1 ? 'bill' : 'bills'}`}
-            right={<Feather name="chevron-right" size={16} color={colors.gray400} />}
-          />
-          <SettingRow
-            icon="globe"
-            label="Default currency"
-            right={
-              <Text style={styles.valueText}>
-                {defaultCurrency} {symbol}
-              </Text>
-            }
-            onPress={cycleCurrency}
-          />
-          <SettingRow
-            icon="moon"
-            label="Dark mode"
+            key={key}
+            label={PAYMENT_METHOD_LABELS[key]}
+            sub={PAYMENT_METHOD_SUBTITLES[key]}
+            icon="credit-card"
+            last={i === ALL_PAYMENT_METHODS.length - 1}
             right={
               <ToggleV2
-                on={darkMode}
-                onChange={setDarkMode}
-                accessibilityLabel="Dark mode"
+                on={paymentMethods.includes(key)}
+                onChange={() => togglePaymentMethod(key)}
+                accessibilityLabel={`Toggle ${PAYMENT_METHOD_LABELS[key]}`}
               />
             }
-            last
           />
-        </SettingSection>
+        ))}
+      </SettingSection>
 
-        {/* Connectivity */}
-        <SettingSection title="Connectivity">
-          <SettingRow
-            icon="wifi-off"
-            label="Offline mode"
-            sub="Queue actions until back online"
-            right={
-              <ToggleV2 on={offline} onChange={setOffline} accessibilityLabel="Offline mode" />
-            }
-            last
-          />
-        </SettingSection>
+      {/* Notifications */}
+      <SettingSection title="Notifications">
+        <SettingRow
+          label="Push Notifications"
+          icon="bell"
+          right={
+            <ToggleV2
+              on={notifPush}
+              onChange={(v) => updateProfile({ notifPush: v })}
+              accessibilityLabel="Toggle push notifications"
+            />
+          }
+        />
+        <SettingRow
+          label="Email Notifications"
+          icon="mail"
+          right={
+            <ToggleV2
+              on={notifEmail}
+              onChange={(v) => updateProfile({ notifEmail: v })}
+              accessibilityLabel="Toggle email notifications"
+            />
+          }
+        />
+        <SettingRow
+          label="WhatsApp Reminders"
+          icon="message-circle"
+          right={
+            <ToggleV2
+              on={notifWhatsapp}
+              onChange={(v) => updateProfile({ notifWhatsapp: v })}
+              accessibilityLabel="Toggle WhatsApp reminders"
+            />
+          }
+        />
+        <SettingRow
+          label="Due Soon Alerts"
+          icon="clock"
+          right={
+            <ToggleV2
+              on={notifDueSoon}
+              onChange={(v) => updateProfile({ notifDueSoon: v })}
+              accessibilityLabel="Toggle due soon alerts"
+            />
+          }
+        />
+        <SettingRow
+          label="Overdue Alerts"
+          icon="alert-circle"
+          right={
+            <ToggleV2
+              on={notifOverdue}
+              onChange={(v) => updateProfile({ notifOverdue: v })}
+              accessibilityLabel="Toggle overdue alerts"
+            />
+          }
+        />
+        <SettingRow
+          label="Weekly Digest"
+          icon="calendar"
+          last
+          right={
+            <ToggleV2
+              on={notifWeeklyDigest}
+              onChange={(v) => updateProfile({ notifWeeklyDigest: v })}
+              accessibilityLabel="Toggle weekly digest"
+            />
+          }
+        />
+      </SettingSection>
 
-        {/* Reset */}
+      {/* App info + sign out */}
+      <SettingSection title="App">
+        <SettingRow label="Version" sub={`GoCheck v${APP_VERSION}`} icon="info" />
         <Pressable
-          style={({ pressed }) => [styles.resetBtn, pressed && { opacity: 0.85 }]}
-          onPress={confirmReset}
-          accessibilityRole="button"
-          accessibilityLabel="Reset demo data"
+          style={({ pressed }) => [styles.signOutRow, pressed && styles.pressed]}
+          onPress={confirmSignOut}
         >
-          <Feather name="rotate-ccw" size={16} color={colors.textSecondary} />
-          <Text style={styles.resetText}>Reset Demo Data</Text>
+          <View style={styles.signOutIconWrap}>
+            <Feather name="log-out" size={18} color={colors.error} />
+          </View>
+          <Text style={styles.signOutLabel}>Sign Out</Text>
         </Pressable>
-
-        <Text style={styles.footer}>
-          GoCheck v{APP_VERSION} · Split it. Share it. Settle it.
-        </Text>
-      </ScrollView>
-    </View>
+      </SettingSection>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  scroll: {
-    paddingHorizontal: spacing[4],
-    paddingBottom: spacing[12],
+  container: { flex: 1 },
+  header: {
+    paddingHorizontal: spacing[5],
+    paddingBottom: spacing[4],
   },
-  profileHeader: {
+  headerTitle: {
+    fontFamily: typography.sansBold,
+    fontSize: fontSize.xl,
+    letterSpacing: -0.5,
+  },
+  profileCard: {
+    marginHorizontal: spacing[4],
+    marginBottom: spacing[4],
+    borderRadius: radius.xl,
+    padding: spacing[5],
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing[5],
+    gap: spacing[4],
+    ...shadow.sm,
+  },
+  avatarWrapper: {
+    alignItems: 'center',
+    gap: spacing[1],
   },
   avatar: {
-    width: 84,
-    height: 84,
-    borderRadius: radius.full,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  avatarFallback: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: colors.white,
-    ...shadow.lg,
   },
   avatarInitial: {
     fontFamily: typography.sansBold,
-    fontSize: fontSize['2xl'],
+    fontSize: fontSize.xl,
     color: colors.white,
+  },
+  organizerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: radius.full,
+  },
+  organizerBadgeText: {
+    fontFamily: typography.sansMedium,
+    fontSize: fontSize['2xs'],
+    color: colors.primary,
+  },
+  profileInfo: {
+    flex: 1,
+    gap: spacing[1],
   },
   profileName: {
     fontFamily: typography.sansBold,
     fontSize: fontSize.md,
-    color: colors.textPrimary,
-    marginTop: spacing[3],
+    letterSpacing: -0.3,
   },
-  profileSub: {
+  profileEmail: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: 2,
   },
-  badge: {
-    backgroundColor: colors.gray100,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing[2.5],
-    paddingVertical: 3,
-  },
-  badgeActive: { backgroundColor: colors.secondarySurface },
-  badgeText: {
-    fontFamily: typography.sansSemiBold,
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
-  },
-  badgeTextActive: { color: colors.secondaryDark },
-  valueText: {
+  rowValue: {
     fontFamily: typography.sansMedium,
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-  },
-  resetBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    paddingVertical: spacing[3.5],
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    ...shadow.sm,
-    marginBottom: spacing[4],
-  },
-  resetText: {
-    fontFamily: typography.sansSemiBold,
     fontSize: fontSize.base,
     color: colors.textSecondary,
   },
-  footer: {
-    textAlign: 'center',
-    fontFamily: typography.sansRegular,
-    fontSize: fontSize['2xs'],
-    color: colors.textTertiary,
+  signOutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3.5],
+    gap: spacing[3],
+  },
+  pressed: {
+    backgroundColor: colors.errorSurface,
+  },
+  signOutIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.md,
+    backgroundColor: colors.errorSurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signOutLabel: {
+    fontFamily: typography.sansMedium,
+    fontSize: fontSize.base,
+    color: colors.error,
+    flex: 1,
   },
 });
