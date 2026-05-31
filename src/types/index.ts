@@ -10,6 +10,8 @@ export type BillPaymentMethod = 'duitnow' | 'bank_transfer' | 'ewallet' | 'cash'
 
 export type PaymentStatus = 'pending' | 'confirmed' | 'failed';
 
+export type PaymentFlowStatus = 'unpaid' | 'pending' | 'confirmed' | 'rejected';
+
 export interface Participant {
   id: string;
   name: string;
@@ -21,6 +23,13 @@ export interface Participant {
   avatarColor: string;
   shares?: number;
   percent?: number;
+  // ── Per-participant payment flow (migration 008) ──
+  accessToken?: string;
+  paymentStatus: PaymentFlowStatus;
+  proofUrl?: string;
+  submittedAt?: string;
+  confirmedAt?: string;
+  rejectedReason?: string;
 }
 
 export interface LineItem {
@@ -70,6 +79,38 @@ export interface Bill {
   lineItems?: LineItemComputed[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ParticipantView {
+  participant: {
+    id: string;
+    name: string;
+    amount: number;
+    paymentStatus: PaymentFlowStatus;
+    proofUrl?: string;
+    submittedAt?: string;
+    confirmedAt?: string;
+    rejectedReason?: string;
+  };
+  bill: {
+    id: string;
+    title: string;
+    description?: string;
+    currency: Currency;
+    dueDate: string;
+    status: BillStatus;
+    invoiceNumber?: string;
+    paymentMethod?: BillPaymentMethod;
+    paymentDetails?: string;
+  };
+  organizer: {
+    displayName: string;
+    avatarUrl?: string;
+  };
+  socialProof: {
+    paidCount: number;
+    totalCount: number;
+  };
 }
 
 export interface CreateBillPayload {
