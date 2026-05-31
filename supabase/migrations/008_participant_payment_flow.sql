@@ -200,11 +200,14 @@ GRANT EXECUTE ON FUNCTION public.submit_payment(UUID, TEXT, TEXT) TO anon, authe
 CREATE OR REPLACE FUNCTION public.confirm_payment(p_participant_id UUID)
 RETURNS json
 LANGUAGE plpgsql
+SET search_path = public
 AS $$
 DECLARE
   v_result json;
 BEGIN
   -- RLS on participants enforces organizer ownership; this UPDATE will return 0 rows for non-organizers
+  -- 'unpaid' allowed: organizer can mark paid out-of-band (no submission required).
+  -- 'rejected' allowed: organizer override after dispute resolution.
   UPDATE participants
   SET payment_status  = 'confirmed',
       confirmed_at    = NOW(),
@@ -234,6 +237,7 @@ CREATE OR REPLACE FUNCTION public.reject_payment(
 )
 RETURNS json
 LANGUAGE plpgsql
+SET search_path = public
 AS $$
 DECLARE
   v_result json;
