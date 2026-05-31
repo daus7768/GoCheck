@@ -8,7 +8,7 @@
 
 ## 1. Problem & Goal
 
-Today, an organizer creates a bill and gets a single shared link (`gocheck.app/invoice/{token}` or `gocheck.app/bill/{code}`). Anyone with the link sees every participant and can mark anyone as paid. There is no privacy, no per-person accountability, no proof of payment, and no way for a participant to talk back to the organizer without leaving the app.
+Today, an organizer creates a bill and gets a single shared link (legacy: `/invoice/{token}` or `/bill/{code}`). Anyone with the link sees every participant and can mark anyone as paid. There is no privacy, no per-person accountability, no proof of payment, and no way for a participant to talk back to the organizer without leaving the app. The legacy URLs were illustrative — they are not the production routing for this feature.
 
 **Goal:** Each participant gets their own unique URL. Opening it shows only their share. They confirm payment (with optional proof) via a swipe gesture. The organizer reviews and approves. A lightweight message thread connects them. Participants never need to sign up.
 
@@ -65,7 +65,8 @@ The participant page is the same Expo Router file rendered by Expo Web (already 
 Token validation is server-side via `SECURITY DEFINER` RPCs. The token is the sole credential — anyone holding it can act as that participant. Organizer-side mutations remain RLS-gated by `auth.uid()`.
 
 ```
-Participant browser ──https://gocheck.app/p/{token}──→ Expo Web (app/p/[token].tsx)
+Participant browser ──{BASE_URL}/p/{token}──→ Expo Web (app/p/[token].tsx)
+                       (localhost:8081 / vercel.app / custom domain)
                                                             │
                                                             │ supabase anon key
                                                             ▼
@@ -457,10 +458,36 @@ A daily cleanup job (cron or function) deletes rows older than 1 day.
 | Path | File | Auth | Purpose |
 |------|------|------|---------|
 | `/p/[token]` | `app/p/[token].tsx` | Public (token) | Participant payment page (web + mobile) |
-| `/(modals)/bill/[id]/invoice` | existing | Organizer | Invoice screen — gains approve/reject UI |
-| `/(modals)/share/[code]` | existing | Public (code) | **Deprecated**, kept until cleanup |
+| `/(modals)/bill/[id]/invoice` | existing | Organizer | Invoice screen — gains approve/reject UI; **bill-level share link removed** |
+| `/(modals)/bill/[id]/invoice` (old `inviteToken` URL) | n/a | n/a | **Removed from new flow** — `https://*/invoice/{inviteToken}` is no longer surfaced |
+| `/(modals)/share/[code]` | existing | Public (code) | **Deprecated** legacy shared-link page, kept until cleanup |
 
-The organizer's "Share" affordance in the invoice screen changes from sharing the bill-level `invite_token` to sharing individual `participants.access_token`s. The bill-level URL is no longer surfaced in the UI for new bills.
+The organizer's "Share" affordance in the invoice screen changes entirely: instead of sharing the bill-level `invite_token` once, the organizer shares each participant's individual `access_token`. The old `/invoice/{token}` and `/bill/{code}` URLs are not generated, displayed, or copied for new flows.
+
+### 6.1 Base URL configuration
+
+The participant URL is composed at runtime from an env variable, **not** hardcoded:
+
+```ts
+// src/lib/urls.ts
+const BASE = process.env.EXPO_PUBLIC_WEB_BASE_URL ?? 'http://localhost:8081';
+export function participantUrl(token: string): string {
+  return `${BASE}/p/${token}`;
+}
+```
+
+| Environment | `EXPO_PUBLIC_WEB_BASE_URL` | Resulting URL |
+|-------------|----------------------------|---------------|
+| Local dev   | unset (defaults to `http://localhost:8081`) | `http://localhost:8081/p/{token}` |
+| Vercel preview/prod | set to `https://{project}.vercel.app` | `https://{project}.vercel.app/p/{token}` |
+| Custom domain (future) | set to `https://gocheck.app` | `https://gocheck.app/p/{token}` |
+
+Set the value in:
+- `.env.local` for local dev (already gitignored)
+- Vercel Project Settings → Environment Variables for deploys
+- `app.json` `extra` block for mobile builds (so the Share sheet uses the right host)
+
+Every place that constructs a participant URL (invoice screen Share button, participant-list bottom sheet, WhatsApp deep-link, receipt-card QR target) imports and calls `participantUrl(token)`. Nothing hardcodes a host.
 
 ## 7. UI Specification
 
@@ -503,7 +530,7 @@ In the existing participants table:
 
 - **Status pill** updated to four states: `Unpaid | Pending review | Paid | Rejected` (color coded)
 - **Per-row action button** in the rightmost cell, replacing the static status:
-  - `unpaid` → ➤ "Send link" (opens native Share with `https://gocheck.app/p/{accessToken}`, pre-filled message including bill title + amount)
+  - `unpaid` → ➤ "Send link" (opens native Share with `participantUrl(accessToken)`, pre-filled message including bill title + amount)
   - `pending` → orange "Review" button (taps → opens approval sheet)
   - `confirmed` → checkmark (no action)
   - `rejected` → "Re-send link"
@@ -631,16 +658,38 @@ XSS-safe by default: message bodies are stored as plain text and rendered with R
 - Messages sent both directions arrive in real time on both sides
 - Cancelled bill → all open participant pages show "Cancelled" state
 
-## 13. Rollout
+## 13. Rollout & Implementation Order
 
-1. Migration `008` runs (backfills tokens + statuses, adds messages table)
-2. Edge functions deployed (`notify-organizer` updated, `create-proof-upload-url` new)
-3. App update ships with:
-   - New `app/p/[token].tsx` route
-   - Invoice screen updates (approve/reject sheet, per-participant share)
-   - New payment components
-4. Old `share/[code]` page kept active for any links already in the wild
-5. Cleanup PR (separate, later) removes the old shared-link UI from the organizer side and the `share_links` table
+Build the core flow first, layer creative features on top once it walks. The minimum walking skeleton is steps 1–6; everything after is enhancement.
+
+### Core (walking skeleton)
+
+1. **Migration `008`** — adds `participants.access_token`, `payment_status`, supporting columns, backfills existing rows, legacy `is_paid` sync trigger, `participant_messages` table, `payment-proofs` storage bucket, RLS policies
+2. **Public route `app/p/[token].tsx`** — minimal version: loads via token, shows participant's name/amount/bill, swipe-to-confirm, no proof/chat/QR yet
+3. **`get_participant_view(token)` RPC** — returns participant + bill + organizer + social-proof counts + messages (empty array on first build)
+4. **`submit_payment(token, proof_url?, note?)` RPC** — state machine: `unpaid|rejected → pending`; idempotent if already confirmed
+5. **Invoice screen Share UX** — replace bill-level share with per-participant share using `participantUrl(accessToken)` from `src/lib/urls.ts`; add Status pill + per-row action button; add Approval bottom sheet that calls `confirm_payment` / `reject_payment` RPCs
+6. **Participant page wired to URL token** — `useLocalSearchParams<{ token: string }>()` reads the token, calls `get_participant_view`, renders the right state; Realtime subscription on participant row for live status updates
+
+At this point the core loop works end-to-end on `http://localhost:8081/p/{token}` and on the Vercel deploy. Test it before moving on.
+
+### Layer 2 — creative additions
+
+7. Proof upload component + `create-proof-upload-url` edge function + Storage bucket signed-URL flow
+8. `scan-payment-proof` edge function + Gemini proof intelligence + inline "Looks right ✓" feedback on participant side and AI summary banner on organizer side
+9. Message thread (`participant_messages` table, `post_participant_message` / `post_organizer_message` / `mark_participant_messages_read` RPCs, Realtime subscription)
+10. Quick-reply chips
+11. Anonymized social proof chip + early-payer badge
+12. Local DuitNow QR component
+13. Confetti + shareable receipt card
+14. Coin-drop animation on organizer's participant table
+15. WhatsApp deep-link option in share sheet
+
+### Cleanup (later, separate PR)
+
+16. Delete `app/(modals)/share/[code].tsx` once analytics confirm no traffic
+17. Drop `share_links` table and the `bills.invite_token` column
+18. Remove the old `share_link` / `inviteToken` fields from `Bill` TypeScript type
 
 ## 14. Open Risks
 
