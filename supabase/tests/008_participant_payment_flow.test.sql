@@ -14,7 +14,7 @@ DECLARE
 BEGIN
   -- Create a synthetic auth user
   INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, created_at, updated_at, instance_id, aud, role)
-  VALUES (gen_random_uuid(), 'organizer@test.com', '', NOW(), NOW(), NOW(),
+  VALUES (gen_random_uuid(), 'organizer-' || gen_random_uuid()::text || '@test.com', '', NOW(), NOW(), NOW(),
           '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated')
   RETURNING id INTO v_organizer_id;
 
@@ -108,6 +108,23 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN
     PERFORM pg_temp.assert(TRUE, 'invalid token raises exception');
   END;
+
+  -- rejected → pending: a rejected participant can re-submit
+  UPDATE participants
+  SET payment_status  = 'rejected',
+      rejected_reason = 'old reason',
+      submitted_at    = NULL,
+      proof_url       = NULL
+  WHERE id = v_pid;
+
+  v_res := public.submit_payment(v_token, NULL, NULL);
+  PERFORM pg_temp.assert(v_res->>'paymentStatus' = 'pending', 'rejected → pending on resubmit');
+
+  SELECT rejected_reason INTO v_status FROM participants WHERE id = v_pid;
+  PERFORM pg_temp.assert(v_status IS NULL, 'rejected_reason cleared on resubmit');
+
+  -- Reset to unpaid for any subsequent tests
+  UPDATE participants SET payment_status = 'unpaid', submitted_at = NULL, proof_url = NULL WHERE id = v_pid;
 END $$;
 
 -- ─── Test: confirm_payment + reject_payment ───────────────────────────────────

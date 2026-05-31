@@ -2,7 +2,11 @@ describe('participantUrl', () => {
   const ORIGINAL_BASE = process.env.EXPO_PUBLIC_WEB_BASE_URL;
 
   afterEach(() => {
-    process.env.EXPO_PUBLIC_WEB_BASE_URL = ORIGINAL_BASE;
+    if (ORIGINAL_BASE !== undefined) {
+      process.env.EXPO_PUBLIC_WEB_BASE_URL = ORIGINAL_BASE;
+    } else {
+      delete process.env.EXPO_PUBLIC_WEB_BASE_URL;
+    }
     jest.resetModules();
   });
 
