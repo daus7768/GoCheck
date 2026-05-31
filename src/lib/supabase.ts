@@ -482,11 +482,15 @@ export async function getParticipantView(token: string): Promise<ParticipantView
   return data as ParticipantView | null;
 }
 
+export type SubmitPaymentResult =
+  | { paymentStatus: PaymentFlowStatus; submittedAt: string; already_confirmed?: never }
+  | { already_confirmed: true; paymentStatus?: never; submittedAt?: never };
+
 export async function submitPayment(
   token: string,
   proofUrl?: string,
   note?: string,
-): Promise<{ paymentStatus: PaymentFlowStatus; submittedAt?: string; already_confirmed?: boolean }> {
+): Promise<SubmitPaymentResult> {
   const { data, error } = await supabase.rpc('submit_payment', {
     p_token: token,
     p_proof_url: proofUrl ?? null,
