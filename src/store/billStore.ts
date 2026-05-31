@@ -76,6 +76,12 @@ function mapParticipantRow(p: Record<string, unknown>, index: number): Participa
     avatarColor: (p['avatar_color'] as string | undefined) ?? pickAvatarColor(index),
     shares: (p['shares'] as number | null | undefined) ?? undefined,
     percent: (p['percent'] as number | null | undefined) ?? undefined,
+    accessToken:    (p['access_token'] as string | undefined) ?? undefined,
+    paymentStatus: ((p['payment_status'] as 'unpaid'|'pending'|'confirmed'|'rejected') ?? 'unpaid'),
+    proofUrl:       (p['proof_url'] as string | undefined) ?? undefined,
+    submittedAt:    (p['submitted_at'] as string | undefined) ?? undefined,
+    confirmedAt:    (p['confirmed_at'] as string | undefined) ?? undefined,
+    rejectedReason: (p['rejected_reason'] as string | undefined) ?? undefined,
   };
 }
 
@@ -247,6 +253,12 @@ export const useBillStore = create<BillStore>((set, get) => ({
           avatarColor: (p.avatar_color as string | undefined) ?? pickAvatarColor(i),
           shares: (p.shares as number | undefined) ?? undefined,
           percent: (p.percent as number | undefined) ?? undefined,
+          accessToken:    (p.access_token as string | undefined) ?? undefined,
+          paymentStatus: ((p.payment_status as 'unpaid'|'pending'|'confirmed'|'rejected') ?? 'unpaid'),
+          proofUrl:       (p.proof_url as string | undefined) ?? undefined,
+          submittedAt:    (p.submitted_at as string | undefined) ?? undefined,
+          confirmedAt:    (p.confirmed_at as string | undefined) ?? undefined,
+          rejectedReason: (p.rejected_reason as string | undefined) ?? undefined,
         })),
         lineItems: (lineItemRows ?? []).map((li) => ({
           id: li.id,

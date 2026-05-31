@@ -2,7 +2,7 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
-import type { UserProfile } from '../types';
+import type { UserProfile, ParticipantView, PaymentFlowStatus } from '../types';
 
 const supabaseUrl = (Constants.expoConfig?.extra?.supabaseUrl as string | undefined) ?? '';
 const supabaseAnonKey = (Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined) ?? '';
@@ -472,4 +472,41 @@ export async function upsertProfile(profile: Partial<UserProfile> & { id: string
     .single();
   if (error) throw error;
   return rowToProfile(data as Record<string, unknown>);
+}
+
+// ─── Participant Payment Flow (migration 008) ─────────────────────────────────
+
+export async function getParticipantView(token: string): Promise<ParticipantView | null> {
+  const { data, error } = await supabase.rpc('get_participant_view', { p_token: token });
+  if (error) throw error;
+  return data as ParticipantView | null;
+}
+
+export async function submitPayment(
+  token: string,
+  proofUrl?: string,
+  note?: string,
+): Promise<{ paymentStatus: PaymentFlowStatus; submittedAt?: string; already_confirmed?: boolean }> {
+  const { data, error } = await supabase.rpc('submit_payment', {
+    p_token: token,
+    p_proof_url: proofUrl ?? null,
+    p_note: note ?? null,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function confirmPayment(participantId: string): Promise<{ paymentStatus: PaymentFlowStatus; confirmedAt: string }> {
+  const { data, error } = await supabase.rpc('confirm_payment', { p_participant_id: participantId });
+  if (error) throw error;
+  return data;
+}
+
+export async function rejectPayment(participantId: string, reason: string): Promise<{ paymentStatus: PaymentFlowStatus; rejectedReason: string }> {
+  const { data, error } = await supabase.rpc('reject_payment', {
+    p_participant_id: participantId,
+    p_reason: reason,
+  });
+  if (error) throw error;
+  return data;
 }
