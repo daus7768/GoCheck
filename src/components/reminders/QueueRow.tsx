@@ -6,6 +6,7 @@ import { useBillStore } from '../../store/billStore';
 import { buildWhen, renderTemplate, formatCurrency } from '../../lib/reminderTemplates';
 import { computeReliability } from '../../lib/queueUtils';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { GlowingCard } from '../effects/GlowingCard';
 import type { QueueItem, ReminderRow, ReliabilityLabel } from '../../types';
 
 function getInitials(name: string): string {
@@ -80,8 +81,14 @@ export function QueueRow({ item, remindersForItem }: Props) {
     : `Due in ${item.daysToDue}d`;
 
   return (
-    <View style={styles.row}>
-      <View style={styles.left}>
+    <View style={styles.rowWrap}>
+      <GlowingCard
+        radius={radius.lg}
+        color={isOverdue ? colors.error : item.daysToDue <= 3 ? colors.warning : colors.primary}
+        background={colors.surface}
+      >
+        <View style={styles.row}>
+          <View style={styles.left}>
         {/* Avatar */}
         <View style={[styles.avatar, { backgroundColor: item.participantAvatarColor }]}>
           <Text style={styles.avatarText}>{getInitials(item.participantName)}</Text>
@@ -131,18 +138,18 @@ export function QueueRow({ item, remindersForItem }: Props) {
           </Pressable>
         ) : null}
       </View>
+        </View>
+      </GlowingCard>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing[3],
+  rowWrap: {
     marginBottom: spacing[2],
+  },
+  row: {
+    padding: spacing[3],
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],

@@ -1,3 +1,24 @@
+// ─── GoCheck dark teal palette (used by Create Bill and other "cinematic" surfaces) ───
+export const gc = {
+  primary:       '#1D9E75',
+  primaryLight:  'rgba(29,158,117,0.12)',
+  primaryMid:    '#0F6E56',
+  primaryGlow:   'rgba(29,158,117,0.35)',
+  surface:       '#0D1117',
+  surface2:      '#161B22',
+  surface3:      '#1C232C',
+  border:        'rgba(255,255,255,0.08)',
+  borderEm:      'rgba(29,158,117,0.35)',
+  text:          '#F0F6FC',
+  muted:         '#8B949E',
+  hint:          '#484F58',
+  danger:        '#E24B4A',
+  dangerSurface: 'rgba(226,75,74,0.10)',
+  amber:         '#EF9F27',
+  amberSurface:  'rgba(239,159,39,0.12)',
+  white:         '#FFFFFF',
+} as const;
+
 export const colors = {
   // Primary — Indigo 600
   primary: '#4F46E5',

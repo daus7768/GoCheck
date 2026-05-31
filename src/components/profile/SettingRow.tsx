@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 
 interface SettingRowProps {
   icon: React.ComponentProps<typeof Feather>['name'];
@@ -14,15 +15,17 @@ interface SettingRowProps {
 }
 
 export function SettingRow({ icon, label, sub, right, onPress, last }: SettingRowProps) {
+  const { colors: c } = useTheme();
+
   const inner = (
     <>
-      <View style={styles.iconWrap}>
+      <View style={[styles.iconWrap, { backgroundColor: c.primarySurface }]}>
         <Feather name={icon} size={18} color={colors.primary} />
       </View>
       <View style={styles.textWrap}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={[styles.label, { color: c.textPrimary }]}>{label}</Text>
         {sub ? (
-          <Text style={styles.sub} numberOfLines={1}>
+          <Text style={[styles.sub, { color: c.textSecondary }]} numberOfLines={1}>
             {sub}
           </Text>
         ) : null}
@@ -31,12 +34,12 @@ export function SettingRow({ icon, label, sub, right, onPress, last }: SettingRo
     </>
   );
 
-  const base = [styles.row, !last && styles.divider];
+  const base = [styles.row, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.divider }];
 
   if (onPress) {
     return (
       <Pressable
-        style={({ pressed }) => [...base, pressed && styles.pressed]}
+        style={({ pressed }) => [...base, pressed && { backgroundColor: c.border }]}
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={label}
@@ -57,16 +60,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[3.5],
     gap: spacing[3],
   },
-  pressed: { backgroundColor: colors.gray50 },
-  divider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
-  },
   iconWrap: {
     width: 34,
     height: 34,
     borderRadius: radius.md,
-    backgroundColor: colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -74,12 +71,10 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
   },
   sub: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.xs,
-    color: colors.textSecondary,
     marginTop: 1,
   },
   right: { marginLeft: spacing[2] },

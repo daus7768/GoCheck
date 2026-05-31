@@ -3,7 +3,8 @@ import {
   View, Text, Pressable, ActivityIndicator, StyleSheet, Alert,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow } from '../../theme/tokens';
+import { colors, typography, spacing, radius } from '../../theme/tokens';
+import { GlowingCard } from '../effects/GlowingCard';
 import { exportCSV } from '../../lib/exportCsv';
 import { exportPDF } from '../../lib/exportPdf';
 import type { Bill, Currency } from '../../types';
@@ -48,7 +49,8 @@ export function ExportCard({ bills, currency }: Props) {
   };
 
   return (
-    <View style={[styles.card, shadow.sm]}>
+    <GlowingCard radius={radius['2xl']} background={colors.surface}>
+      <View style={styles.card}>
       <Text style={styles.title}>Export</Text>
       <Text style={styles.sub}>Download a full breakdown for accounting or tax filing.</Text>
       <View style={styles.btnRow}>
@@ -87,14 +89,13 @@ export function ExportCard({ bills, currency }: Props) {
           <Text style={styles.btnLabel}>{isExportingPdf ? 'Preparing…' : 'Export PDF'}</Text>
         </Pressable>
       </View>
-    </View>
+      </View>
+    </GlowingCard>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius['2xl'],
     padding: spacing[4],
   },
   title: {

@@ -319,11 +319,13 @@ CREATE OR REPLACE FUNCTION public.notify_participant_paid()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   IF OLD.is_paid = false AND NEW.is_paid = true THEN
+    -- Before running: add the secret via Supabase Dashboard → Vault
+    -- SELECT vault.create_secret('<your-secret>', 'internal_secret');
     PERFORM net.http_post(
       url     := 'https://bccarnwtdqamedtlzdht.supabase.co/functions/v1/notify-organizer',
       headers := jsonb_build_object(
         'Content-Type',      'application/json',
-        'x-internal-secret', '8d38ac0574825d7c3acbfa02404680ccfb927499478c12a11ef27c928b2a279c'
+        'x-internal-secret', (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'internal_secret')
       ),
       body    := jsonb_build_object(
         'participant_id', NEW.id,

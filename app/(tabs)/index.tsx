@@ -21,6 +21,7 @@ import { computeReliability } from '../../src/lib/queueUtils';
 import { haptic } from '../../src/lib/haptics';
 import { AvatarStack } from '../../src/components/dashboard/AvatarStack';
 import { StatusPill } from '../../src/components/dashboard/StatusPill';
+import { GlowingCard } from '../../src/components/effects/GlowingCard';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill, QueueItem, ReliabilityLabel } from '../../src/types';
 
@@ -115,8 +116,14 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
       : stats.pct >= 50
         ? colors.warning
         : colors.primary;
+  const glowColor = stats.done
+    ? colors.secondary
+    : stats.overdue
+      ? colors.error
+      : colors.primary;
 
   return (
+    <GlowingCard radius={radius.lg} color={glowColor} background={colors.surface}>
     <Pressable
       style={({ pressed }) => [styles.billRow, pressed && { opacity: 0.9 }]}
       onPress={onPress}
@@ -176,6 +183,7 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
         <StatusPill status={status} />
       </View>
     </Pressable>
+    </GlowingCard>
   );
 }
 
@@ -321,12 +329,14 @@ export default function HomeScreen() {
         </View>
 
         {/* Hero */}
-        <LinearGradient
-          colors={[colors.primaryLight, colors.primaryDark]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.hero}
-        >
+        <View style={styles.heroWrap}>
+          <GlowingCard radius={radius.xl} color={colors.primaryLight} background="transparent" borderWidth={1.5}>
+            <LinearGradient
+              colors={[colors.primaryLight, colors.primaryDark]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.hero}
+            >
           <View style={styles.heroBlobTop} />
           <View style={styles.heroBlobBottom} />
           <View style={styles.heroContent}>
@@ -362,7 +372,9 @@ export default function HomeScreen() {
               </Text>
             </View>
           </View>
-        </LinearGradient>
+            </LinearGradient>
+          </GlowingCard>
+        </View>
 
         {/* Needs a nudge */}
         {needsNudge.length > 0 && (
@@ -388,45 +400,52 @@ export default function HomeScreen() {
                 const initial = row.item.participantName.charAt(0).toUpperCase();
                 const s = CURRENCY_SYMBOLS[row.item.currency] ?? row.item.currency;
                 return (
-                  <View key={`${row.item.billId}:${row.item.participantId}`} style={styles.nudgeRow}>
-                    <View style={[styles.nudgeAvatar, { backgroundColor: row.item.participantAvatarColor }]}>
-                      <Text style={styles.nudgeAvatarText}>{initial}</Text>
-                    </View>
-                    <View style={styles.nudgeInfo}>
-                      <View style={styles.nudgeNameLine}>
-                        <Text style={styles.nudgeName} numberOfLines={1}>
-                          {row.item.participantName}
-                        </Text>
-                        <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
-                          <Text style={[styles.relChipText, { color: chip.text }]}>{chip.label}</Text>
-                        </View>
+                  <GlowingCard
+                    key={`${row.item.billId}:${row.item.participantId}`}
+                    radius={radius.lg}
+                    background={colors.surface}
+                    color={row.overdue ? colors.error : colors.primary}
+                  >
+                    <View style={styles.nudgeRow}>
+                      <View style={[styles.nudgeAvatar, { backgroundColor: row.item.participantAvatarColor }]}>
+                        <Text style={styles.nudgeAvatarText}>{initial}</Text>
                       </View>
-                      <Text style={styles.nudgeMeta} numberOfLines={1}>
-                        {row.item.billTitle} ·{' '}
-                        {row.overdue ? (
-                          <Text style={styles.nudgeMetaOverdue}>{Math.abs(row.daysToDue)}d late</Text>
-                        ) : row.daysToDue === 0 ? (
-                          'due today'
-                        ) : (
-                          `in ${row.daysToDue}d`
-                        )}
-                      </Text>
+                      <View style={styles.nudgeInfo}>
+                        <View style={styles.nudgeNameLine}>
+                          <Text style={styles.nudgeName} numberOfLines={1}>
+                            {row.item.participantName}
+                          </Text>
+                          <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
+                            <Text style={[styles.relChipText, { color: chip.text }]}>{chip.label}</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.nudgeMeta} numberOfLines={1}>
+                          {row.item.billTitle} ·{' '}
+                          {row.overdue ? (
+                            <Text style={styles.nudgeMetaOverdue}>{Math.abs(row.daysToDue)}d late</Text>
+                          ) : row.daysToDue === 0 ? (
+                            'due today'
+                          ) : (
+                            `in ${row.daysToDue}d`
+                          )}
+                        </Text>
+                      </View>
+                      <View style={styles.nudgeRight}>
+                        <Text style={styles.nudgeAmount}>
+                          {s}
+                          {fmt(row.item.amount)}
+                        </Text>
+                        <Pressable
+                          onPress={() => handleNudge(row)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Send WhatsApp reminder to ${row.item.participantName}`}
+                          style={({ pressed }) => [styles.waBtn, pressed && { opacity: 0.85 }]}
+                        >
+                          <Feather name="message-circle" size={15} color={colors.white} />
+                        </Pressable>
+                      </View>
                     </View>
-                    <View style={styles.nudgeRight}>
-                      <Text style={styles.nudgeAmount}>
-                        {s}
-                        {fmt(row.item.amount)}
-                      </Text>
-                      <Pressable
-                        onPress={() => handleNudge(row)}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Send WhatsApp reminder to ${row.item.participantName}`}
-                        style={({ pressed }) => [styles.waBtn, pressed && { opacity: 0.85 }]}
-                      >
-                        <Feather name="message-circle" size={15} color={colors.white} />
-                      </Pressable>
-                    </View>
-                  </View>
+                  </GlowingCard>
                 );
               })}
             </View>
@@ -545,12 +564,13 @@ const styles = StyleSheet.create({
   },
   bellBadgeText: { fontFamily: typography.sansBold, fontSize: 9, color: colors.white },
 
-  hero: {
+  heroWrap: {
     marginHorizontal: spacing[4],
-    borderRadius: radius.xl,
+    ...shadow.lg,
+  },
+  hero: {
     padding: spacing[5],
     overflow: 'hidden',
-    ...shadow.lg,
   },
   heroBlobTop: {
     position: 'absolute',
@@ -633,10 +653,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[3],
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
     padding: spacing[3],
-    ...shadow.sm,
   },
   nudgeAvatar: {
     width: 40,
@@ -713,11 +730,8 @@ const styles = StyleSheet.create({
   filterBadgeTextActive: { color: colors.white },
 
   billRow: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
     padding: spacing[3.5],
     gap: spacing[2.5],
-    ...shadow.md,
   },
   billRowTop: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing[2.5] },
   billRowTitleWrap: { flex: 1, minWidth: 0 },

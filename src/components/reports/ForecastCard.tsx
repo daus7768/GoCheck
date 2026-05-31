@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { colors, typography, spacing, radius, shadow } from '../../theme/tokens';
+import { colors, typography, spacing, radius } from '../../theme/tokens';
+import { GlowingCard } from '../effects/GlowingCard';
 import { ForecastChart } from './ForecastChart';
 import { buildInsight, forecastPeriodTotal } from '../../lib/reportsCompute';
 import { formatCurrency } from '../../lib/reminderTemplates';
@@ -32,7 +33,8 @@ export function ForecastCard({ data, currency, range, onRangeChange }: Props) {
   const periodTotal = forecastPeriodTotal(data);
 
   return (
-    <View style={[styles.card, shadow.sm]}>
+    <GlowingCard radius={radius['2xl']} background={colors.surface}>
+      <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.headerText}>
           <Text style={styles.title}>{RANGE_TITLES[range]}</Text>
@@ -69,14 +71,13 @@ export function ForecastCard({ data, currency, range, onRangeChange }: Props) {
           <Text style={styles.insightText}>{insight}</Text>
         </View>
       )}
-    </View>
+      </View>
+    </GlowingCard>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius['2xl'],
     padding: spacing[4],
   },
   header: {

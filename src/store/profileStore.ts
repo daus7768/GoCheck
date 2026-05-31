@@ -107,10 +107,18 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   updateProfile: async (patch) => {
-    const { session } = get();
+    const { session, profile } = get();
     if (!session?.user) return;
-    const updated = await upsertProfile({ id: session.user.id, ...patch });
-    set({ profile: updated });
+    // Optimistic update so toggles/changes feel instant. Roll back on failure.
+    const previous = profile;
+    if (profile) set({ profile: { ...profile, ...patch } });
+    try {
+      const updated = await upsertProfile({ id: session.user.id, ...patch });
+      set({ profile: updated });
+    } catch (err) {
+      if (previous) set({ profile: previous });
+      throw err;
+    }
   },
 
   loadSecurity: async () => {

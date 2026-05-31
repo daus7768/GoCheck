@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Bill, Participant, LineItem, LineItemComputed, Currency, SplitType } from '../types';
+import type { Bill, Participant, LineItem, LineItemComputed, Currency, SplitType, BillCategory, BillPaymentMethod } from '../types';
 import {
   createBillInDB,
   createParticipantsInDB,
@@ -7,6 +7,7 @@ import {
   createShareLinkInDB,
   getOrganizerBills,
   uploadGroupPhoto,
+  uploadReceiptPhoto,
   deleteBill as deleteBillFromDB,
 } from '../lib/supabase';
 import { colors } from '../theme/tokens';
@@ -33,10 +34,16 @@ interface CreateBillArgs {
   participants: Participant[];
   lineItems: LineItem[];
   taxRate: number;
+  taxSst: boolean;
+  taxService: boolean;
+  taxServiceRate: number;
   dueDate: Date;
   reminderEnabled: boolean;
   groupPhotoUri?: string;
-  category?: 'travel' | 'food' | 'housing' | 'other';
+  receiptUri?: string;
+  category?: BillCategory;
+  paymentMethod?: BillPaymentMethod;
+  paymentDetails?: string;
   isRecurring?: 'monthly' | 'yearly' | null;
 }
 
@@ -137,15 +144,23 @@ export const useBillStore = create<BillStore>((set, get) => ({
         (sum, item) => sum + item.quantity * item.unitPrice,
         0
       );
-      const taxAmount = lineItemSubtotal * (args.taxRate / 100);
-      const totalAmount = args.lineItems.length > 0
-        ? lineItemSubtotal + taxAmount
+      const effectiveBase = args.lineItems.length > 0
+        ? lineItemSubtotal
         : args.participants.reduce((sum, p) => sum + p.amount, 0);
+      const sstAdd = args.taxSst ? effectiveBase * 0.06 : 0;
+      const serviceAdd = args.taxService ? effectiveBase * (args.taxServiceRate / 100) : 0;
+      const totalAmount = effectiveBase + sstAdd + serviceAdd;
+
+      const tempId = generateId();
 
       let groupPhotoUrl: string | undefined;
       if (args.groupPhotoUri) {
-        const tempId = generateId();
         groupPhotoUrl = await uploadGroupPhoto(tempId, args.groupPhotoUri);
+      }
+
+      let receiptUrl: string | undefined;
+      if (args.receiptUri) {
+        receiptUrl = await uploadReceiptPhoto(tempId, args.receiptUri);
       }
 
       const billRow = await createBillInDB({
@@ -162,6 +177,12 @@ export const useBillStore = create<BillStore>((set, get) => ({
         group_photo_url: groupPhotoUrl,
         split_type: args.splitType,
         tax_rate: args.taxRate,
+        tax_sst: args.taxSst,
+        tax_service: args.taxService,
+        tax_service_rate: args.taxServiceRate,
+        receipt_url: receiptUrl,
+        payment_method: args.paymentMethod,
+        payment_details: args.paymentDetails,
       });
 
       const participantRows = await createParticipantsInDB(
@@ -206,8 +227,16 @@ export const useBillStore = create<BillStore>((set, get) => ({
         category: args.category ?? 'other',
         isRecurring: args.isRecurring ?? null,
         groupPhotoUrl,
+        receiptUrl,
         splitType: args.splitType,
         taxRate: args.taxRate,
+        taxSst: args.taxSst,
+        taxService: args.taxService,
+        taxServiceRate: args.taxServiceRate,
+        paymentMethod: args.paymentMethod,
+        paymentDetails: args.paymentDetails,
+        invoiceNumber: (billRow as Record<string, unknown>)['invoice_number'] as string | undefined,
+        inviteToken: (billRow as Record<string, unknown>)['invite_token'] as string | undefined,
         participants: (participantRows ?? []).map((p, i) => ({
           id: p.id,
           name: p.name,

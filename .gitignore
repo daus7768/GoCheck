@@ -45,3 +45,10 @@ yarn-error.*
 # Git worktrees
 .worktrees/
 worktrees/
+
+# Local MCP config and Supabase CLI temp files (contain project refs)
+.mcp.json
+supabase/.temp/
+
+# Claude Code local settings (may contain API keys in permission rules)
+.claude/

@@ -19,6 +19,7 @@ import { useProfileStore } from '../../../src/store/profileStore';
 import { CURRENCY_SYMBOLS } from '../../../src/types';
 import type { Bill } from '../../../src/types';
 import { shareBillLink, getBillShareUrl } from '../../../src/lib/share';
+import { GlowingCard } from '../../../src/components/effects/GlowingCard';
 
 export default function BillDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -184,13 +185,24 @@ export default function BillDetailScreen() {
           <Feather name="chevron-left" size={22} color={colors.textPrimary} />
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>{bill.title}</Text>
-        <Pressable
-          onPress={handleShare}
-          style={[styles.headerBtn, styles.headerShareBtn]}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Feather name="share-2" size={18} color={colors.primary} />
-        </Pressable>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Pressable
+            onPress={() => router.push(`/(modals)/bill/${id}/invoice`)}
+            style={[styles.headerBtn, styles.headerShareBtn]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="View invoice"
+          >
+            <Feather name="file-text" size={18} color={colors.primary} />
+          </Pressable>
+          <Pressable
+            onPress={handleShare}
+            style={[styles.headerBtn, styles.headerShareBtn]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Feather name="share-2" size={18} color={colors.primary} />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -198,6 +210,7 @@ export default function BillDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Progress card */}
+        <GlowingCard radius={radius['2xl']} color={colors.white} background={colors.primary}>
         <View style={styles.progressCard}>
           <View style={styles.progressHeader}>
             <View>
@@ -226,6 +239,7 @@ export default function BillDetailScreen() {
             </View>
           </View>
         </View>
+        </GlowingCard>
 
         {/* Info row */}
         <View style={styles.infoRow}>
@@ -245,20 +259,23 @@ export default function BillDetailScreen() {
         </View>
 
         {/* Share link */}
-        <View style={styles.shareLinkCard}>
-          <View style={styles.shareLinkLeft}>
-            <Feather name="link" size={16} color={colors.primary} />
-            <View>
-              <Text style={styles.shareLinkLabel}>Share Link</Text>
-              <Text style={styles.shareLinkCode} numberOfLines={1}>{getBillShareUrl(bill.shareLink)}</Text>
+        <GlowingCard radius={radius.xl} background={colors.surface}>
+          <View style={styles.shareLinkCard}>
+            <View style={styles.shareLinkLeft}>
+              <Feather name="link" size={16} color={colors.primary} />
+              <View>
+                <Text style={styles.shareLinkLabel}>Share Link</Text>
+                <Text style={styles.shareLinkCode} numberOfLines={1}>{getBillShareUrl(bill.shareLink)}</Text>
+              </View>
             </View>
+            <Pressable onPress={handleShare} style={styles.shareLinkBtn}>
+              <Feather name="share-2" size={16} color={colors.white} />
+            </Pressable>
           </View>
-          <Pressable onPress={handleShare} style={styles.shareLinkBtn}>
-            <Feather name="share-2" size={16} color={colors.white} />
-          </Pressable>
-        </View>
+        </GlowingCard>
 
         {/* Participants */}
+        <GlowingCard radius={radius['2xl']} background={colors.surface}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Participants ({totalCount})</Text>
           {bill.participants.map((p) => (
@@ -307,6 +324,7 @@ export default function BillDetailScreen() {
             </View>
           ))}
         </View>
+        </GlowingCard>
 
         {/* Actions */}
         {bill.status === 'active' && (
@@ -370,10 +388,7 @@ const styles = StyleSheet.create({
   },
   scroll: { padding: spacing[4], gap: spacing[3] },
   progressCard: {
-    backgroundColor: colors.primary,
-    borderRadius: radius['2xl'],
     padding: spacing[5],
-    ...shadow.md,
   },
   progressHeader: {
     flexDirection: 'row',
@@ -460,11 +475,8 @@ const styles = StyleSheet.create({
   shareLinkCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
     padding: spacing[3],
     gap: spacing[3],
-    ...shadow.sm,
   },
   shareLinkLeft: {
     flex: 1,
@@ -491,10 +503,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   section: {
-    backgroundColor: colors.surface,
-    borderRadius: radius['2xl'],
     padding: spacing[4],
-    ...shadow.sm,
   },
   sectionTitle: {
     fontFamily: typography.sansBold,

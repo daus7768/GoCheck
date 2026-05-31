@@ -19,6 +19,7 @@ import { useProfileStore } from '../../src/store/profileStore';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill } from '../../src/types';
 import { shareBillLink } from '../../src/lib/share';
+import { GlowingCard } from '../../src/components/effects/GlowingCard';
 
 function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void; onShare: () => void }) {
   const paidCount = bill.participants.filter((p) => p.isPaid).length;
@@ -27,7 +28,10 @@ function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void;
   const sym = CURRENCY_SYMBOLS[bill.currency] ?? bill.currency;
   const amountCollected = bill.participants.filter((p) => p.isPaid).reduce((s, p) => s + p.amount, 0);
 
+  const glowColor = bill.status === 'complete' ? colors.secondary : colors.primary;
+
   return (
+    <GlowingCard radius={radius['2xl']} color={glowColor} background={colors.surface}>
     <Pressable
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
       onPress={onPress}
@@ -86,6 +90,7 @@ function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void;
         </Pressable>
       </View>
     </Pressable>
+    </GlowingCard>
   );
 }
 
@@ -242,10 +247,7 @@ const styles = StyleSheet.create({
     gap: spacing[3],
   },
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius['2xl'],
     padding: spacing[4],
-    ...shadow.sm,
   },
   cardHeader: {
     marginBottom: spacing[3],

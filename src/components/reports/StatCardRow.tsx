@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, typography, fontSize, spacing, radius, shadow } from '../../theme/tokens';
+import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
 import { formatCurrency } from '../../lib/reminderTemplates';
+import { GlowingCard } from '../effects/GlowingCard';
 import type { Currency } from '../../types';
 
 interface Props {
@@ -26,28 +27,36 @@ export function StatCardRow({
   return (
     <View style={styles.row}>
       {/* Card A — Collected */}
-      <View style={[styles.card, shadow.sm]}>
-        <Text style={styles.eyebrowGreen}>COLLECTED (YTD)</Text>
-        <Text style={styles.bigNumber}>{formatCurrency(totalCollected, currency)}</Text>
-        <View style={styles.metaRow}>
-          {trendDirection !== null && trendPercent !== null ? (
-            <View style={trendDirection === 'up' ? styles.pillUp : styles.pillDown}>
-              <Text style={trendDirection === 'up' ? styles.pillTextUp : styles.pillTextDown}>
-                {trendDirection === 'up' ? '↗' : '↘'} {trendDirection === 'up' ? '+' : '−'}
-                {trendPercent}% vs last month
-              </Text>
+      <View style={styles.cardSlot}>
+        <GlowingCard radius={radius['2xl']} color="#16a34a" background={colors.surface}>
+          <View style={styles.cardBody}>
+            <Text style={styles.eyebrowGreen}>COLLECTED (YTD)</Text>
+            <Text style={styles.bigNumber}>{formatCurrency(totalCollected, currency)}</Text>
+            <View style={styles.metaRow}>
+              {trendDirection !== null && trendPercent !== null ? (
+                <View style={trendDirection === 'up' ? styles.pillUp : styles.pillDown}>
+                  <Text style={trendDirection === 'up' ? styles.pillTextUp : styles.pillTextDown}>
+                    {trendDirection === 'up' ? '↗' : '↘'} {trendDirection === 'up' ? '+' : '−'}
+                    {trendPercent}% vs last month
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.rateSub}>{collectionRate}% collection rate</Text>
+              )}
             </View>
-          ) : (
-            <Text style={styles.rateSub}>{collectionRate}% collection rate</Text>
-          )}
-        </View>
+          </View>
+        </GlowingCard>
       </View>
 
       {/* Card B — Outstanding */}
-      <View style={[styles.card, shadow.sm]}>
-        <Text style={styles.eyebrowAmber}>OUTSTANDING</Text>
-        <Text style={styles.bigNumber}>{formatCurrency(totalOutstanding, currency)}</Text>
-        <Text style={styles.sub}>across {outstandingCount} bills</Text>
+      <View style={styles.cardSlot}>
+        <GlowingCard radius={radius['2xl']} color="#d97706" background={colors.surface}>
+          <View style={styles.cardBody}>
+            <Text style={styles.eyebrowAmber}>OUTSTANDING</Text>
+            <Text style={styles.bigNumber}>{formatCurrency(totalOutstanding, currency)}</Text>
+            <Text style={styles.sub}>across {outstandingCount} bills</Text>
+          </View>
+        </GlowingCard>
       </View>
     </View>
   );
@@ -58,10 +67,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
-  card: {
+  cardSlot: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius['2xl'],
+  },
+  cardBody: {
     padding: spacing[4] - 2,
   },
   eyebrowGreen: {

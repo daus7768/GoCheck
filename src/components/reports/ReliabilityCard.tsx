@@ -6,7 +6,8 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { colors, typography, spacing, radius, shadow } from '../../theme/tokens';
+import { colors, typography, spacing, radius } from '../../theme/tokens';
+import { GlowingCard } from '../effects/GlowingCard';
 import type { ReliabilityResult } from '../../lib/reportsCompute';
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -86,28 +87,28 @@ interface Props {
 
 export function ReliabilityCard({ data }: Props) {
   return (
-    <View style={[styles.card, shadow.sm]}>
-      <Text style={styles.title}>Who pays on time</Text>
-      <Text style={styles.cardSub}>Based on past 6 months</Text>
-      {data.length === 0 ? (
-        <Text style={styles.empty}>
-          Not enough data yet — needs 1+ paid bills with a due date set.
-        </Text>
-      ) : (
-        <View style={styles.list}>
-          {data.map((item) => (
-            <ReliabilityRow key={item.name} item={item} />
-          ))}
-        </View>
-      )}
-    </View>
+    <GlowingCard radius={radius['2xl']} background={colors.surface}>
+      <View style={styles.card}>
+        <Text style={styles.title}>Who pays on time</Text>
+        <Text style={styles.cardSub}>Based on past 6 months</Text>
+        {data.length === 0 ? (
+          <Text style={styles.empty}>
+            Not enough data yet — needs 1+ paid bills with a due date set.
+          </Text>
+        ) : (
+          <View style={styles.list}>
+            {data.map((item) => (
+              <ReliabilityRow key={item.name} item={item} />
+            ))}
+          </View>
+        )}
+      </View>
+    </GlowingCard>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius['2xl'],
     padding: spacing[4],
   },
   title: {

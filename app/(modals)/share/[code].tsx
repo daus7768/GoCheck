@@ -14,9 +14,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { getBillByShareLink, markParticipantPaid } from '../../../src/lib/supabase';
-import { colors, typography, fontSize, spacing, radius, shadow } from '../../../src/theme/tokens';
+import { colors, typography, fontSize, spacing, radius } from '../../../src/theme/tokens';
 import type { Currency } from '../../../src/types';
 import { CURRENCY_SYMBOLS } from '../../../src/types';
+import { GlowingCard } from '../../../src/components/effects/GlowingCard';
 
 interface BillData {
   id: string;
@@ -146,25 +147,31 @@ export default function ShareBillScreen() {
 
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + spacing[8] }]} showsVerticalScrollIndicator={false}>
         {/* Progress card */}
-        <View style={styles.progressCard}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>Payment Progress</Text>
-            <Text style={styles.progressCount}>{paidCount}/{totalCount} paid</Text>
-          </View>
-          <View style={styles.progressBarTrack}>
-            <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
-          </View>
-          <View style={styles.progressAmounts}>
-            <Text style={styles.progressCollected}>
-              {symbol}{amountCollected.toFixed(2)} collected
-            </Text>
-            <Text style={styles.progressRemaining}>
-              {symbol}{(bill.total_amount - amountCollected).toFixed(2)} remaining
-            </Text>
-          </View>
+        <View style={styles.cardWrap}>
+          <GlowingCard radius={radius['2xl']} background={colors.surface}>
+            <View style={styles.progressCard}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressTitle}>Payment Progress</Text>
+                <Text style={styles.progressCount}>{paidCount}/{totalCount} paid</Text>
+              </View>
+              <View style={styles.progressBarTrack}>
+                <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
+              </View>
+              <View style={styles.progressAmounts}>
+                <Text style={styles.progressCollected}>
+                  {symbol}{amountCollected.toFixed(2)} collected
+                </Text>
+                <Text style={styles.progressRemaining}>
+                  {symbol}{(bill.total_amount - amountCollected).toFixed(2)} remaining
+                </Text>
+              </View>
+            </View>
+          </GlowingCard>
         </View>
 
         {/* Participants */}
+        <View style={styles.cardWrap}>
+          <GlowingCard radius={radius['2xl']} background={colors.surface}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Participants</Text>
           {bill.participants.map((p) => (
@@ -201,6 +208,8 @@ export default function ShareBillScreen() {
             </View>
           ))}
         </View>
+          </GlowingCard>
+        </View>
 
         {/* Due date */}
         <View style={styles.dueRow}>
@@ -235,12 +244,9 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, fontFamily: typography.sansBold, fontSize: fontSize.md, color: colors.textPrimary },
   shareBtn: { width: 40, height: 40, borderRadius: radius.xl, backgroundColor: colors.primarySurface, alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: spacing[4] },
+  cardWrap: { marginBottom: spacing[4] },
   progressCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius['2xl'],
     padding: spacing[5],
-    marginBottom: spacing[4],
-    ...shadow.sm,
   },
   progressHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[3] },
   progressTitle: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: colors.textPrimary },
@@ -250,7 +256,7 @@ const styles = StyleSheet.create({
   progressAmounts: { flexDirection: 'row', justifyContent: 'space-between' },
   progressCollected: { fontFamily: typography.sansMedium, fontSize: fontSize.sm, color: colors.secondary },
   progressRemaining: { fontFamily: typography.sansMedium, fontSize: fontSize.sm, color: colors.textSecondary },
-  section: { backgroundColor: colors.surface, borderRadius: radius['2xl'], padding: spacing[5], marginBottom: spacing[4], ...shadow.sm },
+  section: { padding: spacing[5] },
   sectionTitle: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: colors.textPrimary, marginBottom: spacing[4] },
   participantRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[3], paddingVertical: spacing[2.5], borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   avatar: { width: 36, height: 36, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },

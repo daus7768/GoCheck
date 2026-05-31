@@ -4,6 +4,10 @@ export type SplitType = 'equal' | 'custom' | 'percent' | 'shares';
 
 export type BillStatus = 'active' | 'complete' | 'cancelled';
 
+export type BillCategory = 'travel' | 'food' | 'housing' | 'sports' | 'events' | 'other';
+
+export type BillPaymentMethod = 'duitnow' | 'bank_transfer' | 'ewallet' | 'cash';
+
 export type PaymentStatus = 'pending' | 'confirmed' | 'failed';
 
 export interface Participant {
@@ -49,11 +53,19 @@ export interface Bill {
   dueDate: string;
   status: BillStatus;
   shareLink: string;
-  category?: 'travel' | 'food' | 'housing' | 'other';
+  category?: BillCategory;
   isRecurring?: 'monthly' | 'yearly' | null;
   splitType?: SplitType;
   taxRate?: number;
+  taxSst?: boolean;
+  taxService?: boolean;
+  taxServiceRate?: number;
   groupPhotoUrl?: string;
+  receiptUrl?: string;
+  paymentMethod?: BillPaymentMethod;
+  paymentDetails?: string;
+  inviteToken?: string;
+  invoiceNumber?: string;
   participants: Participant[];
   lineItems?: LineItemComputed[];
   createdAt: string;
@@ -90,10 +102,34 @@ export interface CreateBillFormValues {
   participants: Participant[];
   lineItems: LineItem[];
   taxRate: string;
+  taxSst: boolean;
+  taxService: boolean;
+  taxServiceRate: number;
   dueDate: Date;
   description: string;
   reminderEnabled: boolean;
   groupPhotoUri?: string;
+  receiptUri?: string;
+  paymentMethod?: BillPaymentMethod;
+  paymentDetails?: string;
+  category: BillCategory;
+}
+
+export interface GeminiScanResult {
+  title: string | null;
+  description: string | null;
+  total_amount: number;
+  currency: string;
+  subtotal: number;
+  tax_sst: boolean;
+  tax_sst_amount: number;
+  tax_service: boolean;
+  tax_service_rate: number;
+  tax_service_amount: number;
+  line_items: Array<{ name: string; quantity: number; unit_price: number; subtotal: number }>;
+  payment_method: string | null;
+  date: string | null;
+  confidence: number;
 }
 
 export interface Payment {

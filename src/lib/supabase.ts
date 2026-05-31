@@ -36,11 +36,17 @@ export async function createBillInDB(payload: {
   group_photo_url?: string;
   split_type?: string;
   tax_rate?: number;
+  tax_sst?: boolean;
+  tax_service?: boolean;
+  tax_service_rate?: number;
+  receipt_url?: string;
+  payment_method?: string;
+  payment_details?: string;
 }) {
   const { data, error } = await supabase
     .from('bills')
     .insert(payload)
-    .select()
+    .select('*, invoice_number, invite_token')
     .single();
 
   if (error) throw error;
@@ -249,6 +255,37 @@ export async function uploadGroupPhoto(billId: string, uri: string): Promise<str
   return data.publicUrl;
 }
 
+export async function uploadReceiptPhoto(billId: string, uri: string): Promise<string> {
+  const path = `receipts/${billId}.jpg`;
+
+  let fileData: Blob | Uint8Array;
+  let contentType = 'image/jpeg';
+
+  if (uri.startsWith('data:')) {
+    const commaIdx = uri.indexOf(',');
+    const header = uri.slice(0, commaIdx);
+    const base64 = uri.slice(commaIdx + 1);
+    contentType = header.match(/data:([^;]+)/)?.[1] ?? 'image/jpeg';
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    fileData = bytes;
+  } else {
+    const response = await fetch(uri);
+    fileData = await response.blob();
+    contentType = (fileData as Blob).type || 'image/jpeg';
+  }
+
+  const { error } = await supabase.storage
+    .from('bill-assets')
+    .upload(path, fileData, { upsert: true, contentType });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from('bill-assets').getPublicUrl(path);
+  return data.publicUrl;
+}
+
 // ── Reminders ────────────────────────────────────────────────────────────────
 
 interface InsertReminderArgs {
@@ -345,6 +382,37 @@ export async function upsertSettings(
       { onConflict: 'organizer_id' }
     );
   if (error) throw error;
+}
+
+export async function uploadAvatarPhoto(userId: string, uri: string): Promise<string> {
+  const path = `avatars/${userId}-${Date.now()}.jpg`;
+
+  let fileData: Blob | Uint8Array;
+  let contentType = 'image/jpeg';
+
+  if (uri.startsWith('data:')) {
+    const commaIdx = uri.indexOf(',');
+    const header = uri.slice(0, commaIdx);
+    const base64 = uri.slice(commaIdx + 1);
+    contentType = header.match(/data:([^;]+)/)?.[1] ?? 'image/jpeg';
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    fileData = bytes;
+  } else {
+    const response = await fetch(uri);
+    fileData = await response.blob();
+    contentType = (fileData as Blob).type || 'image/jpeg';
+  }
+
+  const { error } = await supabase.storage
+    .from('bill-assets')
+    .upload(path, fileData, { upsert: true, contentType });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from('bill-assets').getPublicUrl(path);
+  return data.publicUrl;
 }
 
 // ─── Profile Operations ────────────────────────────────────────────────────────

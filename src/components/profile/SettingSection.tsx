@@ -1,36 +1,44 @@
 import { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, typography, fontSize, spacing, radius, shadow } from '../../theme/tokens';
+import { typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
+import { GlowingCard } from '../effects/GlowingCard';
 
 interface SettingSectionProps {
   title: string;
   children: ReactNode;
+  /** Optional override for the glowing accent color (defaults to theme primary). */
+  accent?: string;
+  /** Disable the glow effect for this section. */
+  noGlow?: boolean;
 }
 
-export function SettingSection({ title, children }: SettingSectionProps) {
+export function SettingSection({ title, children, accent, noGlow }: SettingSectionProps) {
+  const { colors: c } = useTheme();
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>{title}</Text>
-      <View style={styles.card}>{children}</View>
+      <Text style={[styles.title, { color: c.textSecondary }]}>{title}</Text>
+      <GlowingCard radius={radius.lg} color={accent} disabled={noGlow} background={c.surface}>
+        <View style={styles.body}>{children}</View>
+      </GlowingCard>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: spacing[5] },
+  wrap: {
+    marginBottom: spacing[5],
+    marginHorizontal: spacing[4],
+  },
   title: {
     fontFamily: typography.sansBold,
     fontSize: fontSize['2xs'],
-    color: colors.textSecondary,
     letterSpacing: 1,
     textTransform: 'uppercase',
     paddingHorizontal: spacing[1],
     marginBottom: spacing[2],
   },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    ...shadow.md,
+  body: {
+    // Inner body — the GlowingCard provides the rounded surface.
   },
 });

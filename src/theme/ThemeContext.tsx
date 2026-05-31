@@ -37,8 +37,8 @@ export function ThemeProvider({
   children: React.ReactNode;
   isDark: boolean;
 }) {
-  const value = useMemo(
-    () => ({ isDark, colors: isDark ? darkColors : colors }),
+  const value = useMemo<ThemeContextValue>(
+    () => ({ isDark, colors: (isDark ? darkColors : colors) as ThemeColors }),
     [isDark]
   );
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

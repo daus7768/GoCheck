@@ -4,6 +4,7 @@ import { useBillStore } from '../../store/billStore';
 import { buildQueueItems } from '../../lib/queueUtils';
 import { REMINDER_PREVIEWS } from '../../lib/reminderTemplates';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { GlowingCard } from '../effects/GlowingCard';
 import type { ReminderCadence, ReminderTone } from '../../types';
 
 const CADENCE_OPTIONS: { value: ReminderCadence; label: string; helper: string }[] = [
@@ -32,6 +33,7 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
       showsVerticalScrollIndicator={false}
     >
       {/* Card 1: Cadence */}
+      <GlowingCard radius={radius.xl} background={colors.surface}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Cadence</Text>
         <View style={styles.segmentRow}>
@@ -51,8 +53,10 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
           {CADENCE_OPTIONS.find((o) => o.value === settings.cadence)?.helper}
         </Text>
       </View>
+      </GlowingCard>
 
       {/* Card 2: Message Tone */}
+      <GlowingCard radius={radius.xl} background={colors.surface}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Message Tone</Text>
         <View style={styles.segmentRow}>
@@ -85,8 +89,10 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
           <Text style={styles.previewText}>{REMINDER_PREVIEWS[settings.tone]}</Text>
         </View>
       </View>
+      </GlowingCard>
 
       {/* Card 3: Skip + Frequency Cap */}
+      <GlowingCard radius={radius.xl} background={colors.surface}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Skip &amp; Frequency Cap</Text>
 
@@ -121,6 +127,7 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
           </View>
         </View>
       </View>
+      </GlowingCard>
     </ScrollView>
   );
 }
@@ -129,11 +136,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { padding: spacing[4], gap: spacing[3] },
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
     padding: spacing[4],
-    borderWidth: 1,
-    borderColor: colors.border,
     gap: spacing[3],
   },
   cardTitle: {

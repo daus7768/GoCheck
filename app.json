@@ -57,7 +57,7 @@
     "scheme": "gocheck",
     "extra": {
       "supabaseUrl": "https://bccarnwtdqamedtlzdht.supabase.co",
-      "supabaseAnonKey": "sb_publishable_VzCR4JOptTjishRkubio-A_PrQQ-UTr",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjY2Fybnd0ZHFhbWVkdGx6ZGh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MDYzMzEsImV4cCI6MjA5NTE4MjMzMX0.0qmYIXhCV87HRAflpzHyVcLbGKt7ebLIcqpHQuZLsqQ",
       "shareBaseUrl": "https://gocheck.app/share",
       "eas": {
         "projectId": "YOUR_EAS_PROJECT_ID"

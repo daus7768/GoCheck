@@ -15,6 +15,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../../src/lib/supabase';
 import { colors, typography, fontSize, radius, spacing } from '../../src/theme/tokens';
+import { GlowingCard } from '../../src/components/effects/GlowingCard';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -115,35 +116,37 @@ export default function SignInScreen() {
         </View>
 
         {/* Sign-in card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Get started</Text>
-          <Text style={styles.cardSubtitle}>
-            Use your Google account to sign in or create your organizer account.
-          </Text>
+        <GlowingCard radius={radius['2xl']} color={colors.white} background={colors.white} spread={70}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Get started</Text>
+            <Text style={styles.cardSubtitle}>
+              Use your Google account to sign in or create your organizer account.
+            </Text>
 
-          <TouchableOpacity
-            style={[styles.googleBtn, loading && styles.googleBtnDisabled]}
-            onPress={handleGoogleSignIn}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.textPrimary} />
-            ) : (
-              <>
-                <GoogleLogo />
-                <Text style={styles.googleBtnText}>Continue with Google</Text>
-              </>
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.googleBtn, loading && styles.googleBtnDisabled]}
+              onPress={handleGoogleSignIn}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.textPrimary} />
+              ) : (
+                <>
+                  <GoogleLogo />
+                  <Text style={styles.googleBtnText}>Continue with Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
 
-          <Text style={styles.terms}>
-            By continuing you agree to our{' '}
-            <Text style={styles.termsLink}>Terms of Service</Text>
-            {' '}and{' '}
-            <Text style={styles.termsLink}>Privacy Policy</Text>
-          </Text>
-        </View>
+            <Text style={styles.terms}>
+              By continuing you agree to our{' '}
+              <Text style={styles.termsLink}>Terms of Service</Text>
+              {' '}and{' '}
+              <Text style={styles.termsLink}>Privacy Policy</Text>
+            </Text>
+          </View>
+        </GlowingCard>
       </View>
     </View>
   );
@@ -260,8 +263,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    backgroundColor: colors.white,
-    borderRadius: radius['2xl'],
     padding: spacing[6],
     gap: spacing[4],
   },

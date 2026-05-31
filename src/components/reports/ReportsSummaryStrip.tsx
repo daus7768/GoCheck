@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow } from '../../theme/tokens';
+import { colors, typography, spacing, radius } from '../../theme/tokens';
+import { GlowingCard } from '../effects/GlowingCard';
 
 interface Props {
   collectionRate: number;
@@ -15,7 +16,8 @@ export function ReportsSummaryStrip({
   activeBills,
 }: Props) {
   return (
-    <View style={[styles.strip, shadow.sm]}>
+    <GlowingCard radius={radius['2xl']} background={colors.surface}>
+      <View style={styles.strip}>
       <View style={styles.item}>
         <View style={[styles.iconWrap, { backgroundColor: colors.primarySurface }]}>
           <Feather name="percent" size={14} color={colors.primary} />
@@ -45,15 +47,14 @@ export function ReportsSummaryStrip({
           <Text style={styles.label}>Active</Text>
         </View>
       </View>
-    </View>
+      </View>
+    </GlowingCard>
   );
 }
 
 const styles = StyleSheet.create({
   strip: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: radius['2xl'],
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[2],
     alignItems: 'center',
