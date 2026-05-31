@@ -95,3 +95,171 @@ BEGIN
   RETURN COALESCE(v_result, '{"already_paid": true}'::json);
 END;
 $$;
+
+-- ─── RPC: get_participant_view ────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.get_participant_view(p_token UUID)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_result json;
+BEGIN
+  SELECT json_build_object(
+    'participant', json_build_object(
+      'id',              p.id,
+      'name',            p.name,
+      'amount',          p.amount,
+      'paymentStatus',   p.payment_status,
+      'proofUrl',        p.proof_url,
+      'submittedAt',     p.submitted_at,
+      'confirmedAt',     p.confirmed_at,
+      'rejectedReason',  p.rejected_reason
+    ),
+    'bill', json_build_object(
+      'id',              b.id,
+      'title',           b.title,
+      'description',     b.description,
+      'currency',        b.currency,
+      'dueDate',         b.due_date,
+      'status',          b.status,
+      'invoiceNumber',   b.invoice_number,
+      'paymentMethod',   b.payment_method,
+      'paymentDetails',  b.payment_details
+    ),
+    'organizer', json_build_object(
+      'displayName', COALESCE(up.display_name, 'Organizer'),
+      'avatarUrl',   up.avatar_url
+    ),
+    'socialProof', json_build_object(
+      'paidCount',  (SELECT COUNT(*) FROM participants WHERE bill_id = b.id AND payment_status = 'confirmed'),
+      'totalCount', (SELECT COUNT(*) FROM participants WHERE bill_id = b.id)
+    )
+  ) INTO v_result
+  FROM participants p
+  JOIN bills b ON b.id = p.bill_id
+  LEFT JOIN user_profiles up ON up.id = b.organizer_id
+  WHERE p.access_token = p_token;
+
+  RETURN v_result;  -- NULL if token not found
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_participant_view(UUID) TO anon, authenticated;
+
+-- ─── RPC: submit_payment ──────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.submit_payment(
+  p_token     UUID,
+  p_proof_url TEXT DEFAULT NULL,
+  p_note      TEXT DEFAULT NULL  -- accepted but ignored in core (message thread is Layer 2)
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_pid     UUID;
+  v_status  TEXT;
+  v_result  json;
+BEGIN
+  SELECT id, payment_status INTO v_pid, v_status
+  FROM participants
+  WHERE access_token = p_token;
+
+  IF v_pid IS NULL THEN
+    RAISE EXCEPTION 'Invalid participant token';
+  END IF;
+
+  -- Idempotent: already confirmed → return marker, do nothing
+  IF v_status = 'confirmed' THEN
+    RETURN json_build_object('already_confirmed', true);
+  END IF;
+
+  -- Allowed transitions: unpaid → pending; rejected → pending; pending → pending (re-submit)
+  UPDATE participants
+  SET payment_status  = 'pending',
+      submitted_at    = NOW(),
+      proof_url       = COALESCE(p_proof_url, proof_url),
+      rejected_reason = NULL
+  WHERE id = v_pid
+  RETURNING json_build_object(
+    'id',            id,
+    'paymentStatus', payment_status,
+    'submittedAt',   submitted_at
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.submit_payment(UUID, TEXT, TEXT) TO anon, authenticated;
+
+-- ─── RPC: confirm_payment (organizer-side, RLS-gated) ─────────────────────────
+CREATE OR REPLACE FUNCTION public.confirm_payment(p_participant_id UUID)
+RETURNS json
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_result json;
+BEGIN
+  -- RLS on participants enforces organizer ownership; this UPDATE will return 0 rows for non-organizers
+  UPDATE participants
+  SET payment_status  = 'confirmed',
+      confirmed_at    = NOW(),
+      rejected_reason = NULL
+  WHERE id = p_participant_id
+    AND payment_status IN ('pending', 'unpaid', 'rejected')
+  RETURNING json_build_object(
+    'id',            id,
+    'paymentStatus', payment_status,
+    'confirmedAt',   confirmed_at
+  ) INTO v_result;
+
+  IF v_result IS NULL THEN
+    RAISE EXCEPTION 'Participant not found or not authorized';
+  END IF;
+
+  RETURN v_result;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.confirm_payment(UUID) TO authenticated;
+
+-- ─── RPC: reject_payment (organizer-side, RLS-gated) ──────────────────────────
+CREATE OR REPLACE FUNCTION public.reject_payment(
+  p_participant_id UUID,
+  p_reason         TEXT
+)
+RETURNS json
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_result json;
+BEGIN
+  IF p_reason IS NULL OR length(trim(p_reason)) = 0 THEN
+    RAISE EXCEPTION 'Reason required';
+  END IF;
+
+  UPDATE participants
+  SET payment_status  = 'rejected',
+      rejected_reason = p_reason,
+      confirmed_at    = NULL
+  WHERE id = p_participant_id
+    AND payment_status IN ('pending', 'confirmed')
+  RETURNING json_build_object(
+    'id',             id,
+    'paymentStatus',  payment_status,
+    'rejectedReason', rejected_reason
+  ) INTO v_result;
+
+  IF v_result IS NULL THEN
+    RAISE EXCEPTION 'Participant not found or not authorized';
+  END IF;
+
+  RETURN v_result;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.reject_payment(UUID, TEXT) TO authenticated;
