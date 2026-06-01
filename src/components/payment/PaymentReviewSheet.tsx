@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Modal, View, Text, StyleSheet, Pressable, ActivityIndicator, TextInput, Alert,
+  Modal, View, Text, StyleSheet, Pressable, ActivityIndicator, TextInput, Alert, Image,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../theme/tokens';
@@ -18,6 +18,7 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
   const [busy, setBusy] = useState<'approve' | 'reject' | null>(null);
   const [rejectMode, setRejectMode] = useState(false);
   const [reason, setReason] = useState('');
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!participant) {
@@ -62,73 +63,86 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
   };
 
   return (
-    <Modal animationType="slide" transparent onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={() => {}}>
-          <View style={styles.handle} />
-          <Text style={styles.title}>Review payment</Text>
-          <Text style={styles.subtitle}>
-            {participant.name} • {symbol}{participant.amount.toFixed(2)}
-          </Text>
-
-          {participant.submittedAt && (
-            <Text style={styles.meta}>
-              Submitted {new Date(participant.submittedAt).toLocaleString()}
+    <>
+      <Modal animationType="slide" transparent onRequestClose={onClose}>
+        <Pressable style={styles.backdrop} onPress={onClose}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <View style={styles.handle} />
+            <Text style={styles.title}>Review payment</Text>
+            <Text style={styles.subtitle}>
+              {participant.name} • {symbol}{participant.amount.toFixed(2)}
             </Text>
-          )}
 
-          {!rejectMode ? (
-            <View style={styles.actions}>
-              <Pressable
-                style={[styles.btn, styles.rejectBtn]}
-                onPress={() => setRejectMode(true)}
-                disabled={busy !== null}
-              >
-                <Feather name="x" size={18} color="#DC2626" />
-                <Text style={[styles.btnText, { color: '#DC2626' }]}>Reject</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.btn, styles.approveBtn]}
-                onPress={handleApprove}
-                disabled={busy !== null}
-              >
-                {busy === 'approve'
-                  ? <ActivityIndicator color="#FFF" />
-                  : <>
-                      <Feather name="check" size={18} color="#FFF" />
-                      <Text style={[styles.btnText, { color: '#FFF' }]}>Approve</Text>
-                    </>}
-              </Pressable>
-            </View>
-          ) : (
-            <View style={styles.rejectBlock}>
-              <Text style={styles.rejectLabel}>Reason</Text>
-              <TextInput
-                style={styles.rejectInput}
-                placeholder="e.g. Amount looks short, try again"
-                value={reason}
-                onChangeText={setReason}
-                multiline
-              />
+            {participant.submittedAt && (
+              <Text style={styles.meta}>
+                Submitted {new Date(participant.submittedAt).toLocaleString()}
+              </Text>
+            )}
+
+            {!rejectMode ? (
               <View style={styles.actions}>
-                <Pressable style={[styles.btn, styles.cancelBtn]} onPress={() => setRejectMode(false)}>
-                  <Text style={[styles.btnText, { color: colors.textSecondary }]}>Cancel</Text>
-                </Pressable>
                 <Pressable
-                  style={[styles.btn, styles.rejectConfirmBtn]}
-                  onPress={handleReject}
+                  style={[styles.btn, styles.rejectBtn]}
+                  onPress={() => setRejectMode(true)}
                   disabled={busy !== null}
                 >
-                  {busy === 'reject'
+                  <Feather name="x" size={18} color="#DC2626" />
+                  <Text style={[styles.btnText, { color: '#DC2626' }]}>Reject</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.btn, styles.approveBtn]}
+                  onPress={handleApprove}
+                  disabled={busy !== null}
+                >
+                  {busy === 'approve'
                     ? <ActivityIndicator color="#FFF" />
-                    : <Text style={[styles.btnText, { color: '#FFF' }]}>Send rejection</Text>}
+                    : <>
+                        <Feather name="check" size={18} color="#FFF" />
+                        <Text style={[styles.btnText, { color: '#FFF' }]}>Approve</Text>
+                      </>}
                 </Pressable>
               </View>
-            </View>
-          )}
+            ) : (
+              <View style={styles.rejectBlock}>
+                <Text style={styles.rejectLabel}>Reason</Text>
+                <TextInput
+                  style={styles.rejectInput}
+                  placeholder="e.g. Amount looks short, try again"
+                  value={reason}
+                  onChangeText={setReason}
+                  multiline
+                />
+                <View style={styles.actions}>
+                  <Pressable style={[styles.btn, styles.cancelBtn]} onPress={() => setRejectMode(false)}>
+                    <Text style={[styles.btnText, { color: colors.textSecondary }]}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.btn, styles.rejectConfirmBtn]}
+                    onPress={handleReject}
+                    disabled={busy !== null}
+                  >
+                    {busy === 'reject'
+                      ? <ActivityIndicator color="#FFF" />
+                      : <Text style={[styles.btnText, { color: '#FFF' }]}>Send rejection</Text>}
+                  </Pressable>
+                </View>
+              </View>
+            )}
+          </Pressable>
         </Pressable>
-      </Pressable>
-    </Modal>
+      </Modal>
+
+      <Modal visible={!!viewerUrl} transparent animationType="fade" onRequestClose={() => setViewerUrl(null)}>
+        <Pressable style={styles.viewerBackdrop} onPress={() => setViewerUrl(null)}>
+          {viewerUrl && (
+            <Image source={{ uri: viewerUrl }} style={styles.viewerImage} resizeMode="contain" />
+          )}
+          <Pressable onPress={() => setViewerUrl(null)} style={styles.viewerClose}>
+            <Feather name="x" size={24} color="#FFF" />
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }
 
@@ -149,4 +163,15 @@ const styles = StyleSheet.create({
   rejectBlock: { gap: spacing[2] },
   rejectLabel: { fontFamily: typography.sansBold, fontSize: fontSize.xs, color: colors.textSecondary, letterSpacing: 1, textTransform: 'uppercase' },
   rejectInput: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing[3], minHeight: 80, fontFamily: typography.sansRegular, fontSize: fontSize.sm, color: colors.textPrimary, textAlignVertical: 'top' },
+  viewerBackdrop: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.9)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  viewerImage: { width: '90%', height: '90%' },
+  viewerClose: {
+    position: 'absolute', top: 40, right: 20,
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center',
+  },
 });
