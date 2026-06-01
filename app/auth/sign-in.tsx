@@ -159,7 +159,7 @@ export default function SignInScreen() {
                       ) : (
                         <>
                           <GoogleLogo />
-                          <Text style={styles.googleBtnText}>Continue with Google</Text>
+                          <Text style={styles.googleBtnText} numberOfLines={1}>Continue with Google</Text>
                           <Feather name="arrow-right" size={18} color="#111827" style={styles.googleBtnArrow} />
                         </>
                       )}
@@ -414,8 +414,9 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     backgroundColor: '#FFFFFF',
     borderRadius: 999,
-    paddingVertical: spacing[4],
+    paddingVertical: spacing[3],
     paddingHorizontal: spacing[5],
+    minHeight: 52,
   },
   googleBtnDisabled: {
     opacity: 0.65,
@@ -424,7 +425,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.sansBold,
     fontSize: fontSize.base,
     color: '#111827',
-    flex: 0,
   },
   googleBtnArrow: {
     marginLeft: spacing[1],
