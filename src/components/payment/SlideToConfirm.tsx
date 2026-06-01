@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -24,7 +24,9 @@ const HORIZONTAL_PADDING = spacing[4];
 
 export function SlideToConfirm({ label = 'Slide to confirm I paid', onConfirm, disabled = false }: Props) {
   const { width } = useWindowDimensions();
-  const trackWidth = Math.min(width - HORIZONTAL_PADDING * 2, 480);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const availableWidth = containerWidth || width - HORIZONTAL_PADDING * 2;
+  const trackWidth = Math.min(availableWidth, 480);
   const maxTranslate = trackWidth - THUMB - 8;
   const offset = useSharedValue(0);
 
@@ -57,19 +59,28 @@ export function SlideToConfirm({ label = 'Slide to confirm I paid', onConfirm, d
   }));
 
   return (
-    <View style={[styles.track, { width: trackWidth, opacity: disabled ? 0.5 : 1 }]}>
-      <Animated.View style={[styles.fill, fillStyle]} />
-      <Text style={styles.label}>{label}</Text>
-      <GestureDetector gesture={gesture}>
-        <Animated.View style={[styles.thumb, thumbStyle]}>
-          <Feather name="chevrons-right" size={22} color="#FFF" />
-        </Animated.View>
-      </GestureDetector>
+    <View
+      style={styles.shell}
+      onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
+    >
+      <View style={[styles.track, { width: trackWidth, opacity: disabled ? 0.5 : 1 }]}>
+        <Animated.View style={[styles.fill, fillStyle]} />
+        <Text style={styles.label} numberOfLines={1}>{label}</Text>
+        <GestureDetector gesture={gesture}>
+          <Animated.View style={[styles.thumb, thumbStyle]}>
+            <Feather name="chevrons-right" size={22} color="#FFF" />
+          </Animated.View>
+        </GestureDetector>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  shell: {
+    width: '100%',
+    alignItems: 'center',
+  },
   track: {
     height: THUMB + 8,
     borderRadius: radius.full,
