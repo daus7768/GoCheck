@@ -30,6 +30,7 @@ import { AnimatedDonut } from '../../src/components/effects/AnimatedDonut';
 import { ColourfulText } from '../../src/components/effects/ColourfulText';
 import { DottedGlowBackground } from '../../src/components/effects/DottedGlowBackground';
 import { SheenButton } from '../../src/components/effects/SheenButton';
+import { GradientBorderRing } from '../../src/components/effects/GradientBorderRing';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill, QueueItem, ReliabilityLabel } from '../../src/types';
 
@@ -544,26 +545,27 @@ export default function HomeScreen() {
             {filterTabs.map((t) => {
               const active = t.id === filter;
               return (
-                <Pressable
-                  key={t.id}
-                  onPress={() => {
-                    haptic.selection();
-                    setFilter(t.id);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t.label} bills`}
-                  accessibilityState={{ selected: active }}
-                  style={[styles.filterPill, active ? styles.filterPillActive : styles.filterPillIdle]}
-                >
-                  <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
-                    {t.label}
-                  </Text>
-                  <View style={[styles.filterBadge, active && styles.filterBadgeActive]}>
-                    <Text style={[styles.filterBadgeText, active && styles.filterBadgeTextActive]}>
-                      {t.count}
+                <GradientBorderRing key={t.id} thickness={1.5}>
+                  <Pressable
+                    onPress={() => {
+                      haptic.selection();
+                      setFilter(t.id);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t.label} bills`}
+                    accessibilityState={{ selected: active }}
+                    style={[styles.filterPill, active ? styles.filterPillActive : styles.filterPillIdle]}
+                  >
+                    <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
+                      {t.label}
                     </Text>
-                  </View>
-                </Pressable>
+                    <View style={[styles.filterBadge, active && styles.filterBadgeActive]}>
+                      <Text style={[styles.filterBadgeText, active && styles.filterBadgeTextActive]}>
+                        {t.count}
+                      </Text>
+                    </View>
+                  </Pressable>
+                </GradientBorderRing>
               );
             })}
           </ScrollView>
@@ -806,7 +808,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   filterPillActive: { backgroundColor: colors.gray900 },
-  filterPillIdle: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.gray200 },
+  filterPillIdle: { backgroundColor: colors.surface },
   filterPillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs, color: colors.textSecondary },
   filterPillTextActive: { color: colors.white },
   filterBadge: {
