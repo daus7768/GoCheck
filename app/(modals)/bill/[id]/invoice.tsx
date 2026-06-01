@@ -85,6 +85,21 @@ export default function InvoiceScreen() {
     }).finally(() => setSummaryLoading(false));
   }, [bill?.id]);
 
+  // ── Realtime participant updates ──
+  useEffect(() => {
+    if (!bill?.id) return;
+    const channel = supabase
+      .channel(`bill:${bill.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'participants',
+        filter: `bill_id=eq.${bill.id}`,
+      }, () => { fetchBills(sessionUserId); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [bill?.id, sessionUserId, fetchBills]);
+
   // ── Derived ──
   const currencySymbol = bill ? CURRENCY_SYMBOLS[bill.currency] : 'RM';
   const lineSubtotal = (bill?.lineItems ?? []).reduce((s, li) => s + li.subtotal, 0);
@@ -324,6 +339,12 @@ export default function InvoiceScreen() {
         </Animated.View>
 
       </ScrollView>
+      <PaymentReviewSheet
+        participant={reviewing}
+        currency={bill.currency}
+        onClose={() => setReviewing(null)}
+        onChanged={() => fetchBills(sessionUserId)}
+      />
     </View>
   );
 }
