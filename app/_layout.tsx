@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Platform, View, StyleSheet } from 'react-native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -33,6 +33,7 @@ Notifications.setNotificationHandler({
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
+  const pathname = usePathname();
   const { session, sessionInitialized, setSession, loadProfile, loadSecurity } = useProfileStore();
 
   useEffect(() => {
@@ -53,12 +54,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!sessionInitialized) return;
     const inAuth = (segments as string[])[0] === 'auth';
-    if (!session && !inAuth) {
+    const isPublicRoute = pathname.startsWith('/p/') || pathname.startsWith('/share/');
+    if (!session && !inAuth && !isPublicRoute) {
       router.replace('/auth/sign-in' as any);
     } else if (session && inAuth) {
       router.replace('/(tabs)' as any);
     }
-  }, [session, sessionInitialized, segments]);
+  }, [session, sessionInitialized, segments, pathname]);
 
   return <>{children}</>;
 }
