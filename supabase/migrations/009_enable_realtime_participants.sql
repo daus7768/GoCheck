@@ -14,3 +14,9 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.participants;
   END IF;
 END $$;
+
+-- REPLICA IDENTITY FULL: ships the full row (not just PK) with UPDATE events.
+-- Required so subscribers using filters like bill_id=eq.<uuid> actually
+-- receive the event — otherwise Postgres only sends the PK and the filter
+-- silently drops the change.
+ALTER TABLE public.participants REPLICA IDENTITY FULL;
