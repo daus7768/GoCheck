@@ -20,6 +20,8 @@ export default function ParticipantPage() {
 
   const load = useCallback(async () => {
     if (!token) return;
+    setError(null);
+    setLoading(true);
     try {
       const v = await getParticipantView(token);
       if (!v) {
