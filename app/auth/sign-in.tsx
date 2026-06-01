@@ -8,15 +8,17 @@ import {
   Platform,
   Alert,
   Image,
+  ScrollView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
+import { BlurView } from 'expo-blur';
 import { supabase } from '../../src/lib/supabase';
-import { colors, typography, fontSize, radius, spacing } from '../../src/theme/tokens';
-import { GlowingCard } from '../../src/components/effects/GlowingCard';
+import { typography, fontSize, radius, spacing } from '../../src/theme/tokens';
+import { AuroraBackground } from '../../src/components/effects/AuroraBackground';
+import { FadeInUp } from '../../src/components/effects/FadeInUp';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -32,7 +34,6 @@ export default function SignInScreen() {
           options: { redirectTo: window.location.origin + '/auth/callback' },
         });
         if (error) throw error;
-        // browser navigates away — no further code runs
         return;
       }
 
@@ -65,83 +66,116 @@ export default function SignInScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <AuroraBackground>
       <StatusBar style="light" />
 
-      {/* Background gradient */}
-      <LinearGradient
-        colors={['#312E81', '#4F46E5', '#6366F1']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-
-      {/* Top decorative blobs */}
-      <View style={styles.blobTopRight} />
-      <View style={styles.blobBottomLeft} />
-
-      {/* Content */}
-      <View style={styles.content}>
-        {/* Logo / Brand */}
-        <View style={styles.logoContainer}>
-          <Image source={require('../../assets/logo.png')} style={styles.logoIcon} />
-          <Text style={styles.logoText}>GoCheck</Text>
-          <Text style={styles.tagline}>Bill splitting made simple</Text>
-        </View>
-
-        {/* Hero section */}
-        <View style={styles.heroSection}>
-          <Text style={styles.heroTitle}>Welcome, Organizer</Text>
-          <Text style={styles.heroSubtitle}>
-            Sign in to create bills, track payments, and settle up with your group.
-          </Text>
-        </View>
-
-        {/* Features list */}
-        <View style={styles.features}>
-          {FEATURES.map((f) => (
-            <View key={f.text} style={styles.featureRow}>
-              <View style={styles.featureDot}>
-                <Feather name={f.icon as keyof typeof Feather.glyphMap} size={14} color={colors.primary} />
-              </View>
-              <Text style={styles.featureText}>{f.text}</Text>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        <View style={styles.content}>
+          {/* Brand */}
+          <FadeInUp index={0} style={styles.logoContainer}>
+            <View style={styles.logoGlow}>
+              <Image source={require('../../assets/logo.png')} style={styles.logoIcon} />
             </View>
-          ))}
+            <Text style={styles.logoText}>GoCheck</Text>
+            <Text style={styles.tagline}>Bill splitting, beautifully simple</Text>
+          </FadeInUp>
+
+          {/* Hero */}
+          <FadeInUp index={1} style={styles.heroSection}>
+            <Text style={styles.heroTitle}>
+              Welcome,{' '}
+              <Text style={styles.heroTitleAccent}>Organizer</Text>
+            </Text>
+            <Text style={styles.heroSubtitle}>
+              Create bills, track payments, and settle up with your group — all in one place.
+            </Text>
+          </FadeInUp>
+
+          {/* Features */}
+          <FadeInUp index={2} style={styles.features}>
+            {FEATURES.map((f, i) => (
+              <FadeInUp key={f.text} index={3 + i} style={styles.featureRow}>
+                <View style={styles.featureDot}>
+                  <Feather
+                    name={f.icon as keyof typeof Feather.glyphMap}
+                    size={14}
+                    color="#A5B4FC"
+                  />
+                </View>
+                <Text style={styles.featureText}>{f.text}</Text>
+              </FadeInUp>
+            ))}
+          </FadeInUp>
+
+          {/* Sign-in card */}
+          <FadeInUp index={6} style={styles.cardWrap}>
+            <GlassCard>
+              <Text style={styles.cardTitle}>Get started</Text>
+              <Text style={styles.cardSubtitle}>
+                Use your Google account to sign in or create your organizer account.
+              </Text>
+
+              <TouchableOpacity
+                style={[styles.googleBtn, loading && styles.googleBtnDisabled]}
+                onPress={handleGoogleSignIn}
+                disabled={loading}
+                activeOpacity={0.9}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#111827" />
+                ) : (
+                  <>
+                    <GoogleLogo />
+                    <Text style={styles.googleBtnText}>Continue with Google</Text>
+                    <Feather name="arrow-right" size={18} color="#111827" style={styles.googleBtnArrow} />
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <Text style={styles.terms}>
+                By continuing you agree to our{' '}
+                <Text style={styles.termsLink}>Terms of Service</Text>
+                {' '}and{' '}
+                <Text style={styles.termsLink}>Privacy Policy</Text>
+              </Text>
+            </GlassCard>
+          </FadeInUp>
         </View>
+      </ScrollView>
+    </AuroraBackground>
+  );
+}
 
-        {/* Sign-in card */}
-        <GlowingCard radius={radius['2xl']} color={colors.white} background={colors.white} spread={70}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Get started</Text>
-            <Text style={styles.cardSubtitle}>
-              Use your Google account to sign in or create your organizer account.
-            </Text>
+// ─── Glass card ─────────────────────────────────────────────────────────────
+// expo-blur on native; subtle backdrop-filter on web via inline style.
 
-            <TouchableOpacity
-              style={[styles.googleBtn, loading && styles.googleBtnDisabled]}
-              onPress={handleGoogleSignIn}
-              disabled={loading}
-              activeOpacity={0.85}
-            >
-              {loading ? (
-                <ActivityIndicator color={colors.textPrimary} />
-              ) : (
-                <>
-                  <GoogleLogo />
-                  <Text style={styles.googleBtnText}>Continue with Google</Text>
-                </>
-              )}
-            </TouchableOpacity>
-
-            <Text style={styles.terms}>
-              By continuing you agree to our{' '}
-              <Text style={styles.termsLink}>Terms of Service</Text>
-              {' '}and{' '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>
-            </Text>
-          </View>
-        </GlowingCard>
+function GlassCard({ children }: { children: React.ReactNode }) {
+  if (Platform.OS === 'web') {
+    const webStyle: any = {
+      borderRadius: radius['2xl'],
+      overflow: 'hidden',
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.18)',
+      backdropFilter: 'blur(24px) saturate(140%)',
+      WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+      boxShadow: '0 20px 60px -20px rgba(15, 23, 42, 0.6), inset 0 1px 0 rgba(255,255,255,0.18)',
+    };
+    return (
+      <View style={webStyle as any}>
+        <View style={styles.card}>{children}</View>
       </View>
+    );
+  }
+  return (
+    <View style={styles.glassWrap}>
+      <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+      <View style={styles.glassTint} pointerEvents="none" />
+      <View style={styles.card}>{children}</View>
     </View>
   );
 }
@@ -149,7 +183,7 @@ export default function SignInScreen() {
 function GoogleLogo() {
   return (
     <View style={styles.googleLogo}>
-      <Text style={styles.googleLogoText}>G</Text>
+      <Text style={styles.googleLogoG}>G</Text>
     </View>
   );
 }
@@ -161,97 +195,146 @@ const FEATURES = [
 ];
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
-  blobTopRight: {
-    position: 'absolute',
-    top: -80,
-    right: -80,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
-  blobBottomLeft: {
-    position: 'absolute',
-    bottom: -60,
-    left: -60,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+  scroll: {
+    flexGrow: 1,
+    minHeight: Platform.OS === 'web' ? ('100vh' as unknown as number) : undefined,
   },
   content: {
     flex: 1,
     paddingHorizontal: spacing[6],
-    paddingTop: Platform.OS === 'ios' ? 72 : 56,
-    paddingBottom: spacing[8],
-    justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 80 : Platform.OS === 'web' ? 64 : 56,
+    paddingBottom: spacing[10],
+    gap: spacing[8],
+    maxWidth: 460,
+    width: '100%',
+    alignSelf: 'center',
   },
+
+  // Brand
   logoContainer: {
     alignItems: 'center',
+    gap: spacing[2],
+  },
+  logoGlow: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(99,102,241,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(165,180,252,0.35)',
+    marginBottom: spacing[2],
+    ...Platform.select({
+      web: {
+        // @ts-ignore web-only
+        boxShadow: '0 0 40px rgba(99,102,241,0.45), inset 0 0 24px rgba(165,180,252,0.18)',
+      },
+      default: {
+        shadowColor: '#6366F1',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.6,
+        shadowRadius: 24,
+        elevation: 12,
+      },
+    }),
   },
   logoIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: spacing[3],
+    width: 72,
+    height: 72,
+    borderRadius: 36,
   },
   logoText: {
     fontFamily: typography.sansBold,
-    fontSize: fontSize['2xl'],
-    color: colors.white,
-    letterSpacing: -0.5,
+    fontSize: fontSize['3xl'],
+    color: '#FFFFFF',
+    letterSpacing: -0.8,
   },
   tagline: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: spacing[1],
+    color: 'rgba(226,232,255,0.7)',
+    letterSpacing: 0.2,
   },
+
+  // Hero
   heroSection: {
     alignItems: 'center',
-    paddingHorizontal: spacing[4],
+    paddingHorizontal: spacing[2],
+    gap: spacing[3],
   },
   heroTitle: {
     fontFamily: typography.sansBold,
     fontSize: fontSize['2xl'],
-    color: colors.white,
+    color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: -0.5,
-    marginBottom: spacing[3],
+  },
+  heroTitleAccent: {
+    color: '#A5B4FC',
   },
   heroSubtitle: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.base,
-    color: 'rgba(255,255,255,0.75)',
+    color: 'rgba(226,232,255,0.78)',
     textAlign: 'center',
-    lineHeight: fontSize.base * 1.5,
+    lineHeight: fontSize.base * 1.55,
+    maxWidth: 360,
   },
+
+  // Features
   features: {
     gap: spacing[3],
-    paddingHorizontal: spacing[2],
+    paddingHorizontal: spacing[1],
   },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[3],
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[3],
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: radius.lg,
   },
   featureDot: {
     width: 32,
     height: 32,
     borderRadius: radius.md,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(99,102,241,0.20)',
+    borderWidth: 1,
+    borderColor: 'rgba(165,180,252,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   featureText: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize.sm,
-    color: 'rgba(255,255,255,0.85)',
+    color: 'rgba(241,245,255,0.92)',
     flex: 1,
+    letterSpacing: 0.1,
+  },
+
+  // Glass card
+  cardWrap: {
+    marginTop: spacing[2],
+  },
+  glassWrap: {
+    borderRadius: radius['2xl'],
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.45,
+    shadowRadius: 30,
+    elevation: 18,
+  },
+  glassTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,23,42,0.30)',
   },
   card: {
     padding: spacing[6],
@@ -259,58 +342,78 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontFamily: typography.sansBold,
-    fontSize: fontSize.md,
-    color: colors.textPrimary,
+    fontSize: fontSize.lg,
+    color: '#FFFFFF',
     letterSpacing: -0.3,
   },
   cardSubtitle: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    lineHeight: fontSize.sm * 1.5,
+    color: 'rgba(226,232,255,0.72)',
+    lineHeight: fontSize.sm * 1.55,
     marginTop: -spacing[2],
   },
+
+  // Google button
   googleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[3],
-    backgroundColor: colors.gray50,
+    backgroundColor: '#FFFFFF',
     borderRadius: radius.lg,
     paddingVertical: spacing[4],
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingHorizontal: spacing[5],
+    marginTop: spacing[2],
+    ...Platform.select({
+      web: {
+        // @ts-ignore web-only
+        boxShadow: '0 10px 30px -8px rgba(99,102,241,0.5)',
+      },
+      default: {
+        shadowColor: '#6366F1',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.35,
+        shadowRadius: 18,
+        elevation: 8,
+      },
+    }),
   },
   googleBtnDisabled: {
-    opacity: 0.6,
+    opacity: 0.65,
   },
   googleBtnText: {
-    fontFamily: typography.sansMedium,
+    fontFamily: typography.sansBold,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
+    color: '#111827',
+    flex: 0,
+  },
+  googleBtnArrow: {
+    marginLeft: spacing[1],
   },
   googleLogo: {
     width: 24,
     height: 24,
-    borderRadius: radius.sm,
-    backgroundColor: colors.primary,
+    borderRadius: 12,
+    backgroundColor: '#4F46E5',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  googleLogoText: {
+  googleLogoG: {
     fontFamily: typography.sansBold,
     fontSize: fontSize.sm,
-    color: colors.white,
+    color: '#FFFFFF',
   },
   terms: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize['2xs'],
-    color: colors.textTertiary,
+    color: 'rgba(226,232,255,0.55)',
     textAlign: 'center',
-    lineHeight: fontSize['2xs'] * 1.6,
+    lineHeight: fontSize['2xs'] * 1.7,
+    marginTop: spacing[2],
   },
   termsLink: {
-    color: colors.primary,
+    color: '#A5B4FC',
     fontFamily: typography.sansMedium,
   },
 });
