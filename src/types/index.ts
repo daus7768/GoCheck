@@ -12,6 +12,16 @@ export type PaymentStatus = 'pending' | 'confirmed' | 'failed';
 
 export type PaymentFlowStatus = 'unpaid' | 'pending' | 'confirmed' | 'rejected';
 
+export interface ProofExtraction {
+  amount: number | null;
+  currency: string | null;
+  reference: string | null;
+  bank: string | null;
+  date: string | null;
+  confidence: number;
+  matchesExpected: boolean;
+}
+
 export interface Participant {
   id: string;
   name: string;
@@ -30,6 +40,8 @@ export interface Participant {
   submittedAt?: string;
   confirmedAt?: string;
   rejectedReason?: string;
+  proofExtracted?: ProofExtraction;
+  proofSummary?: string;
 }
 
 export interface LineItem {
@@ -91,6 +103,8 @@ export interface ParticipantView {
     submittedAt?: string;
     confirmedAt?: string;
     rejectedReason?: string;
+    proofExtracted?: ProofExtraction;
+    proofSummary?: string;
   };
   bill: {
     id: string;
