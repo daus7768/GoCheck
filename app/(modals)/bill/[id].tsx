@@ -45,6 +45,13 @@ export default function BillDetailScreen() {
     if (updated) setBill(updated);
   };
 
+  // Always refetch on mount so we see the latest payment_status
+  useEffect(() => {
+    if (!sessionUserId || !id) return;
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionUserId, id]);
+
   // Realtime: refresh when any participant of this bill changes (e.g., participant swipes)
   useEffect(() => {
     if (!bill?.id) return;
