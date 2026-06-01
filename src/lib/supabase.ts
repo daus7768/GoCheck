@@ -2,7 +2,7 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
-import type { UserProfile, ParticipantView, PaymentFlowStatus } from '../types';
+import type { UserProfile, ParticipantView, PaymentFlowStatus, ProofExtraction } from '../types';
 
 const supabaseUrl = (Constants.expoConfig?.extra?.supabaseUrl as string | undefined) ?? '';
 const supabaseAnonKey = (Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined) ?? '';
@@ -520,8 +520,6 @@ export async function rejectPayment(participantId: string, reason: string): Prom
 }
 
 // ─── Layer A: scan + clear proof ──────────────────────────────────────────────
-
-import type { ProofExtraction } from '../types';
 
 export type ScanProofResult =
   | { success: true; summary: string; extracted: ProofExtraction; proofUrl: string }
