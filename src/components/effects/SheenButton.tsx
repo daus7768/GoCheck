@@ -35,6 +35,12 @@ interface SheenButtonProps {
   accessibilityLabel?: string;
   accessibilityRole?: AccessibilityRole;
   disabled?: boolean;
+  /** Adds an Aceternity-style rotating gradient border ring around the pill. */
+  glowBorder?: boolean;
+  /** Spin duration for the gradient border ring in ms. */
+  glowDuration?: number;
+  /** Thickness of the rotating border ring in px. */
+  glowThickness?: number;
 }
 
 const SIZE_MAP: Record<'sm' | 'md' | 'lg', { padH: number; padV: number }> = {
@@ -58,9 +64,13 @@ export function SheenButton({
   accessibilityLabel,
   accessibilityRole = 'button',
   disabled,
+  glowBorder = false,
+  glowDuration = 3200,
+  glowThickness = 1.5,
 }: SheenButtonProps) {
   const reduceMotion = useReduceMotion();
   const sheen = useSharedValue(-1);
+  const spin = useSharedValue(0);
   const press = useSharedValue(1);
   const { padH, padV } = SIZE_MAP[size];
 
@@ -75,6 +85,21 @@ export function SheenButton({
     return () => cancelAnimation(sheen);
   }, [reduceMotion, disabled, sheenDuration, sheen]);
 
+  useEffect(() => {
+    if (!glowBorder || reduceMotion || disabled) return;
+    spin.value = 0;
+    spin.value = withRepeat(
+      withTiming(1, { duration: glowDuration, easing: Easing.linear }),
+      -1,
+      false
+    );
+    return () => cancelAnimation(spin);
+  }, [glowBorder, reduceMotion, disabled, glowDuration, spin]);
+
+  const spinStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${spin.value * 360}deg` }],
+  }));
+
   const pressStyle = useAnimatedStyle(() => ({
     transform: [{ scale: press.value }],
   }));
@@ -87,6 +112,40 @@ export function SheenButton({
     ],
     opacity: reduceMotion ? 0 : 0.55,
   }));
+
+  const pill = (
+    <LinearGradient
+      colors={gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[
+        styles.pill,
+        {
+          paddingHorizontal: padH,
+          paddingVertical: padV,
+          borderRadius: radius.full,
+        },
+        disabled && { opacity: 0.5 },
+      ]}
+    >
+      <View style={[styles.content]}>{children}</View>
+      {/* Sheen overlay — clipped to pill */}
+      <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { borderRadius: radius.full, overflow: 'hidden' }]}>
+        <Animated.View style={[styles.sheen, sheenStyle]}>
+          <LinearGradient
+            colors={[
+              'rgba(255,255,255,0)',
+              'rgba(255,255,255,0.85)',
+              'rgba(255,255,255,0)',
+            ]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </Animated.View>
+      </View>
+    </LinearGradient>
+  );
 
   return (
     <Animated.View style={[pressStyle, style]}>
@@ -103,37 +162,37 @@ export function SheenButton({
         accessibilityLabel={accessibilityLabel}
         accessibilityState={{ disabled: !!disabled }}
       >
-        <LinearGradient
-          colors={gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[
-            styles.pill,
-            {
-              paddingHorizontal: padH,
-              paddingVertical: padV,
-              borderRadius: radius.full,
-            },
-            disabled && { opacity: 0.5 },
-          ]}
-        >
-          <View style={[styles.content]}>{children}</View>
-          {/* Sheen overlay — clipped to pill */}
-          <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { borderRadius: radius.full, overflow: 'hidden' }]}>
-            <Animated.View style={[styles.sheen, sheenStyle]}>
+        {glowBorder ? (
+          <View
+            style={[
+              styles.borderWrap,
+              {
+                padding: glowThickness,
+                borderRadius: radius.full,
+              },
+            ]}
+          >
+            {/* Rotating gradient ring — sits behind the pill, peeks out at the edge */}
+            <Animated.View pointerEvents="none" style={[styles.spinner, spinStyle]}>
               <LinearGradient
                 colors={[
                   'rgba(255,255,255,0)',
-                  'rgba(255,255,255,0.85)',
+                  'rgba(255,255,255,0.95)',
+                  'rgba(167,139,250,0.85)',
+                  'rgba(255,255,255,0)',
+                  'rgba(99,102,241,0.9)',
                   'rgba(255,255,255,0)',
                 ]}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
                 style={StyleSheet.absoluteFillObject}
               />
             </Animated.View>
+            {pill}
           </View>
-        </LinearGradient>
+        ) : (
+          pill
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -158,5 +217,17 @@ const styles = StyleSheet.create({
     top: -20,
     bottom: -20,
     width: 40,
+  },
+  borderWrap: {
+    overflow: 'hidden',
+    position: 'relative',
+    alignSelf: 'flex-start',
+  },
+  spinner: {
+    position: 'absolute',
+    top: '-150%',
+    left: '-150%',
+    width: '400%',
+    height: '400%',
   },
 });

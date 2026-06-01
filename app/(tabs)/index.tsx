@@ -528,6 +528,7 @@ export default function HomeScreen() {
                 onPress={() => router.push('/(modals)/create')}
                 accessibilityLabel="Create new bill"
                 size="sm"
+                glowBorder
               >
                 <Feather name="plus" size={13} color={colors.white} />
                 <Text style={styles.newBillText}>New bill</Text>
