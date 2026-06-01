@@ -101,15 +101,26 @@ export default function SignInScreen() {
           {/* Features */}
           <FadeInUp index={2} style={styles.features}>
             {FEATURES.map((f, i) => (
-              <FadeInUp key={f.text} index={3 + i} style={styles.featureRow}>
-                <View style={styles.featureDot}>
-                  <Feather
-                    name={f.icon as keyof typeof Feather.glyphMap}
-                    size={14}
-                    color="#A5B4FC"
-                  />
-                </View>
-                <Text style={styles.featureText}>{f.text}</Text>
+              <FadeInUp key={f.text} index={3 + i}>
+                <GlowingCard
+                  radius={radius.lg}
+                  color="#A5B4FC"
+                  background="rgba(255,255,255,0.05)"
+                  spread={50}
+                  borderWidth={1}
+                >
+                  <View style={styles.featureRow}>
+                    <View style={styles.featureDot}>
+                      <Feather
+                        name={f.icon as keyof typeof Feather.glyphMap}
+                        size={14}
+                        color="#A5B4FC"
+                      />
+                    </View>
+                    <Text style={styles.featureText}>{f.text}</Text>
+                    <GlareCard radius={radius.lg} intensity={0.3} />
+                  </View>
+                </GlowingCard>
               </FadeInUp>
             ))}
           </FadeInUp>
@@ -313,12 +324,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[3],
-    paddingVertical: spacing[2],
+    paddingVertical: spacing[3],
     paddingHorizontal: spacing[3],
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: radius.lg,
+    position: 'relative',
   },
   featureDot: {
     width: 32,
