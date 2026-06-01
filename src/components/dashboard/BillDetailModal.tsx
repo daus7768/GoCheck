@@ -35,6 +35,7 @@ import { getBillStats } from '../../lib/billStats';
 import { computeReliability } from '../../lib/queueUtils';
 import { useReminderStore } from '../../store/reminderStore';
 import { haptic } from '../../lib/haptics';
+import { participantUrl } from '../../lib/urls';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { AnimatedBar } from '../effects/AnimatedBar';
 
@@ -149,7 +150,7 @@ export function BillDetailModal({ bill, allBills, visible, onClose }: BillDetail
     if (p.phone) {
       const sym = CURRENCY_SYMBOLS[bill.currency] ?? bill.currency;
       const text = encodeURIComponent(
-        `Hi ${p.name}, just a quick nudge — your share for "${bill.title}" is ${sym}${fmt(p.amount)}. ${bill.shareLink}`
+        `Hi ${p.name}! 👋\n\nYour share for *${bill.title}* is *${sym}${fmt(p.amount)}*.\n\nTap here to confirm your payment:\n${p.accessToken ? participantUrl(p.accessToken) : ''}`
       );
       const phone = p.phone.replace(/[^\d+]/g, '');
       Linking.openURL(`whatsapp://send?phone=${phone}&text=${text}`).catch(() => {});

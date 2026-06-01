@@ -4,6 +4,7 @@ import { haptic } from '../../lib/haptics';
 import { useReminderStore } from '../../store/reminderStore';
 import { useBillStore } from '../../store/billStore';
 import { buildWhen, renderTemplate, formatCurrency } from '../../lib/reminderTemplates';
+import { participantUrl } from '../../lib/urls';
 import { computeReliability } from '../../lib/queueUtils';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
 import { GlowingCard } from '../effects/GlowingCard';
@@ -38,13 +39,16 @@ export function QueueRow({ item, remindersForItem }: Props) {
   const isOverdue = item.daysToDue < 0;
 
   const buildMessage = () => {
+    const link = item.participantAccessToken
+      ? participantUrl(item.participantAccessToken)
+      : participantUrl(item.shareLink);
     return renderTemplate(settings.tone, {
       name: item.participantName,
       bill: item.billTitle,
       amount: formatCurrency(item.amount, item.currency),
       when: buildWhen(item.daysToDue),
       days: isOverdue ? Math.abs(item.daysToDue) : 0,
-      link: `https://gocheck.app/bill/${item.shareLink}`,
+      link,
     });
   };
 

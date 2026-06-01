@@ -110,9 +110,10 @@ export default function InvoiceScreen() {
     if (!bill || !p.accessToken) return;
     const link = participantUrl(p.accessToken);
     const msg =
-      `Hi ${p.name}, your share for "${bill.title}" is ${currencySymbol}${p.amount.toFixed(2)}.\n` +
-      `Confirm here: ${link}`;
-    await Share.share({ message: msg, url: link });
+      `Hi ${p.name}! 👋\n\n` +
+      `Your share for *${bill.title}* is *${currencySymbol}${p.amount.toFixed(2)}*.\n\n` +
+      `Tap here to confirm your payment:\n${link}`;
+    await Share.share({ message: msg });
     haptic.notification(NotificationFeedbackType.Success);
   }, [bill, currencySymbol]);
 

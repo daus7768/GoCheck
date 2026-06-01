@@ -93,10 +93,11 @@ export default function BillDetailScreen() {
     }
     const link = participantUrl(p.accessToken);
     const msg =
-      `Hi ${p.name}, your share for "${bill.title}" is ${sym}${p.amount.toFixed(2)}.\n` +
-      `Confirm here: ${link}`;
+      `Hi ${p.name}! 👋\n\n` +
+      `Your share for *${bill.title}* is *${sym}${p.amount.toFixed(2)}*.\n\n` +
+      `Tap here to confirm your payment:\n${link}`;
     try {
-      await Share.share({ message: msg, url: link });
+      await Share.share({ message: msg });
     } catch {
       // user cancelled
     }

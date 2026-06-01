@@ -89,6 +89,7 @@ export function buildQueueItems(
         currency: bill.currency,
         dueDate: bill.dueDate,
         shareLink: bill.shareLink,
+        participantAccessToken: p.accessToken,
         daysToDue: dtd,
       };
 

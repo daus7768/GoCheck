@@ -232,6 +232,7 @@ export interface QueueItem {
   currency: Currency;
   dueDate: string;
   shareLink: string;
+  participantAccessToken?: string;
   daysToDue: number;
 }
 
