@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Bill, Participant, LineItem, LineItemComputed, Currency, SplitType, BillCategory, BillPaymentMethod } from '../types';
+import type { Bill, Participant, LineItem, LineItemComputed, Currency, SplitType, BillCategory, BillPaymentMethod, ProofExtraction } from '../types';
 import {
   createBillInDB,
   createParticipantsInDB,
@@ -82,6 +82,8 @@ function mapParticipantRow(p: Record<string, unknown>, index: number): Participa
     submittedAt:    (p['submitted_at'] as string | undefined) ?? undefined,
     confirmedAt:    (p['confirmed_at'] as string | undefined) ?? undefined,
     rejectedReason: (p['rejected_reason'] as string | undefined) ?? undefined,
+    proofExtracted: (p['proof_extracted'] as ProofExtraction | undefined) ?? undefined,
+    proofSummary:   (p['proof_summary']   as string         | undefined) ?? undefined,
   };
 }
 
