@@ -2,7 +2,7 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
-import type { UserProfile } from '../types';
+import type { UserProfile, ParticipantView, PaymentFlowStatus, ProofExtraction } from '../types';
 
 const supabaseUrl = (Constants.expoConfig?.extra?.supabaseUrl as string | undefined) ?? '';
 const supabaseAnonKey = (Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined) ?? '';
@@ -146,9 +146,13 @@ export async function getOrganizerBills(organizerId: string) {
     .select(`
       id, title, description, total_amount, currency, due_date, status, share_link,
       category, is_recurring, group_photo_url, split_type, tax_rate,
+      tax_sst, tax_service, tax_service_rate, payment_method, payment_details,
+      receipt_url, invite_token, invoice_number,
       created_at, updated_at,
       participants (
-        id, name, email, phone, amount, is_paid, paid_at, avatar_color, shares, percent
+        id, name, email, phone, amount, is_paid, paid_at, avatar_color, shares, percent,
+        access_token, payment_status, proof_url, submitted_at, confirmed_at, rejected_reason,
+        proof_extracted, proof_summary
       ),
       line_items (
         id, description, quantity, unit_price
@@ -472,4 +476,69 @@ export async function upsertProfile(profile: Partial<UserProfile> & { id: string
     .single();
   if (error) throw error;
   return rowToProfile(data as Record<string, unknown>);
+}
+
+// ─── Participant Payment Flow (migration 008) ─────────────────────────────────
+
+export async function getParticipantView(token: string): Promise<ParticipantView | null> {
+  const { data, error } = await supabase.rpc('get_participant_view', { p_token: token });
+  if (error) throw error;
+  return data as ParticipantView | null;
+}
+
+export type SubmitPaymentResult =
+  | { paymentStatus: PaymentFlowStatus; submittedAt: string; already_confirmed?: never }
+  | { already_confirmed: true; paymentStatus?: never; submittedAt?: never };
+
+export async function submitPayment(
+  token: string,
+  proofUrl?: string,
+  note?: string,
+): Promise<SubmitPaymentResult> {
+  const { data, error } = await supabase.rpc('submit_payment', {
+    p_token: token,
+    p_proof_url: proofUrl ?? null,
+    p_note: note ?? null,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function confirmPayment(participantId: string): Promise<{ paymentStatus: PaymentFlowStatus; confirmedAt: string }> {
+  const { data, error } = await supabase.rpc('confirm_payment', { p_participant_id: participantId });
+  if (error) throw error;
+  return data;
+}
+
+export async function rejectPayment(participantId: string, reason: string): Promise<{ paymentStatus: PaymentFlowStatus; rejectedReason: string }> {
+  const { data, error } = await supabase.rpc('reject_payment', {
+    p_participant_id: participantId,
+    p_reason: reason,
+  });
+  if (error) throw error;
+  return data;
+}
+
+// ─── Layer A: scan + clear proof ──────────────────────────────────────────────
+
+export type ScanProofResult =
+  | { success: true; summary: string; extracted: ProofExtraction; proofUrl: string }
+  | { success: false; error: string };
+
+export async function scanPaymentProof(
+  token: string,
+  imageBase64: string,
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp',
+): Promise<ScanProofResult> {
+  const { data, error } = await supabase.functions.invoke('scan-payment-proof', {
+    body: { token, imageBase64, mimeType },
+  });
+  if (error) return { success: false, error: error.message };
+  return data as ScanProofResult;
+}
+
+export async function clearPaymentProof(token: string): Promise<{ id: string; cleared: boolean }> {
+  const { data, error } = await supabase.rpc('clear_payment_proof', { p_token: token });
+  if (error) throw error;
+  return data as { id: string; cleared: boolean };
 }

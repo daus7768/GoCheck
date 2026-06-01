@@ -101,6 +101,7 @@ export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: 
       amount: 0,
       isPaid: false,
       avatarColor: randomAvatarColor(),
+      paymentStatus: 'unpaid',
     };
 
     onAdd(participant);
