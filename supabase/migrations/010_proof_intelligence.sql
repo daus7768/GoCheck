@@ -44,3 +44,57 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.clear_payment_proof(UUID) TO anon, authenticated;
+
+-- ─── Redefine get_participant_view to include proof_extracted + proof_summary ─
+-- This is additive and idempotent (CREATE OR REPLACE). The previous definition
+-- from migration 008 is dropped via REPLACE.
+CREATE OR REPLACE FUNCTION public.get_participant_view(p_token UUID)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_result json;
+BEGIN
+  SELECT json_build_object(
+    'participant', json_build_object(
+      'id',              p.id,
+      'name',            p.name,
+      'amount',          p.amount,
+      'paymentStatus',   p.payment_status,
+      'proofUrl',        p.proof_url,
+      'proofExtracted',  p.proof_extracted,
+      'proofSummary',    p.proof_summary,
+      'submittedAt',     p.submitted_at,
+      'confirmedAt',     p.confirmed_at,
+      'rejectedReason',  p.rejected_reason
+    ),
+    'bill', json_build_object(
+      'id',              b.id,
+      'title',           b.title,
+      'description',     b.description,
+      'currency',        b.currency,
+      'dueDate',         b.due_date,
+      'status',          b.status,
+      'invoiceNumber',   b.invoice_number,
+      'paymentMethod',   b.payment_method,
+      'paymentDetails',  b.payment_details
+    ),
+    'organizer', json_build_object(
+      'displayName', COALESCE(up.display_name, 'Organizer'),
+      'avatarUrl',   up.avatar_url
+    ),
+    'socialProof', json_build_object(
+      'paidCount',  (SELECT COUNT(*) FROM participants WHERE bill_id = b.id AND payment_status = 'confirmed'),
+      'totalCount', (SELECT COUNT(*) FROM participants WHERE bill_id = b.id)
+    )
+  ) INTO v_result
+  FROM participants p
+  JOIN bills b ON b.id = p.bill_id
+  LEFT JOIN user_profiles up ON up.id = b.organizer_id
+  WHERE p.access_token = p_token;
+
+  RETURN v_result;
+END;
+$$;
