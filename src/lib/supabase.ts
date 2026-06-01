@@ -151,7 +151,8 @@ export async function getOrganizerBills(organizerId: string) {
       created_at, updated_at,
       participants (
         id, name, email, phone, amount, is_paid, paid_at, avatar_color, shares, percent,
-        access_token, payment_status, proof_url, submitted_at, confirmed_at, rejected_reason
+        access_token, payment_status, proof_url, submitted_at, confirmed_at, rejected_reason,
+        proof_extracted, proof_summary
       ),
       line_items (
         id, description, quantity, unit_price
