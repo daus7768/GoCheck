@@ -19,6 +19,9 @@ import { supabase } from '../../src/lib/supabase';
 import { typography, fontSize, radius, spacing } from '../../src/theme/tokens';
 import { AuroraBackground } from '../../src/components/effects/AuroraBackground';
 import { FadeInUp } from '../../src/components/effects/FadeInUp';
+import { GlowingCard } from '../../src/components/effects/GlowingCard';
+import { GlareCard } from '../../src/components/effects/GlareCard';
+import { NoiseBackground } from '../../src/components/effects/NoiseBackground';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -111,38 +114,57 @@ export default function SignInScreen() {
             ))}
           </FadeInUp>
 
-          {/* Sign-in card */}
+          {/* Sign-in card — GlowingCard rim + glass surface + glare overlay */}
           <FadeInUp index={6} style={styles.cardWrap}>
-            <GlassCard>
-              <Text style={styles.cardTitle}>Get started</Text>
-              <Text style={styles.cardSubtitle}>
-                Use your Google account to sign in or create your organizer account.
-              </Text>
+            <GlowingCard
+              radius={radius['2xl']}
+              color="#A5B4FC"
+              background="transparent"
+              spread={70}
+              borderWidth={1.5}
+            >
+              <View style={styles.cardInner}>
+                <GlassCard>
+                  <Text style={styles.cardTitle}>Get started</Text>
+                  <Text style={styles.cardSubtitle}>
+                    Use your Google account to sign in or create your organizer account.
+                  </Text>
 
-              <TouchableOpacity
-                style={[styles.googleBtn, loading && styles.googleBtnDisabled]}
-                onPress={handleGoogleSignIn}
-                disabled={loading}
-                activeOpacity={0.9}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#111827" />
-                ) : (
-                  <>
-                    <GoogleLogo />
-                    <Text style={styles.googleBtnText}>Continue with Google</Text>
-                    <Feather name="arrow-right" size={18} color="#111827" style={styles.googleBtnArrow} />
-                  </>
-                )}
-              </TouchableOpacity>
+                  <NoiseBackground
+                    radius={999}
+                    padding={2}
+                    gradientColors={['#6366F1', '#A5B4FC', '#22D3EE', '#8B5CF6', '#6366F1']}
+                    containerStyle={styles.googleBtnFrame}
+                    disabled={loading}
+                  >
+                    <TouchableOpacity
+                      style={[styles.googleBtn, loading && styles.googleBtnDisabled]}
+                      onPress={handleGoogleSignIn}
+                      disabled={loading}
+                      activeOpacity={0.9}
+                    >
+                      {loading ? (
+                        <ActivityIndicator color="#111827" />
+                      ) : (
+                        <>
+                          <GoogleLogo />
+                          <Text style={styles.googleBtnText}>Continue with Google</Text>
+                          <Feather name="arrow-right" size={18} color="#111827" style={styles.googleBtnArrow} />
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </NoiseBackground>
 
-              <Text style={styles.terms}>
-                By continuing you agree to our{' '}
-                <Text style={styles.termsLink}>Terms of Service</Text>
-                {' '}and{' '}
-                <Text style={styles.termsLink}>Privacy Policy</Text>
-              </Text>
-            </GlassCard>
+                  <Text style={styles.terms}>
+                    By continuing you agree to our{' '}
+                    <Text style={styles.termsLink}>Terms of Service</Text>
+                    {' '}and{' '}
+                    <Text style={styles.termsLink}>Privacy Policy</Text>
+                  </Text>
+                </GlassCard>
+                <GlareCard radius={radius['2xl']} />
+              </View>
+            </GlowingCard>
           </FadeInUp>
         </View>
       </ScrollView>
@@ -320,6 +342,11 @@ const styles = StyleSheet.create({
   cardWrap: {
     marginTop: spacing[2],
   },
+  cardInner: {
+    position: 'relative',
+    borderRadius: radius['2xl'],
+    overflow: 'hidden',
+  },
   glassWrap: {
     borderRadius: radius['2xl'],
     overflow: 'hidden',
@@ -354,30 +381,33 @@ const styles = StyleSheet.create({
     marginTop: -spacing[2],
   },
 
-  // Google button
+  // Google button — sits inside the NoiseBackground gradient ring
+  googleBtnFrame: {
+    marginTop: spacing[2],
+    alignSelf: 'stretch',
+    ...Platform.select({
+      web: {
+        // @ts-ignore web-only
+        boxShadow: '0 10px 30px -8px rgba(99,102,241,0.55)',
+      },
+      default: {
+        shadowColor: '#6366F1',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.4,
+        shadowRadius: 20,
+        elevation: 10,
+      },
+    }),
+  },
   googleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[3],
     backgroundColor: '#FFFFFF',
-    borderRadius: radius.lg,
+    borderRadius: 999,
     paddingVertical: spacing[4],
     paddingHorizontal: spacing[5],
-    marginTop: spacing[2],
-    ...Platform.select({
-      web: {
-        // @ts-ignore web-only
-        boxShadow: '0 10px 30px -8px rgba(99,102,241,0.5)',
-      },
-      default: {
-        shadowColor: '#6366F1',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.35,
-        shadowRadius: 18,
-        elevation: 8,
-      },
-    }),
   },
   googleBtnDisabled: {
     opacity: 0.65,
