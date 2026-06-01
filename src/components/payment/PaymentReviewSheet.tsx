@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Modal, View, Text, StyleSheet, Pressable, ActivityIndicator, TextInput, Alert,
 } from 'react-native';
@@ -18,6 +18,14 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
   const [busy, setBusy] = useState<'approve' | 'reject' | null>(null);
   const [rejectMode, setRejectMode] = useState(false);
   const [reason, setReason] = useState('');
+
+  useEffect(() => {
+    if (!participant) {
+      setRejectMode(false);
+      setReason('');
+      setBusy(null);
+    }
+  }, [participant?.id]);
 
   if (!participant) return null;
 

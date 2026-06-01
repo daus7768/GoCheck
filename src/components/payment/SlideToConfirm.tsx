@@ -35,6 +35,9 @@ export function SlideToConfirm({ label = 'Slide to confirm I paid', onConfirm, d
 
   const gesture = Gesture.Pan()
     .enabled(!disabled)
+    .onStart(() => {
+      offset.value = 0;
+    })
     .onUpdate((e) => {
       offset.value = Math.max(0, Math.min(e.translationX, maxTranslate));
     })
