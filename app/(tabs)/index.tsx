@@ -103,6 +103,7 @@ interface NudgeRow {
   overdue: boolean;
   daysToDue: number;
   urgency: number;
+  pendingReview: boolean;
 }
 
 function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
@@ -234,10 +235,13 @@ export default function HomeScreen() {
     for (const bill of activeBills) {
       const stats = getBillStats(bill);
       for (const p of bill.participants) {
-        if (p.isPaid || p.id === sessionUserId) continue;
+        if (p.paymentStatus === 'confirmed' || p.id === sessionUserId) continue;
         const reliability = computeReliability(p.name, bills);
         const score = reliabilityScore(reliability);
+        const pendingReview = p.paymentStatus === 'pending';
+        // Pending review jumps to the top — organizer should act before reminding
         const urgency =
+          (pendingReview ? 1000 : 0) +
           (stats.overdue ? 100 + Math.abs(stats.daysToDue) : stats.daysToDue <= 3 ? 50 : 10) +
           (100 - score);
         rows.push({
@@ -260,6 +264,7 @@ export default function HomeScreen() {
           overdue: stats.overdue,
           daysToDue: stats.daysToDue,
           urgency,
+          pendingReview,
         });
       }
     }
@@ -415,13 +420,22 @@ export default function HomeScreen() {
                           <Text style={styles.nudgeName} numberOfLines={1}>
                             {row.item.participantName}
                           </Text>
-                          <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
-                            <Text style={[styles.relChipText, { color: chip.text }]}>{chip.label}</Text>
-                          </View>
+                          {row.pendingReview ? (
+                            <View style={styles.reviewChip}>
+                              <Feather name="eye" size={10} color="#B45309" />
+                              <Text style={styles.reviewChipText}>Review</Text>
+                            </View>
+                          ) : (
+                            <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
+                              <Text style={[styles.relChipText, { color: chip.text }]}>{chip.label}</Text>
+                            </View>
+                          )}
                         </View>
                         <Text style={styles.nudgeMeta} numberOfLines={1}>
                           {row.item.billTitle} ·{' '}
-                          {row.overdue ? (
+                          {row.pendingReview ? (
+                            <Text style={styles.nudgeMetaPending}>submitted payment</Text>
+                          ) : row.overdue ? (
                             <Text style={styles.nudgeMetaOverdue}>{Math.abs(row.daysToDue)}d late</Text>
                           ) : row.daysToDue === 0 ? (
                             'due today'
@@ -435,14 +449,25 @@ export default function HomeScreen() {
                           {s}
                           {fmt(row.item.amount)}
                         </Text>
-                        <Pressable
-                          onPress={() => handleNudge(row)}
-                          accessibilityRole="button"
-                          accessibilityLabel={`Send WhatsApp reminder to ${row.item.participantName}`}
-                          style={({ pressed }) => [styles.waBtn, pressed && { opacity: 0.85 }]}
-                        >
-                          <Feather name="message-circle" size={15} color={colors.white} />
-                        </Pressable>
+                        {row.pendingReview ? (
+                          <Pressable
+                            onPress={() => router.push(`/(modals)/bill/${row.item.billId}`)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Review ${row.item.participantName}'s payment`}
+                            style={({ pressed }) => [styles.waBtn, styles.reviewBtn, pressed && { opacity: 0.85 }]}
+                          >
+                            <Feather name="eye" size={15} color={colors.white} />
+                          </Pressable>
+                        ) : (
+                          <Pressable
+                            onPress={() => handleNudge(row)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Send WhatsApp reminder to ${row.item.participantName}`}
+                            style={({ pressed }) => [styles.waBtn, pressed && { opacity: 0.85 }]}
+                          >
+                            <Feather name="message-circle" size={15} color={colors.white} />
+                          </Pressable>
+                        )}
                       </View>
                     </View>
                   </GlowingCard>
@@ -670,6 +695,10 @@ const styles = StyleSheet.create({
   relChipText: { fontFamily: typography.sansBold, fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.3 },
   nudgeMeta: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: colors.textSecondary, marginTop: 1 },
   nudgeMetaOverdue: { fontFamily: typography.sansSemiBold, color: colors.error },
+  nudgeMetaPending: { fontFamily: typography.sansSemiBold, color: '#B45309' },
+  reviewChip: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#FEF3C7', borderRadius: radius.full, paddingHorizontal: 6, paddingVertical: 2 },
+  reviewChipText: { fontFamily: typography.sansBold, fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.3, color: '#B45309' },
+  reviewBtn: { backgroundColor: '#B45309', shadowColor: '#B45309' },
   nudgeRight: { alignItems: 'flex-end', gap: spacing[1.5] },
   nudgeAmount: { fontFamily: typography.monoMedium, fontSize: fontSize.sm, color: colors.textPrimary },
   waBtn: {
