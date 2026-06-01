@@ -12,6 +12,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { SignOutOverlay } from '../../src/components/profile/SignOutOverlay';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -47,6 +48,7 @@ export default function ProfileScreen() {
   const [pickingCurrency, setPickingCurrency] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
   const [avatarBusy, setAvatarBusy] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const displayName = profile?.displayName ?? session?.user?.email?.split('@')[0] ?? 'Organizer';
   const email = session?.user?.email ?? '';
@@ -143,22 +145,11 @@ export default function ProfileScreen() {
     });
   }
 
-  function confirmSignOut() {
-    Alert.alert(
-      'Sign out?',
-      'You will need to sign in again to manage your bills.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: () => {
-            haptic.selection();
-            void signOut();
-          },
-        },
-      ]
-    );
+  async function handleSignOut() {
+    haptic.impact();
+    setSigningOut(true);
+    await new Promise<void>((r) => setTimeout(r, 1500));
+    void signOut();
   }
 
   return (
@@ -344,7 +335,7 @@ export default function ProfileScreen() {
         <SettingRow label="Version" sub={`GoCheck v${APP_VERSION}`} icon="info" />
         <Pressable
           style={({ pressed }) => [styles.signOutRow, pressed && styles.pressed]}
-          onPress={confirmSignOut}
+          onPress={() => void handleSignOut()}
         >
           <View style={styles.signOutIconWrap}>
             <Feather name="log-out" size={18} color={colors.error} />
@@ -352,6 +343,8 @@ export default function ProfileScreen() {
           <Text style={styles.signOutLabel}>Sign Out</Text>
         </Pressable>
       </SettingSection>
+
+      <SignOutOverlay visible={signingOut} />
 
       {/* Display name editor */}
       <Modal

@@ -64,7 +64,11 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   signOut: async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // best-effort — clear local state regardless of network/token errors
+    }
     set({ session: null, profile: null, isLocked: false });
   },
 
