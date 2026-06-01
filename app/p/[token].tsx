@@ -8,6 +8,7 @@ import { colors, typography, fontSize, spacing, radius } from '../../src/theme/t
 import { supabase, getParticipantView, submitPayment } from '../../src/lib/supabase';
 import { StatusCard } from '../../src/components/payment/StatusCard';
 import { SlideToConfirm } from '../../src/components/payment/SlideToConfirm';
+import { ProofUpload } from '../../src/components/payment/ProofUpload';
 import type { ParticipantView } from '../../src/types';
 
 export default function ParticipantPage() {
@@ -135,8 +136,19 @@ export default function ParticipantPage() {
         </Animated.View>
       )}
 
+      <Animated.View entering={FadeInUp.delay(230).duration(350)}>
+        <ProofUpload
+          token={token!}
+          organizerName={organizer.displayName}
+          proofUrl={participant.proofUrl}
+          proofSummary={participant.proofSummary}
+          proofExtracted={participant.proofExtracted}
+          onChanged={load}
+        />
+      </Animated.View>
+
       {canSwipe && (
-        <Animated.View entering={FadeInUp.delay(260).duration(350)} style={styles.swipeBlock}>
+        <Animated.View entering={FadeInUp.delay(280).duration(350)} style={styles.swipeBlock}>
           <SlideToConfirm onConfirm={handleConfirm} disabled={submitting} />
           <Text style={styles.swipeHint}>
             By confirming, you're telling {organizer.displayName} you've paid your share.
