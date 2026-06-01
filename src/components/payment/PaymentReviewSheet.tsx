@@ -3,9 +3,11 @@ import {
   Modal, View, Text, StyleSheet, Pressable, ActivityIndicator, TextInput, Alert, Image,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, cancelAnimation } from 'react-native-reanimated';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../theme/tokens';
 import { confirmPayment, rejectPayment } from '../../lib/supabase';
 import { CURRENCY_SYMBOLS, type Participant, type Currency } from '../../types';
+import { AISummaryBanner, getMatchLevel } from './AISummaryBanner';
 
 interface Props {
   participant: Participant | null;
@@ -19,6 +21,23 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
   const [rejectMode, setRejectMode] = useState(false);
   const [reason, setReason] = useState('');
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+
+  const matchLevel = getMatchLevel(participant?.proofExtracted);
+  const pulse = useSharedValue(1);
+
+  useEffect(() => {
+    if (matchLevel === 'high') {
+      pulse.value = withRepeat(withTiming(1.05, { duration: 700 }), -1, true);
+    } else {
+      cancelAnimation(pulse);
+      pulse.value = withTiming(1);
+    }
+    return () => { cancelAnimation(pulse); };
+  }, [matchLevel, pulse]);
+
+  const approveAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }));
 
   useEffect(() => {
     if (!participant) {
@@ -73,6 +92,13 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
               {participant.name} • {symbol}{participant.amount.toFixed(2)}
             </Text>
 
+            <AISummaryBanner
+              proofUrl={participant.proofUrl}
+              proofSummary={participant.proofSummary}
+              proofExtracted={participant.proofExtracted}
+              onImageTap={setViewerUrl}
+            />
+
             {participant.submittedAt && (
               <Text style={styles.meta}>
                 Submitted {new Date(participant.submittedAt).toLocaleString()}
@@ -89,18 +115,20 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
                   <Feather name="x" size={18} color="#DC2626" />
                   <Text style={[styles.btnText, { color: '#DC2626' }]}>Reject</Text>
                 </Pressable>
-                <Pressable
-                  style={[styles.btn, styles.approveBtn]}
-                  onPress={handleApprove}
-                  disabled={busy !== null}
-                >
-                  {busy === 'approve'
-                    ? <ActivityIndicator color="#FFF" />
-                    : <>
-                        <Feather name="check" size={18} color="#FFF" />
-                        <Text style={[styles.btnText, { color: '#FFF' }]}>Approve</Text>
-                      </>}
-                </Pressable>
+                <Animated.View style={[{ flex: 1 }, approveAnimatedStyle]}>
+                  <Pressable
+                    style={[styles.btn, styles.approveBtn]}
+                    onPress={handleApprove}
+                    disabled={busy !== null}
+                  >
+                    {busy === 'approve'
+                      ? <ActivityIndicator color="#FFF" />
+                      : <>
+                          <Feather name="check" size={18} color="#FFF" />
+                          <Text style={[styles.btnText, { color: '#FFF' }]}>Approve</Text>
+                        </>}
+                  </Pressable>
+                </Animated.View>
               </View>
             ) : (
               <View style={styles.rejectBlock}>
