@@ -149,7 +149,12 @@ export default function ProfileScreen() {
     haptic.impact();
     setSigningOut(true);
     await new Promise<void>((r) => setTimeout(r, 1500));
-    void signOut();
+    await signOut();
+    // Fallback: if window.location.replace in _layout.tsx hasn't fired yet
+    // (e.g. Zustand batching delay on web), navigate directly.
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.location.replace('/auth/sign-in');
+    }
   }
 
   return (

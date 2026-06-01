@@ -56,7 +56,14 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inAuth = (segments as string[])[0] === 'auth';
     const isPublicRoute = pathname.startsWith('/p/') || pathname.startsWith('/share/');
     if (!session && !inAuth && !isPublicRoute) {
-      router.replace('/auth/sign-in' as any);
+      // On web, router.replace dispatches against the tabs navigator and
+      // cannot escape to the auth layout group — use location.replace instead
+      // so the browser fully navigates out of the (tabs) stack.
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.location.replace('/auth/sign-in');
+      } else {
+        router.replace('/auth/sign-in' as any);
+      }
     } else if (session && inAuth) {
       router.replace('/(tabs)' as any);
     }
