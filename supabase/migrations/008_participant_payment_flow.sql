@@ -29,7 +29,10 @@ WHERE is_paid = TRUE AND payment_status = 'unpaid';
 -- NOTE: trigger creation MUST be after the backfill UPDATEs above. Otherwise the
 -- trigger would null out paid_at while we're trying to set confirmed_at from it.
 CREATE OR REPLACE FUNCTION public.sync_legacy_paid_fields()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   IF NEW.payment_status = 'confirmed' THEN
     NEW.is_paid := TRUE;
