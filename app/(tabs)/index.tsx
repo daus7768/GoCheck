@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -11,7 +12,6 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Circle } from 'react-native-svg';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
 import { useBillStore } from '../../src/store/billStore';
 import { useReminderStore } from '../../src/store/reminderStore';
@@ -19,9 +19,17 @@ import { useProfileStore } from '../../src/store/profileStore';
 import { getBillStats } from '../../src/lib/billStats';
 import { computeReliability } from '../../src/lib/queueUtils';
 import { haptic } from '../../src/lib/haptics';
-import { AvatarStack } from '../../src/components/dashboard/AvatarStack';
 import { StatusPill } from '../../src/components/dashboard/StatusPill';
+import { AnimatedTooltipStack } from '../../src/components/dashboard/AnimatedTooltipStack';
+import { BillDetailModal } from '../../src/components/dashboard/BillDetailModal';
 import { GlowingCard } from '../../src/components/effects/GlowingCard';
+import { FadeInUp } from '../../src/components/effects/FadeInUp';
+import { CountUp } from '../../src/components/effects/CountUp';
+import { AnimatedBar } from '../../src/components/effects/AnimatedBar';
+import { AnimatedDonut } from '../../src/components/effects/AnimatedDonut';
+import { ColourfulText } from '../../src/components/effects/ColourfulText';
+import { DottedGlowBackground } from '../../src/components/effects/DottedGlowBackground';
+import { SheenButton } from '../../src/components/effects/SheenButton';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill, QueueItem, ReliabilityLabel } from '../../src/types';
 
@@ -58,42 +66,6 @@ const RELIABILITY_CHIP: Record<
   new: { label: 'New', bg: colors.gray100, text: colors.textSecondary },
 };
 
-function Donut({ pct }: { pct: number }) {
-  const size = 78;
-  const stroke = 6;
-  const r = (size - stroke) / 2;
-  const circ = 2 * Math.PI * r;
-  const filled = (Math.min(Math.max(pct, 0), 100) / 100) * circ;
-
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="rgba(255,255,255,0.22)"
-          strokeWidth={stroke}
-          fill="none"
-        />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="#fff"
-          strokeWidth={stroke}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={`${filled} ${circ}`}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </Svg>
-      <Text style={styles.donutPct}>{pct}%</Text>
-      <Text style={styles.donutSub}>COLLECTED</Text>
-    </View>
-  );
-}
-
 type FilterId = 'active' | 'overdue' | 'recurring' | 'all';
 
 interface NudgeRow {
@@ -122,67 +94,86 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
       ? colors.error
       : colors.primary;
 
+  const openLabel = `Open ${bill.title}`;
+
   return (
     <GlowingCard radius={radius.lg} color={glowColor} background={colors.surface}>
-    <Pressable
-      style={({ pressed }) => [styles.billRow, pressed && { opacity: 0.9 }]}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`Open ${bill.title}`}
-    >
-      <View style={styles.billRowTop}>
-        <View style={styles.billRowTitleWrap}>
-          <View style={styles.billRowTitleLine}>
-            <Text style={styles.billRowTitle} numberOfLines={1}>
-              {bill.title}
-            </Text>
-            {bill.isRecurring ? (
-              <View style={styles.recurringChip}>
-                <Feather name="repeat" size={9} color={colors.primary} />
-                <Text style={styles.recurringChipText}>
-                  {bill.isRecurring === 'yearly' ? 'YEARLY' : 'MONTHLY'}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-          <View style={styles.billRowMeta}>
-            {stats.overdue ? (
-              <>
-                <Feather name="alert-circle" size={11} color={colors.error} />
-                <Text style={styles.billRowMetaOverdue}>
-                  {Math.abs(stats.daysToDue)}d overdue · {stats.paidCount}/{stats.totalCount} paid
-                </Text>
-              </>
-            ) : (
-              <Text style={styles.billRowMetaText}>
-                Due {new Date(bill.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })} ·{' '}
-                {stats.paidCount}/{stats.totalCount} paid
+      <View style={styles.billRow}>
+        <Pressable
+          style={({ pressed }) => [styles.billRowTop, pressed && { opacity: 0.92 }]}
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={openLabel}
+        >
+          <View style={styles.billRowTitleWrap}>
+            <View style={styles.billRowTitleLine}>
+              <Text style={styles.billRowTitle} numberOfLines={1}>
+                {bill.title}
               </Text>
-            )}
+              {bill.isRecurring ? (
+                <View style={styles.recurringChip}>
+                  <Feather name="repeat" size={9} color={colors.primary} />
+                  <Text style={styles.recurringChipText}>
+                    {bill.isRecurring === 'yearly' ? 'YEARLY' : 'MONTHLY'}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            <View style={styles.billRowMeta}>
+              {stats.overdue ? (
+                <>
+                  <Feather name="alert-circle" size={11} color={colors.error} />
+                  <Text style={styles.billRowMetaOverdue}>
+                    {Math.abs(stats.daysToDue)}d overdue · {stats.paidCount}/{stats.totalCount} paid
+                  </Text>
+                </>
+              ) : (
+                <Text style={styles.billRowMetaText}>
+                  Due {new Date(bill.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })} ·{' '}
+                  {stats.paidCount}/{stats.totalCount} paid
+                </Text>
+              )}
+            </View>
           </View>
-        </View>
-        <View style={styles.billRowAmountWrap}>
-          <Text style={styles.billRowAmount}>
-            {sym}
-            {fmt(bill.totalAmount)}
-          </Text>
-          <Text style={styles.billRowCollected}>
-            {sym}
-            {fmt(stats.collected)} in
-          </Text>
-        </View>
-      </View>
+          <View style={styles.billRowAmountWrap}>
+            <Text style={styles.billRowAmount}>
+              {sym}
+              {fmt(bill.totalAmount)}
+            </Text>
+            <Text style={styles.billRowCollected}>
+              {sym}
+              {fmt(stats.collected)} in
+            </Text>
+          </View>
+        </Pressable>
 
-      <View style={styles.billRowBottom}>
-        <AvatarStack people={bill.participants} size={22} max={5} />
-        <View style={styles.billRowBar}>
-          <View style={styles.billRowBarTrack}>
-            <View style={[styles.billRowBarFill, { width: `${stats.pct}%`, backgroundColor: barColor }]} />
-          </View>
+        <View style={styles.billRowBottom}>
+          <AnimatedTooltipStack people={bill.participants} currency={bill.currency} size={22} max={5} />
+          <Pressable
+            style={({ pressed }) => [styles.billRowBar, pressed && { opacity: 0.92 }]}
+            onPress={onPress}
+            accessibilityRole="button"
+            accessibilityLabel={openLabel}
+          >
+            <AnimatedBar
+              pct={stats.pct}
+              height={5}
+              trackColor={colors.gray100}
+              fillColor={barColor}
+              duration={780}
+              delay={120}
+            />
+          </Pressable>
+          <Pressable
+            onPress={onPress}
+            accessibilityRole="button"
+            accessibilityLabel={openLabel}
+            style={({ pressed }) => [pressed && { opacity: 0.92 }]}
+          >
+            <StatusPill status={status} />
+          </Pressable>
         </View>
-        <StatusPill status={status} />
       </View>
-    </Pressable>
     </GlowingCard>
   );
 }
@@ -193,6 +184,8 @@ export default function HomeScreen() {
   const { sendReminder } = useReminderStore();
   const sessionUserId = useProfileStore(s => s.session?.user.id) ?? '';
   const [filter, setFilter] = useState<FilterId>('active');
+  const [activeBill, setActiveBill] = useState<Bill | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     if (!sessionUserId) return;
@@ -289,6 +282,18 @@ export default function HomeScreen() {
     sendReminder(row.item, 'whatsapp');
   }
 
+  function openBill(bill: Bill) {
+    haptic.impact();
+    setActiveBill(bill);
+    setModalVisible(true);
+  }
+
+  function closeBill() {
+    setModalVisible(false);
+    // Keep the bill in state briefly so the close animation can still render content.
+    setTimeout(() => setActiveBill(null), 220);
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -296,156 +301,193 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Top bar */}
-        <View style={styles.topBar}>
-          <Pressable
-            onPress={() => router.push('/(tabs)/profile')}
-            accessibilityRole="button"
-            accessibilityLabel="Open profile"
-          >
-            <LinearGradient
-              colors={[colors.primaryLight, colors.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.topAvatar}
+        <FadeInUp index={0}>
+          <View style={styles.topBar}>
+            <Pressable
+              onPress={() => router.push('/(tabs)/profile')}
+              accessibilityRole="button"
+              accessibilityLabel="Open profile"
             >
-              <Text style={styles.topAvatarText}>G</Text>
-            </LinearGradient>
-          </Pressable>
-          <Text style={styles.topTitle}>GoCheck</Text>
-          <Pressable
-            onPress={() => router.push('/(modals)/reminders')}
-            accessibilityRole="button"
-            accessibilityLabel="Open reminders"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={styles.bellBtn}
-          >
-            <Feather name="bell" size={22} color={colors.textPrimary} />
-            {needsNudge.length > 0 && (
-              <View style={styles.bellBadge}>
-                <Text style={styles.bellBadgeText}>{needsNudge.length}</Text>
-              </View>
-            )}
-          </Pressable>
-        </View>
+              <LinearGradient
+                colors={[colors.primaryLight, colors.primaryDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.topAvatarRing}
+              >
+                <View style={styles.topAvatarDisc}>
+                  <Image
+                    source={require('../../assets/logo.png')}
+                    style={styles.topAvatarLogo}
+                    resizeMode="contain"
+                  />
+                </View>
+              </LinearGradient>
+            </Pressable>
+            <Text style={styles.topTitle}>GoCheck</Text>
+            <Pressable
+              onPress={() => router.push('/(modals)/reminders')}
+              accessibilityRole="button"
+              accessibilityLabel="Open reminders"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={styles.bellBtn}
+            >
+              <Feather name="bell" size={22} color={colors.textPrimary} />
+              {needsNudge.length > 0 && (
+                <View style={styles.bellBadge}>
+                  <Text style={styles.bellBadgeText}>{needsNudge.length}</Text>
+                </View>
+              )}
+            </Pressable>
+          </View>
+        </FadeInUp>
 
         {/* Hero */}
-        <View style={styles.heroWrap}>
-          <GlowingCard radius={radius.xl} color={colors.primaryLight} background="transparent" borderWidth={1.5}>
-            <LinearGradient
-              colors={[colors.primaryLight, colors.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.hero}
-            >
-          <View style={styles.heroBlobTop} />
-          <View style={styles.heroBlobBottom} />
-          <View style={styles.heroContent}>
-            <Text style={styles.heroEyebrow}>Still to collect</Text>
-            <View style={styles.heroMainRow}>
-              <View style={styles.heroAmountWrap}>
-                {isLoading && bills.length === 0 ? (
-                  <ActivityIndicator color={colors.white} style={{ alignSelf: 'flex-start', marginVertical: spacing[2] }} />
-                ) : (
-                  <Text style={styles.heroAmount}>
-                    {sym} {fmt(totals.remaining)}
-                  </Text>
-                )}
-                <Text style={styles.heroSub}>
-                  from{' '}
-                  <Text style={styles.heroSubBold}>
-                    {needsNudge.length} {needsNudge.length === 1 ? 'person' : 'people'}
-                  </Text>{' '}
-                  across {activeBills.length} active {activeBills.length === 1 ? 'bill' : 'bills'}
-                </Text>
-              </View>
-              <Donut pct={overallPct} />
-            </View>
-            <View style={styles.splitTrack}>
-              <View style={[styles.splitFill, { width: `${overallPct}%` }]} />
-            </View>
-            <View style={styles.splitLabels}>
-              <Text style={styles.splitLabel}>
-                Collected {sym} {fmt(totals.collected)}
-              </Text>
-              <Text style={styles.splitLabel}>
-                Total {sym} {fmt(totals.amount)}
-              </Text>
-            </View>
+        <FadeInUp index={1}>
+          <View style={styles.heroWrap}>
+            <GlowingCard radius={radius.xl} color={colors.primaryLight} background="transparent" borderWidth={1.5}>
+              <LinearGradient
+                colors={[colors.primaryLight, colors.primaryDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.hero}
+              >
+                {/* Ambient dotted glow behind hero content */}
+                <DottedGlowBackground
+                  gap={18}
+                  radius={1.4}
+                  opacity={0.45}
+                  color="#FFFFFF"
+                  glowColor="#FFFFFF"
+                  focusX={0.85}
+                  focusY={0.2}
+                  speedMin={2.6}
+                  speedMax={5.4}
+                  maxDots={220}
+                />
+                <View style={styles.heroBlobTop} />
+                <View style={styles.heroBlobBottom} />
+                <View style={styles.heroContent}>
+                  <Text style={styles.heroEyebrow}>Still to collect</Text>
+                  <View style={styles.heroMainRow}>
+                    <View style={styles.heroAmountWrap}>
+                      {isLoading && bills.length === 0 ? (
+                        <ActivityIndicator color={colors.white} style={{ alignSelf: 'flex-start', marginVertical: spacing[2] }} />
+                      ) : (
+                        <CountUp
+                          value={totals.remaining}
+                          decimals={2}
+                          prefix={`${sym} `}
+                          duration={900}
+                          delay={150}
+                          style={styles.heroAmount}
+                        />
+                      )}
+                      <Text style={styles.heroSub}>
+                        from{' '}
+                        <Text style={styles.heroSubBold}>
+                          {needsNudge.length} {needsNudge.length === 1 ? 'person' : 'people'}
+                        </Text>{' '}
+                        across {activeBills.length} active {activeBills.length === 1 ? 'bill' : 'bills'}
+                      </Text>
+                    </View>
+                    <AnimatedDonut pct={overallPct} size={78} stroke={6} />
+                  </View>
+                  <AnimatedBar
+                    pct={overallPct}
+                    height={6}
+                    trackColor="rgba(255,255,255,0.22)"
+                    fillColor={colors.white}
+                    delay={220}
+                    duration={950}
+                    style={{ marginTop: spacing[3.5] }}
+                  />
+                  <View style={styles.splitLabels}>
+                    <Text style={styles.splitLabel}>
+                      Collected {sym} {fmt(totals.collected)}
+                    </Text>
+                    <Text style={styles.splitLabel}>
+                      Total {sym} {fmt(totals.amount)}
+                    </Text>
+                  </View>
+                </View>
+              </LinearGradient>
+            </GlowingCard>
           </View>
-            </LinearGradient>
-          </GlowingCard>
-        </View>
+        </FadeInUp>
 
         {/* Needs a nudge */}
         {needsNudge.length > 0 && (
           <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <View style={styles.sectionHeadLeft}>
-                <Text style={styles.sectionTitle}>Needs a nudge</Text>
-                <View style={styles.nudgeCount}>
-                  <Text style={styles.nudgeCountText}>{needsNudge.length}</Text>
+            <FadeInUp index={2}>
+              <View style={styles.sectionHead}>
+                <View style={styles.sectionHeadLeft}>
+                  <Text style={styles.sectionTitle}>Needs a nudge</Text>
+                  <View style={styles.nudgeCount}>
+                    <Text style={styles.nudgeCountText}>{needsNudge.length}</Text>
+                  </View>
                 </View>
+                <Pressable
+                  onPress={() => router.push('/(modals)/reminders')}
+                  accessibilityRole="button"
+                  accessibilityLabel="See all reminders"
+                >
+                  <Text style={styles.seeAll}>See all →</Text>
+                </Pressable>
               </View>
-              <Pressable
-                onPress={() => router.push('/(modals)/reminders')}
-                accessibilityRole="button"
-                accessibilityLabel="See all reminders"
-              >
-                <Text style={styles.seeAll}>See all →</Text>
-              </Pressable>
-            </View>
+            </FadeInUp>
             <View style={{ gap: spacing[2] }}>
-              {needsNudge.map((row) => {
+              {needsNudge.map((row, i) => {
                 const chip = RELIABILITY_CHIP[row.reliability ?? 'new'];
                 const initial = row.item.participantName.charAt(0).toUpperCase();
                 const s = CURRENCY_SYMBOLS[row.item.currency] ?? row.item.currency;
                 return (
-                  <GlowingCard
-                    key={`${row.item.billId}:${row.item.participantId}`}
-                    radius={radius.lg}
-                    background={colors.surface}
-                    color={row.overdue ? colors.error : colors.primary}
-                  >
-                    <View style={styles.nudgeRow}>
-                      <View style={[styles.nudgeAvatar, { backgroundColor: row.item.participantAvatarColor }]}>
-                        <Text style={styles.nudgeAvatarText}>{initial}</Text>
-                      </View>
-                      <View style={styles.nudgeInfo}>
-                        <View style={styles.nudgeNameLine}>
-                          <Text style={styles.nudgeName} numberOfLines={1}>
-                            {row.item.participantName}
-                          </Text>
-                          <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
-                            <Text style={[styles.relChipText, { color: chip.text }]}>{chip.label}</Text>
-                          </View>
+                  <FadeInUp index={3 + i} key={`${row.item.billId}:${row.item.participantId}`}>
+                    <GlowingCard
+                      radius={radius.lg}
+                      background={colors.surface}
+                      color={row.overdue ? colors.error : colors.primary}
+                    >
+                      <View style={styles.nudgeRow}>
+                        <View style={[styles.nudgeAvatar, { backgroundColor: row.item.participantAvatarColor }]}>
+                          <Text style={styles.nudgeAvatarText}>{initial}</Text>
                         </View>
-                        <Text style={styles.nudgeMeta} numberOfLines={1}>
-                          {row.item.billTitle} ·{' '}
-                          {row.overdue ? (
-                            <Text style={styles.nudgeMetaOverdue}>{Math.abs(row.daysToDue)}d late</Text>
-                          ) : row.daysToDue === 0 ? (
-                            'due today'
-                          ) : (
-                            `in ${row.daysToDue}d`
-                          )}
-                        </Text>
+                        <View style={styles.nudgeInfo}>
+                          <View style={styles.nudgeNameLine}>
+                            <Text style={styles.nudgeName} numberOfLines={1}>
+                              {row.item.participantName}
+                            </Text>
+                            <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
+                              <Text style={[styles.relChipText, { color: chip.text }]}>{chip.label}</Text>
+                            </View>
+                          </View>
+                          <Text style={styles.nudgeMeta} numberOfLines={1}>
+                            {row.item.billTitle} ·{' '}
+                            {row.overdue ? (
+                              <Text style={styles.nudgeMetaOverdue}>{Math.abs(row.daysToDue)}d late</Text>
+                            ) : row.daysToDue === 0 ? (
+                              'due today'
+                            ) : (
+                              `in ${row.daysToDue}d`
+                            )}
+                          </Text>
+                        </View>
+                        <View style={styles.nudgeRight}>
+                          <Text style={styles.nudgeAmount}>
+                            {s}
+                            {fmt(row.item.amount)}
+                          </Text>
+                          <Pressable
+                            onPress={() => handleNudge(row)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Send WhatsApp reminder to ${row.item.participantName}`}
+                            style={({ pressed }) => [styles.waBtn, pressed && { opacity: 0.85 }]}
+                          >
+                            <Feather name="message-circle" size={15} color={colors.white} />
+                          </Pressable>
+                        </View>
                       </View>
-                      <View style={styles.nudgeRight}>
-                        <Text style={styles.nudgeAmount}>
-                          {s}
-                          {fmt(row.item.amount)}
-                        </Text>
-                        <Pressable
-                          onPress={() => handleNudge(row)}
-                          accessibilityRole="button"
-                          accessibilityLabel={`Send WhatsApp reminder to ${row.item.participantName}`}
-                          style={({ pressed }) => [styles.waBtn, pressed && { opacity: 0.85 }]}
-                        >
-                          <Feather name="message-circle" size={15} color={colors.white} />
-                        </Pressable>
-                      </View>
-                    </View>
-                  </GlowingCard>
+                    </GlowingCard>
+                  </FadeInUp>
                 );
               })}
             </View>
@@ -454,18 +496,19 @@ export default function HomeScreen() {
 
         {/* Bills */}
         <View style={styles.section}>
-          <View style={styles.billsHead}>
-            <Text style={styles.sectionTitle}>Your bills</Text>
-            <Pressable
-              onPress={() => router.push('/(modals)/create')}
-              accessibilityRole="button"
-              accessibilityLabel="Create new bill"
-              style={({ pressed }) => [styles.newBillBtn, pressed && { opacity: 0.9 }]}
-            >
-              <Feather name="plus" size={13} color={colors.white} />
-              <Text style={styles.newBillText}>New bill</Text>
-            </Pressable>
-          </View>
+          <FadeInUp index={needsNudge.length > 0 ? 4 : 2}>
+            <View style={styles.billsHead}>
+              <Text style={styles.sectionTitle}>Your bills</Text>
+              <SheenButton
+                onPress={() => router.push('/(modals)/create')}
+                accessibilityLabel="Create new bill"
+                size="sm"
+              >
+                <Feather name="plus" size={13} color={colors.white} />
+                <Text style={styles.newBillText}>New bill</Text>
+              </SheenButton>
+            </View>
+          </FadeInUp>
 
           <ScrollView
             horizontal
@@ -504,24 +547,53 @@ export default function HomeScreen() {
               <ActivityIndicator size="large" color={colors.primary} />
             </View>
           ) : displayBills.length === 0 ? (
-            <View style={styles.empty}>
-              <Feather name="check-circle" size={44} color={colors.gray300} />
-              <Text style={styles.emptyTitle}>All settled</Text>
-              <Text style={styles.emptySub}>You're all caught up. Time to relax.</Text>
-            </View>
+            <FadeInUp index={0}>
+              <View style={styles.empty}>
+                <View style={styles.emptyHaloWrap}>
+                  <DottedGlowBackground
+                    gap={14}
+                    radius={1.4}
+                    opacity={0.55}
+                    color={colors.primary}
+                    glowColor={colors.primaryLight}
+                    focusX={0.5}
+                    focusY={0.5}
+                    speedMin={2.4}
+                    speedMax={5}
+                    maxDots={260}
+                  />
+                  <View style={styles.emptyIconCircle}>
+                    <Feather name="check-circle" size={36} color={colors.secondary} />
+                  </View>
+                </View>
+                <View style={styles.emptyTitleRow}>
+                  <Text style={styles.emptyTitle}>All </Text>
+                  <ColourfulText text="settled" style={styles.emptyTitle} />
+                </View>
+                <Text style={styles.emptySub}>You're all caught up. Time to relax.</Text>
+              </View>
+            </FadeInUp>
           ) : (
             <View style={{ gap: spacing[2.5] }}>
-              {displayBills.map((bill) => (
-                <BillRowV2
-                  key={bill.id}
-                  bill={bill}
-                  onPress={() => router.push(`/(modals)/bill/${bill.id}`)}
-                />
+              {displayBills.map((bill, i) => (
+                <FadeInUp key={bill.id} index={i + (needsNudge.length > 0 ? 5 : 3)}>
+                  <BillRowV2
+                    bill={bill}
+                    onPress={() => openBill(bill)}
+                  />
+                </FadeInUp>
               ))}
             </View>
           )}
         </View>
       </ScrollView>
+
+      <BillDetailModal
+        bill={activeBill}
+        allBills={bills}
+        visible={modalVisible}
+        onClose={closeBill}
+      />
     </View>
   );
 }
@@ -537,17 +609,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[5],
     paddingBottom: spacing[3],
   },
-  topAvatar: {
+  topAvatarRing: {
     width: 36,
     height: 36,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.white,
     ...shadow.sm,
   },
-  topAvatarText: { fontFamily: typography.sansBold, fontSize: fontSize.sm, color: colors.white },
+  topAvatarDisc: {
+    width: 30,
+    height: 30,
+    borderRadius: radius.full,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  topAvatarLogo: {
+    width: 22,
+    height: 22,
+  },
   topTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base, color: colors.textPrimary },
   bellBtn: { padding: spacing[1.5] },
   bellBadge: {
@@ -618,16 +700,6 @@ const styles = StyleSheet.create({
     marginTop: spacing[2],
   },
   heroSubBold: { fontFamily: typography.sansBold, color: colors.white },
-  donutPct: { fontFamily: typography.sansBold, fontSize: fontSize.lg, color: colors.white },
-  donutSub: { fontFamily: typography.sansRegular, fontSize: 9, color: 'rgba(255,255,255,0.85)' },
-  splitTrack: {
-    marginTop: spacing[3.5],
-    height: 6,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    overflow: 'hidden',
-  },
-  splitFill: { height: '100%', backgroundColor: colors.white, borderRadius: radius.full },
   splitLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing[1.5] },
   splitLabel: { fontFamily: typography.sansRegular, fontSize: fontSize['2xs'], color: 'rgba(255,255,255,0.85)' },
 
@@ -692,16 +764,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom: spacing[2],
   },
-  newBillBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1.5],
-    ...shadow.sm,
-  },
   newBillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs, color: colors.white },
 
   filterRow: { gap: spacing[1.5], paddingVertical: spacing[1], paddingBottom: spacing[3] },
@@ -755,11 +817,25 @@ const styles = StyleSheet.create({
   billRowCollected: { fontFamily: typography.monoRegular, fontSize: fontSize['2xs'], color: colors.textSecondary, marginTop: 2 },
   billRowBottom: { flexDirection: 'row', alignItems: 'center', gap: spacing[2.5] },
   billRowBar: { flex: 1 },
-  billRowBarTrack: { height: 5, borderRadius: radius.full, backgroundColor: colors.gray100, overflow: 'hidden' },
-  billRowBarFill: { height: '100%', borderRadius: radius.full },
 
   loadingWrap: { paddingVertical: spacing[12], alignItems: 'center' },
-  empty: { alignItems: 'center', paddingVertical: spacing[10], gap: spacing[2] },
+  empty: { alignItems: 'center', paddingVertical: spacing[8], gap: spacing[2] },
+  emptyHaloWrap: {
+    width: 140,
+    height: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing[1],
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.full,
+    backgroundColor: colors.secondarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitleRow: { flexDirection: 'row', alignItems: 'baseline' },
   emptyTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.md, color: colors.textPrimary },
   emptySub: { fontFamily: typography.sansRegular, fontSize: fontSize.sm, color: colors.textSecondary },
 });

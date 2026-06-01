@@ -7,6 +7,7 @@ import {
   Pressable,
   ActivityIndicator,
   Share,
+  Image,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -169,9 +170,7 @@ export default function InvoiceScreen() {
           {/* Brand row */}
           <View style={styles.brandRow}>
             <View style={styles.brandLeft}>
-              <View style={styles.logo}>
-                <Text style={styles.logoText}>GC</Text>
-              </View>
+              <Image source={require('../../../../assets/logo.png')} style={styles.logo} />
               <View>
                 <Text style={styles.brandName}>GoCheck</Text>
                 <Text style={styles.brandUrl}>gocheck.app</Text>
@@ -378,8 +377,7 @@ const styles = StyleSheet.create({
   // Brand
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4] },
   brandLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
-  logo: { width: 36, height: 36, borderRadius: radius.lg, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  logoText: { fontFamily: typography.sansBold, fontSize: 14, color: '#fff' },
+  logo: { width: 36, height: 36, borderRadius: 18 },
   brandName: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: colors.textPrimary },
   brandUrl: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: colors.textSecondary },
   invoiceNumBlock: { alignItems: 'flex-end' },

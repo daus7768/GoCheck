@@ -458,6 +458,7 @@ No changes needed. The Realtime subscription on `participants` (enabled in migra
 
 (Full table in Section 5.4; this is the user-facing summary.)
 
+
 | Scenario | User sees |
 |----------|-----------|
 | Image too large | Inline "Image too large, max 4 MB" before upload |

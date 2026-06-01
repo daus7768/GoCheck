@@ -43,6 +43,7 @@
     "expo-splash-screen": "~0.27.6",
     "expo-status-bar": "~1.12.1",
     "expo-web-browser": "~13.0.3",
+    "jimp": "^0.22.12",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.52.1",
@@ -64,6 +65,7 @@
     "eslint": "^8.57.0",
     "jest-expo": "~51.0.4",
     "react-test-renderer": "18.2.0",
+    "sharp": "^0.34.5",
     "typescript": "~5.3.3"
   },
   "private": true,

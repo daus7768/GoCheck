@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -88,9 +89,7 @@ export default function SignInScreen() {
       <View style={styles.content}>
         {/* Logo / Brand */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoIcon}>
-            <Feather name="check-square" size={32} color={colors.primary} />
-          </View>
+          <Image source={require('../../assets/logo.png')} style={styles.logoIcon} />
           <Text style={styles.logoText}>GoCheck</Text>
           <Text style={styles.tagline}>Bill splitting made simple</Text>
         </View>
@@ -200,12 +199,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: radius.xl,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     marginBottom: spacing[3],
   },
   logoText: {
