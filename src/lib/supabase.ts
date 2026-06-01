@@ -518,3 +518,29 @@ export async function rejectPayment(participantId: string, reason: string): Prom
   if (error) throw error;
   return data;
 }
+
+// ─── Layer A: scan + clear proof ──────────────────────────────────────────────
+
+import type { ProofExtraction } from '../types';
+
+export type ScanProofResult =
+  | { success: true; summary: string; extracted: ProofExtraction; proofUrl: string }
+  | { success: false; error: string };
+
+export async function scanPaymentProof(
+  token: string,
+  imageBase64: string,
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp',
+): Promise<ScanProofResult> {
+  const { data, error } = await supabase.functions.invoke('scan-payment-proof', {
+    body: { token, imageBase64, mimeType },
+  });
+  if (error) return { success: false, error: error.message };
+  return data as ScanProofResult;
+}
+
+export async function clearPaymentProof(token: string): Promise<{ id: string; cleared: boolean }> {
+  const { data, error } = await supabase.rpc('clear_payment_proof', { p_token: token });
+  if (error) throw error;
+  return data as { id: string; cleared: boolean };
+}
