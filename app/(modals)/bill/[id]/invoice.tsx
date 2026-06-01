@@ -13,35 +13,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from '../../../../src/lib/haptics';
+import { haptic, NotificationFeedbackType } from '../../../../src/lib/haptics';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../../../src/theme/tokens';
 import { useBillStore } from '../../../../src/store/billStore';
 import { useProfileStore } from '../../../../src/store/profileStore';
 import { CURRENCY_SYMBOLS } from '../../../../src/types';
 import { supabase } from '../../../../src/lib/supabase';
 import type { Bill } from '../../../../src/types';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function PaymentStatusPill({ isPaid }: { isPaid: boolean }) {
-  return (
-    <View style={[pillStyles.root, isPaid ? pillStyles.paid : pillStyles.unpaid]}>
-      <Feather name={isPaid ? 'check-circle' : 'clock'} size={11} color={isPaid ? '#059669' : '#B45309'} />
-      <Text style={[pillStyles.label, isPaid ? pillStyles.paidLabel : pillStyles.unpaidLabel]}>
-        {isPaid ? 'Paid' : 'Unpaid'}
-      </Text>
-    </View>
-  );
-}
-
-const pillStyles = StyleSheet.create({
-  root: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
-  paid: { backgroundColor: '#D1FAE5' },
-  unpaid: { backgroundColor: '#FEF3C7' },
-  label: { fontFamily: 'DMSans-Medium', fontSize: 11 },
-  paidLabel: { color: '#059669' },
-  unpaidLabel: { color: '#B45309' },
-});
+import { participantUrl } from '../../../../src/lib/urls';
+import { PaymentReviewSheet } from '../../../../src/components/payment/PaymentReviewSheet';
+import type { Participant } from '../../../../src/types';
 
 // ─── Invoice Screen ────────────────────────────────────────────────────────────
 
@@ -56,7 +37,7 @@ export default function InvoiceScreen() {
   const [loading, setLoading] = useState(true);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [reviewing, setReviewing] = useState<Participant | null>(null);
 
   // ── Load bill ──
   useEffect(() => {
@@ -109,23 +90,15 @@ export default function InvoiceScreen() {
   const lineSubtotal = (bill?.lineItems ?? []).reduce((s, li) => s + li.subtotal, 0);
   const sstAmount = bill?.taxSst ? lineSubtotal * 0.06 : 0;
   const serviceAmount = bill?.taxService ? lineSubtotal * ((bill.taxServiceRate ?? 10) / 100) : 0;
-  const shareUrl = bill?.inviteToken ? `https://gocheck.app/invoice/${bill.inviteToken}` : undefined;
-
-  const handleCopyLink = useCallback(async () => {
-    if (!shareUrl) return;
-    await Share.share({ message: shareUrl, url: shareUrl });
-    setCopied(true);
+  const handleShareParticipant = useCallback(async (p: Participant) => {
+    if (!bill || !p.accessToken) return;
+    const link = participantUrl(p.accessToken);
+    const msg =
+      `Hi ${p.name}, your share for "${bill.title}" is ${currencySymbol}${p.amount.toFixed(2)}.\n` +
+      `Confirm here: ${link}`;
+    await Share.share({ message: msg, url: link });
     haptic.notification(NotificationFeedbackType.Success);
-    setTimeout(() => setCopied(false), 2000);
-  }, [shareUrl]);
-
-  const handleShare = useCallback(async () => {
-    if (!bill) return;
-    const msg = shareUrl
-      ? `${bill.title} — Invoice #${bill.invoiceNumber ?? 'GoCheck'}\n${currencySymbol}${bill.totalAmount.toFixed(2)} total\n\nView invoice: ${shareUrl}`
-      : `${bill.title} — ${currencySymbol}${bill.totalAmount.toFixed(2)} due ${bill.dueDate ? format(new Date(bill.dueDate), 'dd MMM yyyy') : ''}`;
-    await Share.share({ message: msg });
-  }, [bill, shareUrl]);
+  }, [bill, currencySymbol]);
 
   if (loading) {
     return (
@@ -150,14 +123,11 @@ export default function InvoiceScreen() {
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { justifyContent: 'flex-start' }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Go back">
           <Feather name="chevron-left" size={22} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>Invoice</Text>
-        <Pressable onPress={handleShare} style={styles.shareBtn} accessibilityRole="button" accessibilityLabel="Share invoice">
-          <Feather name="share-2" size={18} color={colors.primary} />
-        </Pressable>
+        <Text style={[styles.headerTitle, { marginLeft: spacing[3] }]}>Invoice</Text>
       </View>
 
       <ScrollView
@@ -240,7 +210,30 @@ export default function InvoiceScreen() {
                   {currencySymbol}{p.amount.toFixed(2)}
                 </Text>
                 <View style={[styles.tableCell, styles.tableCellStatus]}>
-                  <PaymentStatusPill isPaid={p.isPaid} />
+                  {p.paymentStatus === 'unpaid' && (
+                    <Pressable onPress={() => handleShareParticipant(p)} style={styles.rowAction}>
+                      <Feather name="send" size={14} color={colors.primary} />
+                      <Text style={styles.rowActionText}>Send link</Text>
+                    </Pressable>
+                  )}
+                  {p.paymentStatus === 'pending' && (
+                    <Pressable onPress={() => setReviewing(p)} style={[styles.rowAction, styles.rowActionPending]}>
+                      <Feather name="eye" size={14} color="#B45309" />
+                      <Text style={[styles.rowActionText, { color: '#B45309' }]}>Review</Text>
+                    </Pressable>
+                  )}
+                  {p.paymentStatus === 'confirmed' && (
+                    <View style={[styles.rowAction, styles.rowActionDone]}>
+                      <Feather name="check" size={14} color="#059669" />
+                      <Text style={[styles.rowActionText, { color: '#059669' }]}>Paid</Text>
+                    </View>
+                  )}
+                  {p.paymentStatus === 'rejected' && (
+                    <Pressable onPress={() => handleShareParticipant(p)} style={[styles.rowAction, styles.rowActionRejected]}>
+                      <Feather name="rotate-cw" size={14} color="#DC2626" />
+                      <Text style={[styles.rowActionText, { color: '#DC2626' }]}>Re-send</Text>
+                    </Pressable>
+                  )}
                 </View>
               </View>
             ))}
@@ -330,22 +323,6 @@ export default function InvoiceScreen() {
           )}
         </Animated.View>
 
-        {/* Action buttons */}
-        <Animated.View entering={FadeInDown.delay(200).duration(350).springify()} style={styles.actions}>
-          <Pressable onPress={handleShare} style={styles.actionBtn} accessibilityRole="button">
-            <Feather name="share-2" size={16} color={colors.primary} />
-            <Text style={styles.actionBtnText}>Share Invoice</Text>
-          </Pressable>
-
-          {shareUrl && (
-            <Pressable onPress={handleCopyLink} style={[styles.actionBtn, copied && styles.actionBtnActive]} accessibilityRole="button">
-              <Feather name={copied ? 'check' : 'link'} size={16} color={copied ? '#059669' : colors.primary} />
-              <Text style={[styles.actionBtnText, copied && { color: '#059669' }]}>
-                {copied ? 'Link Copied!' : 'Copy Link'}
-              </Text>
-            </Pressable>
-          )}
-        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -456,4 +433,10 @@ const styles = StyleSheet.create({
   },
   actionBtnActive: { backgroundColor: '#D1FAE5', borderColor: '#059669' },
   actionBtnText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.sm, color: colors.primary },
+
+  rowAction: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: colors.primarySurface },
+  rowActionText: { fontFamily: typography.sansMedium, fontSize: 11, color: colors.primary },
+  rowActionPending: { backgroundColor: '#FEF3C7' },
+  rowActionDone: { backgroundColor: '#D1FAE5' },
+  rowActionRejected: { backgroundColor: '#FEE2E2' },
 });
