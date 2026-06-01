@@ -26,16 +26,20 @@ export default function SignInScreen() {
   async function handleGoogleSignIn() {
     setLoading(true);
     try {
-      const redirectTo = Platform.OS === 'web'
-        ? window.location.origin + '/auth/callback'
-        : makeRedirectUri({ scheme: 'gocheck', path: 'auth/callback' });
+      if (Platform.OS === 'web') {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin + '/auth/callback' },
+        });
+        if (error) throw error;
+        // browser navigates away — no further code runs
+        return;
+      }
 
+      const redirectTo = makeRedirectUri({ scheme: 'gocheck', path: 'auth/callback' });
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo,
-          skipBrowserRedirect: true,
-        },
+        options: { redirectTo, skipBrowserRedirect: true },
       });
 
       if (error) throw error;
@@ -44,21 +48,12 @@ export default function SignInScreen() {
       const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
 
       if (result.type === 'success' && result.url) {
-        const url = new URL(result.url);
-        const accessToken = url.searchParams.get('access_token');
-        const refreshToken = url.searchParams.get('refresh_token');
-
-        if (accessToken && refreshToken) {
-          await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-        } else {
-          // Try fragment params (hash)
-          const hash = result.url.split('#')[1] ?? '';
-          const params = new URLSearchParams(hash);
-          const at = params.get('access_token');
-          const rt = params.get('refresh_token');
-          if (at && rt) {
-            await supabase.auth.setSession({ access_token: at, refresh_token: rt });
-          }
+        const hash = result.url.split('#')[1] ?? '';
+        const params = new URLSearchParams(hash);
+        const at = params.get('access_token') ?? new URL(result.url).searchParams.get('access_token');
+        const rt = params.get('refresh_token') ?? new URL(result.url).searchParams.get('refresh_token');
+        if (at && rt) {
+          await supabase.auth.setSession({ access_token: at, refresh_token: rt });
         }
       }
     } catch (e: unknown) {
