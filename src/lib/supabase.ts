@@ -146,9 +146,12 @@ export async function getOrganizerBills(organizerId: string) {
     .select(`
       id, title, description, total_amount, currency, due_date, status, share_link,
       category, is_recurring, group_photo_url, split_type, tax_rate,
+      tax_sst, tax_service, tax_service_rate, payment_method, payment_details,
+      receipt_url, invite_token, invoice_number,
       created_at, updated_at,
       participants (
-        id, name, email, phone, amount, is_paid, paid_at, avatar_color, shares, percent
+        id, name, email, phone, amount, is_paid, paid_at, avatar_color, shares, percent,
+        access_token, payment_status, proof_url, submitted_at, confirmed_at, rejected_reason
       ),
       line_items (
         id, description, quantity, unit_price
