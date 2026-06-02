@@ -28,6 +28,7 @@ import {
   radius,
   shadow,
 } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { CURRENCY_SYMBOLS } from '../../types';
 import type { Bill, ReliabilityLabel } from '../../types';
 import { getBillStats } from '../../lib/billStats';
@@ -38,6 +39,7 @@ import { participantUrl } from '../../lib/urls';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { AppText } from '../AppText';
 import { AnimatedBar } from '../effects/AnimatedBar';
+import { GlowingCard } from '../effects/GlowingCard';
 
 const WHATSAPP = '#25D366';
 
@@ -66,6 +68,7 @@ interface BillDetailModalProps {
 const SIGNATURE = Easing.bezier(0.22, 1, 0.36, 1);
 
 export function BillDetailModal({ bill, allBills, visible, onClose }: BillDetailModalProps) {
+  const { colors: c } = useTheme();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const sendReminder = useReminderStore((s) => s.sendReminder);
@@ -184,7 +187,7 @@ export function BillDetailModal({ bill, allBills, visible, onClose }: BillDetail
           pointerEvents="box-none"
         >
           {bill && (
-            <View style={styles.sheet}>
+            <View style={[styles.sheet, { backgroundColor: c.surface }]}>
               <ExpandedHeader bill={bill} onClose={handleClose} onShare={handleShare} />
               <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -201,10 +204,17 @@ export function BillDetailModal({ bill, allBills, visible, onClose }: BillDetail
                   onPress={handleOpenFull}
                   accessibilityRole="button"
                   accessibilityLabel="Open full bill"
-                  style={({ pressed }) => [styles.openFullBtn, pressed && { opacity: 0.9 }]}
+                  style={({ pressed }) => [pressed && { opacity: 0.9 }]}
                 >
-                  <AppText style={styles.openFullText}>Open full bill</AppText>
-                  <Feather name="arrow-right" size={16} color={colors.white} />
+                  <LinearGradient
+                    colors={[colors.primary, colors.primaryDark]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.openFullBtn}
+                  >
+                    <AppText style={styles.openFullText}>Open full bill</AppText>
+                    <Feather name="arrow-right" size={16} color={colors.white} />
+                  </LinearGradient>
                 </Pressable>
               </ScrollView>
             </View>
@@ -224,6 +234,7 @@ function ExpandedHeader({
   onClose: () => void;
   onShare: () => void;
 }) {
+  const { colors: c } = useTheme();
   const sym = CURRENCY_SYMBOLS[bill.currency] ?? bill.currency;
   return (
     <LinearGradient
@@ -276,26 +287,27 @@ function ExpandedHeader({
 }
 
 function ExpandedStats({ bill }: { bill: Bill }) {
+  const { colors: c } = useTheme();
   const stats = getBillStats(bill);
   const sym = CURRENCY_SYMBOLS[bill.currency] ?? bill.currency;
   return (
-    <View style={styles.statsCard}>
+    <View style={[styles.statsCard, { backgroundColor: c.surface2, borderColor: c.border }]}>
       <View style={styles.statsRow}>
         <View style={styles.statsCol}>
-          <AppText style={styles.statsLabel}>Collected</AppText>
-          <AppText style={styles.statsValue}>
+          <AppText style={[styles.statsLabel, { color: c.textSecondary }]}>Collected</AppText>
+          <AppText style={[styles.statsValue, { color: c.textPrimary }]}>
             {sym} {fmt(stats.collected)}
           </AppText>
         </View>
         <View style={styles.statsCol}>
-          <AppText style={styles.statsLabel}>Remaining</AppText>
-          <AppText style={[styles.statsValue, { color: stats.overdue ? colors.error : colors.textPrimary }]}>
+          <AppText style={[styles.statsLabel, { color: c.textSecondary }]}>Remaining</AppText>
+          <AppText style={[styles.statsValue, { color: stats.overdue ? colors.error : c.textPrimary }]}>
             {sym} {fmt(stats.remaining)}
           </AppText>
         </View>
         <View style={styles.statsCol}>
-          <AppText style={styles.statsLabel}>Paid</AppText>
-          <AppText style={styles.statsValue}>
+          <AppText style={[styles.statsLabel, { color: c.textSecondary }]}>Paid</AppText>
+          <AppText style={[styles.statsValue, { color: c.textPrimary }]}>
             {stats.paidCount}/{stats.totalCount}
           </AppText>
         </View>
@@ -321,51 +333,59 @@ function ExpandedParticipants({
   allBills: Bill[];
   onWhatsApp: (i: number) => void;
 }) {
+  const { colors: c } = useTheme();
   const sym = CURRENCY_SYMBOLS[bill.currency] ?? bill.currency;
   return (
     <View style={styles.section}>
-      <AppText style={styles.sectionTitle}>Participants</AppText>
+      <AppText style={[styles.sectionTitle, { color: c.textPrimary }]}>Participants</AppText>
       <View style={{ gap: spacing[2] }}>
         {bill.participants.map((p, i) => {
           const reliability: ReliabilityLabel | null = computeReliability(p.name, allBills);
           const chip = RELIABILITY_CHIP[reliability ?? 'new'];
           const initial = p.name.charAt(0).toUpperCase();
           return (
-            <View key={p.id} style={styles.partRow}>
-              <View style={[styles.partAvatar, { backgroundColor: p.avatarColor }]}>
-                <AppText style={styles.partAvatarText}>{initial}</AppText>
-                {p.isPaid && (
-                  <View style={styles.partPaidBadge}>
-                    <Feather name="check" size={9} color={colors.white} />
+            <GlowingCard
+              key={p.id}
+              radius={radius.lg}
+              color={p.isPaid ? colors.secondary : p.avatarColor}
+              background={c.surface}
+            >
+              <View style={styles.partRow}>
+                <View style={[styles.partAvatar, { backgroundColor: p.avatarColor }]}>
+                  <AppText style={styles.partAvatarText}>{initial}</AppText>
+                  {p.isPaid && (
+                    <View style={styles.partPaidBadge}>
+                      <Feather name="check" size={9} color={colors.white} />
+                    </View>
+                  )}
+                </View>
+                <View style={styles.partInfo}>
+                  <View style={styles.partNameLine}>
+                    <AppText style={[styles.partName, { color: c.textPrimary }]} numberOfLines={1}>{p.name}</AppText>
+                    <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
+                      <AppText style={[styles.relChipText, { color: chip.text }]}>{chip.label}</AppText>
+                    </View>
                   </View>
+                  <AppText style={[styles.partAmount, { color: c.textPrimary }]}>
+                    {sym}
+                    {fmt(p.amount)}
+                    <AppText style={[styles.partAmountMeta, { color: c.textSecondary }]}>
+                      {p.isPaid ? '  ·  Paid' : '  ·  Unpaid'}
+                    </AppText>
+                  </AppText>
+                </View>
+                {!p.isPaid && (
+                  <Pressable
+                    onPress={() => onWhatsApp(i)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Send WhatsApp reminder to ${p.name}`}
+                    style={({ pressed }) => [styles.partWaBtn, pressed && { opacity: 0.85 }]}
+                  >
+                    <Feather name="message-circle" size={14} color={colors.white} />
+                  </Pressable>
                 )}
               </View>
-              <View style={styles.partInfo}>
-                <View style={styles.partNameLine}>
-                  <AppText style={styles.partName} numberOfLines={1}>{p.name}</AppText>
-                  <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
-                    <AppText style={[styles.relChipText, { color: chip.text }]}>{chip.label}</AppText>
-                  </View>
-                </View>
-                <AppText style={styles.partAmount}>
-                  {sym}
-                  {fmt(p.amount)}
-                  <AppText style={styles.partAmountMeta}>
-                    {p.isPaid ? '  ·  Paid' : '  ·  Unpaid'}
-                  </AppText>
-                </AppText>
-              </View>
-              {!p.isPaid && (
-                <Pressable
-                  onPress={() => onWhatsApp(i)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Send WhatsApp reminder to ${p.name}`}
-                  style={({ pressed }) => [styles.partWaBtn, pressed && { opacity: 0.85 }]}
-                >
-                  <Feather name="message-circle" size={14} color={colors.white} />
-                </Pressable>
-              )}
-            </View>
+            </GlowingCard>
           );
         })}
       </View>
@@ -384,7 +404,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sheet: {
-    backgroundColor: colors.surface,
     borderRadius: radius['2xl'],
     overflow: 'hidden',
     maxHeight: '92%',
@@ -454,9 +473,9 @@ const styles = StyleSheet.create({
   },
 
   statsCard: {
-    backgroundColor: colors.gray50,
     borderRadius: radius.lg,
     padding: spacing[3.5],
+    borderWidth: 1,
   },
   statsRow: {
     flexDirection: 'row',
@@ -467,12 +486,10 @@ const styles = StyleSheet.create({
   statsLabel: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.xs,
-    color: colors.textSecondary,
   },
   statsValue: {
     fontFamily: typography.sansBold,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
     marginTop: 2,
   },
 
@@ -480,7 +497,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: typography.sansBold,
     fontSize: fontSize.sm,
-    color: colors.textPrimary,
     marginBottom: spacing[2],
   },
   partRow: {
@@ -488,10 +504,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[3],
     padding: spacing[3],
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   partAvatar: {
     width: 38,
@@ -523,19 +535,16 @@ const styles = StyleSheet.create({
   partName: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.sm,
-    color: colors.textPrimary,
     flexShrink: 1,
   },
   partAmount: {
     fontFamily: typography.monoMedium,
     fontSize: fontSize.sm,
-    color: colors.textPrimary,
     marginTop: 2,
   },
   partAmountMeta: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.xs,
-    color: colors.textSecondary,
   },
   relChip: { borderRadius: radius.full, paddingHorizontal: spacing[1.5], paddingVertical: 1 },
   relChipText: {
@@ -558,10 +567,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[1.5],
-    backgroundColor: colors.gray900,
     borderRadius: radius.full,
     paddingVertical: spacing[3],
     marginTop: spacing[2],
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
   },
   openFullText: {
     fontFamily: typography.sansBold,
