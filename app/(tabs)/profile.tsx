@@ -211,7 +211,7 @@ export default function ProfileScreen() {
                   <Feather name="camera" size={11} color={colors.white} />
                 )}
               </View>
-              <View style={[styles.organizerBadge, { backgroundColor: c.primarySurface, borderWidth: 1, borderColor: c.primaryBorder }]}>
+              <View style={[styles.organizerBadge, { backgroundColor: c.primarySurface, borderColor: c.primaryBorder }]}>
                 <Feather name="shield" size={10} color={colors.primary} />
                 <AppText style={styles.organizerBadgeText}>Organizer</AppText>
               </View>
@@ -465,6 +465,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing[5],
     paddingBottom: spacing[4],
+    overflow: 'hidden',
   },
   headerTitle: {
     fontFamily: typography.sansBold,
@@ -524,6 +525,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: radius.full,
     marginTop: 4,
+    borderWidth: 1,
   },
   organizerBadgeText: {
     fontFamily: typography.sansMedium,
