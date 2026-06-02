@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { GlowingCard } from '../effects/GlowingCard';
 
 interface Props {
@@ -16,36 +17,37 @@ export function ReportsSummaryStrip({
   totalBills,
   activeBills,
 }: Props) {
+  const { colors: c } = useTheme();
   return (
-    <GlowingCard radius={radius['2xl']} background={colors.surface}>
+    <GlowingCard radius={radius['2xl']} background={c.surface}>
       <View style={styles.strip}>
       <View style={styles.item}>
-        <View style={[styles.iconWrap, { backgroundColor: colors.primarySurface }]}>
+        <View style={[styles.iconWrap, { backgroundColor: c.primarySurface }]}>
           <Feather name="percent" size={14} color={colors.primary} />
         </View>
         <View>
-          <AppText style={styles.value}>{collectionRate}%</AppText>
-          <AppText style={styles.label}>Collected</AppText>
+          <AppText style={[styles.value, { color: c.textPrimary }]}>{collectionRate}%</AppText>
+          <AppText style={[styles.label, { color: c.textSecondary }]}>Collected</AppText>
         </View>
       </View>
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: c.border }]} />
       <View style={styles.item}>
-        <View style={[styles.iconWrap, { backgroundColor: colors.secondarySurface }]}>
+        <View style={[styles.iconWrap, { backgroundColor: c.secondarySurface }]}>
           <Feather name="file-text" size={14} color={colors.secondary} />
         </View>
         <View>
-          <AppText style={styles.value}>{totalBills}</AppText>
-          <AppText style={styles.label}>Total bills</AppText>
+          <AppText style={[styles.value, { color: c.textPrimary }]}>{totalBills}</AppText>
+          <AppText style={[styles.label, { color: c.textSecondary }]}>Total bills</AppText>
         </View>
       </View>
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: c.border }]} />
       <View style={styles.item}>
-        <View style={[styles.iconWrap, { backgroundColor: colors.warningSurface }]}>
+        <View style={[styles.iconWrap, { backgroundColor: c.warningSurface }]}>
           <Feather name="clock" size={14} color={colors.warning} />
         </View>
         <View>
-          <AppText style={styles.value}>{activeBills}</AppText>
-          <AppText style={styles.label}>Active</AppText>
+          <AppText style={[styles.value, { color: c.textPrimary }]}>{activeBills}</AppText>
+          <AppText style={[styles.label, { color: c.textSecondary }]}>Active</AppText>
         </View>
       </View>
       </View>
@@ -78,16 +80,13 @@ const styles = StyleSheet.create({
     fontFamily: typography.monoMedium,
     fontSize: 15,
     fontWeight: '700',
-    color: colors.gray900,
   },
   label: {
     fontFamily: typography.sansRegular,
     fontSize: 10,
-    color: colors.gray500,
   },
   divider: {
     width: StyleSheet.hairlineWidth,
     height: 32,
-    backgroundColor: colors.border,
   },
 });

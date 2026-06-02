@@ -8,6 +8,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { colors, typography, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { GlowingCard } from '../effects/GlowingCard';
 import type { ReliabilityResult } from '../../lib/reportsCompute';
 
@@ -25,6 +26,7 @@ function getInitials(name: string): string {
 }
 
 function ReliabilityRow({ item }: { item: ReliabilityResult }) {
+  const { colors: c } = useTheme();
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -57,8 +59,8 @@ function ReliabilityRow({ item }: { item: ReliabilityResult }) {
         </AppText>
       </View>
       <View style={styles.nameGroup}>
-        <AppText style={styles.name} numberOfLines={1}>{item.name}</AppText>
-        <AppText style={styles.sub}>{avgLabel}</AppText>
+        <AppText style={[styles.name, { color: c.textPrimary }]} numberOfLines={1}>{item.name}</AppText>
+        <AppText style={[styles.sub, { color: c.textSecondary }]}>{avgLabel}</AppText>
       </View>
       <View style={styles.scoreGroup}>
         <View
@@ -71,7 +73,7 @@ function ReliabilityRow({ item }: { item: ReliabilityResult }) {
             {item.band.label}
           </AppText>
         </View>
-        <View style={styles.barTrack}>
+        <View style={[styles.barTrack, { backgroundColor: c.gray100 }]}>
           <Animated.View
             style={[styles.barFill, barStyle, { backgroundColor: item.band.color }]}
           />
@@ -87,13 +89,14 @@ interface Props {
 }
 
 export function ReliabilityCard({ data }: Props) {
+  const { colors: c } = useTheme();
   return (
-    <GlowingCard radius={radius['2xl']} background={colors.surface}>
+    <GlowingCard radius={radius['2xl']} background={c.surface}>
       <View style={styles.card}>
-        <AppText style={styles.title}>Who pays on time</AppText>
-        <AppText style={styles.cardSub}>Based on past 6 months</AppText>
+        <AppText style={[styles.title, { color: c.textPrimary }]}>Who pays on time</AppText>
+        <AppText style={[styles.cardSub, { color: c.textSecondary }]}>Based on past 6 months</AppText>
         {data.length === 0 ? (
-          <AppText style={styles.empty}>
+          <AppText style={[styles.empty, { color: c.textSecondary }]}>
             Not enough data yet — needs 1+ paid bills with a due date set.
           </AppText>
         ) : (
@@ -115,12 +118,10 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: typography.sansBold,
     fontSize: 14,
-    color: colors.gray900,
   },
   cardSub: {
     fontFamily: typography.sansRegular,
     fontSize: 11,
-    color: colors.gray400,
     marginBottom: spacing[3],
     marginTop: 2,
   },
@@ -146,12 +147,10 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: typography.sansBold,
     fontSize: 12,
-    color: colors.gray900,
   },
   sub: {
     fontFamily: typography.sansRegular,
     fontSize: 10,
-    color: colors.gray400,
   },
   scoreGroup: {
     width: 118,
@@ -170,7 +169,6 @@ const styles = StyleSheet.create({
   barTrack: {
     width: '100%',
     height: 5,
-    backgroundColor: colors.gray100,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -185,7 +183,6 @@ const styles = StyleSheet.create({
   empty: {
     fontFamily: typography.sansRegular,
     fontSize: 12,
-    color: colors.gray400,
     lineHeight: 18,
   },
 });

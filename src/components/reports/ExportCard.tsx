@@ -5,6 +5,7 @@ import {
 import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { GlowingCard } from '../effects/GlowingCard';
 import { exportCSV } from '../../lib/exportCsv';
 import { exportPDF } from '../../lib/exportPdf';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function ExportCard({ bills, currency }: Props) {
+  const { colors: c } = useTheme();
   const [isExportingCsv, setIsExportingCsv] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
@@ -50,15 +52,15 @@ export function ExportCard({ bills, currency }: Props) {
   };
 
   return (
-    <GlowingCard radius={radius['2xl']} background={colors.surface}>
+    <GlowingCard radius={radius['2xl']} background={c.surface}>
       <View style={styles.card}>
-      <AppText style={styles.title}>Export</AppText>
-      <AppText style={styles.sub}>Download a full breakdown for accounting or tax filing.</AppText>
+      <AppText style={[styles.title, { color: c.textPrimary }]}>Export</AppText>
+      <AppText style={[styles.sub, { color: c.textSecondary }]}>Download a full breakdown for accounting or tax filing.</AppText>
       <View style={styles.btnRow}>
         <Pressable
           style={({ pressed }) => [
             styles.btn,
-            styles.btnCsv,
+            { borderColor: c.primaryBorder, backgroundColor: c.primarySurface },
             pressed && styles.btnPressed,
           ]}
           onPress={handleCsv}
@@ -76,7 +78,7 @@ export function ExportCard({ bills, currency }: Props) {
         <Pressable
           style={({ pressed }) => [
             styles.btn,
-            styles.btnPdf,
+            { borderColor: c.border, backgroundColor: c.surface },
             pressed && styles.btnPressed,
           ]}
           onPress={handlePdf}
@@ -87,7 +89,7 @@ export function ExportCard({ bills, currency }: Props) {
           ) : (
             <Feather name="file-text" size={14} color={colors.gray600} />
           )}
-          <AppText style={styles.btnLabel}>{isExportingPdf ? 'Preparing…' : 'Export PDF'}</AppText>
+          <AppText style={[styles.btnLabel, { color: c.textPrimary }]}>{isExportingPdf ? 'Preparing…' : 'Export PDF'}</AppText>
         </Pressable>
       </View>
       </View>
@@ -102,12 +104,10 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: typography.sansBold,
     fontSize: 14,
-    color: colors.gray900,
   },
   sub: {
     fontFamily: typography.sansRegular,
     fontSize: 12,
-    color: colors.gray500,
     marginTop: 2,
     marginBottom: spacing[3],
     lineHeight: 18,
@@ -126,21 +126,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     paddingVertical: 11,
   },
-  btnCsv: {
-    borderColor: colors.primaryBorder,
-    backgroundColor: colors.primarySurface,
-  },
-  btnPdf: {
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
+  btnCsv: {},
+  btnPdf: {},
   btnPressed: {
     opacity: 0.85,
   },
   btnLabel: {
     fontFamily: typography.sansBold,
     fontSize: 12,
-    color: colors.gray700,
   },
   btnLabelPrimary: {
     color: colors.primary,

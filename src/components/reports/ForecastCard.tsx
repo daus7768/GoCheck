@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { AppText } from '../AppText';
 import { colors, typography, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { GlowingCard } from '../effects/GlowingCard';
 import { ForecastChart } from './ForecastChart';
 import { buildInsight, forecastPeriodTotal } from '../../lib/reportsCompute';
@@ -30,23 +31,24 @@ const RANGE_TITLES: Record<ForecastRange, string> = {
 };
 
 export function ForecastCard({ data, currency, range, onRangeChange }: Props) {
+  const { colors: c } = useTheme();
   const insight = buildInsight(data, currency);
   const periodTotal = forecastPeriodTotal(data);
 
   return (
-    <GlowingCard radius={radius['2xl']} background={colors.surface}>
+    <GlowingCard radius={radius['2xl']} background={c.surface}>
       <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <AppText style={styles.title}>{RANGE_TITLES[range]}</AppText>
-          <AppText style={styles.sub}>Projected outflow + recurring bills</AppText>
+          <AppText style={[styles.title, { color: c.textPrimary }]}>{RANGE_TITLES[range]}</AppText>
+          <AppText style={[styles.sub, { color: c.textSecondary }]}>Projected outflow + recurring bills</AppText>
           {data.length > 0 && (
             <AppText style={styles.periodTotal}>
               {formatCurrency(periodTotal, currency)} total projected
             </AppText>
           )}
         </View>
-        <View style={styles.segControl}>
+        <View style={[styles.segControl, { backgroundColor: c.gray100 }]}>
           {RANGES.map((r) => (
             <Pressable
               key={r.key}
@@ -54,7 +56,7 @@ export function ForecastCard({ data, currency, range, onRangeChange }: Props) {
               onPress={() => onRangeChange(r.key)}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
-              <AppText style={[styles.segLabel, range === r.key && styles.segLabelActive]}>
+              <AppText style={[styles.segLabel, { color: c.textSecondary }, range === r.key && styles.segLabelActive]}>
                 {r.label}
               </AppText>
             </Pressable>
@@ -101,17 +103,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: typography.sansBold,
     fontSize: 14,
-    color: colors.gray900,
   },
   sub: {
     fontFamily: typography.sansRegular,
     fontSize: 11,
-    color: colors.gray400,
     marginTop: 2,
   },
   segControl: {
     flexDirection: 'row',
-    backgroundColor: colors.gray100,
     borderRadius: radius.lg,
     padding: 2,
     gap: 2,
@@ -127,7 +126,6 @@ const styles = StyleSheet.create({
   segLabel: {
     fontFamily: typography.sansBold,
     fontSize: 11,
-    color: colors.gray500,
   },
   segLabelActive: {
     color: '#fff',

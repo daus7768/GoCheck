@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { AppText } from '../AppText';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { formatCurrency } from '../../lib/reminderTemplates';
 import { GlowingCard } from '../effects/GlowingCard';
 import type { Currency } from '../../types';
@@ -25,24 +26,30 @@ export function StatCardRow({
   trendDirection,
   currency,
 }: Props) {
+  const { colors: c } = useTheme();
   return (
     <View style={styles.row}>
       {/* Card A — Collected */}
       <View style={styles.cardSlot}>
-        <GlowingCard radius={radius['2xl']} color="#16a34a" background={colors.surface}>
+        <GlowingCard radius={radius['2xl']} color="#16a34a" background={c.surface}>
           <View style={styles.cardBody}>
             <AppText style={styles.eyebrowGreen}>COLLECTED (YTD)</AppText>
-            <AppText style={styles.bigNumber}>{formatCurrency(totalCollected, currency)}</AppText>
+            <AppText style={[styles.bigNumber, { color: c.textPrimary }]}>
+              {formatCurrency(totalCollected, currency)}
+            </AppText>
             <View style={styles.metaRow}>
               {trendDirection !== null && trendPercent !== null ? (
-                <View style={trendDirection === 'up' ? styles.pillUp : styles.pillDown}>
+                <View style={[
+                  trendDirection === 'up' ? styles.pillUp : styles.pillDown,
+                  { backgroundColor: trendDirection === 'up' ? c.secondarySurface : c.errorSurface },
+                ]}>
                   <AppText style={trendDirection === 'up' ? styles.pillTextUp : styles.pillTextDown}>
                     {trendDirection === 'up' ? '↗' : '↘'} {trendDirection === 'up' ? '+' : '−'}
                     {trendPercent}% vs last month
                   </AppText>
                 </View>
               ) : (
-                <AppText style={styles.rateSub}>{collectionRate}% collection rate</AppText>
+                <AppText style={[styles.rateSub, { color: c.textSecondary }]}>{collectionRate}% collection rate</AppText>
               )}
             </View>
           </View>
@@ -51,11 +58,13 @@ export function StatCardRow({
 
       {/* Card B — Outstanding */}
       <View style={styles.cardSlot}>
-        <GlowingCard radius={radius['2xl']} color="#d97706" background={colors.surface}>
+        <GlowingCard radius={radius['2xl']} color="#d97706" background={c.surface}>
           <View style={styles.cardBody}>
             <AppText style={styles.eyebrowAmber}>OUTSTANDING</AppText>
-            <AppText style={styles.bigNumber}>{formatCurrency(totalOutstanding, currency)}</AppText>
-            <AppText style={styles.sub}>across {outstandingCount} bills</AppText>
+            <AppText style={[styles.bigNumber, { color: c.textPrimary }]}>
+              {formatCurrency(totalOutstanding, currency)}
+            </AppText>
+            <AppText style={[styles.sub, { color: c.textSecondary }]}>across {outstandingCount} bills</AppText>
           </View>
         </GlowingCard>
       </View>
@@ -94,19 +103,16 @@ const styles = StyleSheet.create({
     fontFamily: typography.monoMedium,
     fontSize: 20,
     fontWeight: '700',
-    color: colors.gray900,
     marginBottom: 6,
   },
   pillUp: {
     alignSelf: 'flex-start',
-    backgroundColor: '#dcfce7',
     borderRadius: radius.full,
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
   pillDown: {
     alignSelf: 'flex-start',
-    backgroundColor: '#fee2e2',
     borderRadius: radius.full,
     paddingHorizontal: 7,
     paddingVertical: 2,
@@ -124,7 +130,6 @@ const styles = StyleSheet.create({
   sub: {
     fontFamily: typography.sansRegular,
     fontSize: 10,
-    color: colors.gray500,
     marginTop: 4,
   },
   metaRow: {
@@ -134,6 +139,5 @@ const styles = StyleSheet.create({
   rateSub: {
     fontFamily: typography.sansRegular,
     fontSize: 10,
-    color: colors.gray500,
   },
 });
