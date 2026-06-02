@@ -7,7 +7,8 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { colors, typography, spacing } from '../../theme/tokens';
+import { typography } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { formatCurrency } from '../../lib/reminderTemplates';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/reportsCompute';
 import type { CategoryRow } from '../../lib/reportsCompute';
@@ -20,6 +21,7 @@ interface BarRowProps {
 }
 
 function BarRow({ row, maxAmount, currency }: BarRowProps) {
+  const { colors: c } = useTheme();
   const widthProgress = useSharedValue(0);
   const targetWidth = maxAmount > 0 ? row.amount / maxAmount : 0;
 
@@ -39,19 +41,19 @@ function BarRow({ row, maxAmount, currency }: BarRowProps) {
     <View style={styles.row}>
       <View style={styles.labelGroup}>
         <View style={[styles.dot, { backgroundColor: CATEGORY_COLORS[row.cat] }]} />
-        <AppText style={styles.label}>{CATEGORY_LABELS[row.cat]}</AppText>
+        <AppText style={[styles.label, { color: c.textPrimary }]}>{CATEGORY_LABELS[row.cat]}</AppText>
       </View>
       <View style={styles.trackWrap}>
-        <View style={styles.track}>
+        <View style={[styles.track, { backgroundColor: c.gray100 }]}>
           <Animated.View
             style={[styles.fill, animStyle, { backgroundColor: CATEGORY_COLORS[row.cat] }]}
           />
         </View>
       </View>
       <View style={styles.amountCol}>
-        <AppText style={styles.amount}>{formatCurrency(row.amount, currency)}</AppText>
+        <AppText style={[styles.amount, { color: c.textPrimary }]}>{formatCurrency(row.amount, currency)}</AppText>
         {row.percent !== undefined && (
-          <AppText style={styles.pct}>{row.percent}%</AppText>
+          <AppText style={[styles.pct, { color: c.textSecondary }]}>{row.percent}%</AppText>
         )}
       </View>
     </View>
@@ -96,14 +98,12 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: typography.sansRegular,
     fontSize: 12,
-    color: colors.gray700,
   },
   trackWrap: {
     flex: 1,
   },
   track: {
     height: 7,
-    backgroundColor: colors.gray100,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -118,12 +118,10 @@ const styles = StyleSheet.create({
   amount: {
     fontFamily: typography.monoMedium,
     fontSize: 11,
-    color: colors.gray900,
   },
   pct: {
     fontFamily: typography.sansRegular,
     fontSize: 9,
-    color: colors.gray400,
     marginTop: 1,
   },
 });

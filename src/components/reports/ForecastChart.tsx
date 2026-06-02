@@ -15,6 +15,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { colors, typography } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { formatCurrency } from '../../lib/reminderTemplates';
 import type { ForecastMonth } from '../../lib/reportsCompute';
 import type { Currency } from '../../types';
@@ -172,6 +173,7 @@ function ChartTooltip({
 }
 
 export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) {
+  const { colors: c } = useTheme();
   const isWeb = Platform.OS === 'web';
   const nativeProgress = useSharedValue(0);
   const [webProgress, setWebProgress] = useState(0);
@@ -243,7 +245,7 @@ export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) 
               y={(height / 3) * i + 4}
               fontSize={8}
               fontFamily={typography.monoMedium}
-              fill={colors.gray400}
+              fill={c.textSecondary}
               textAnchor="end"
             >
               {val >= 1000 ? `${Math.round(val / 1000)}k` : String(val)}
@@ -279,7 +281,7 @@ export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) 
                     y={xLabel}
                     fontSize={9}
                     fontFamily={typography.sansRegular}
-                    fill={colors.gray400}
+                    fill={c.textSecondary}
                     textAnchor="middle"
                   >
                     {month.label}
@@ -299,7 +301,7 @@ export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) 
                   y={xLabel}
                   fontSize={9}
                   fontFamily={typography.sansRegular}
-                  fill={selectedIndex === i ? colors.primary : colors.gray400}
+                  fill={selectedIndex === i ? colors.primary : c.textSecondary}
                   textAnchor="middle"
                 >
                   {month.label}
@@ -343,13 +345,13 @@ export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) 
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: COLORS.projected }]} />
-          <AppText style={styles.legendLabel}>Projected</AppText>
+          <AppText style={[styles.legendLabel, { color: c.textSecondary }]}>Projected</AppText>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: COLORS.recurring }]} />
-          <AppText style={styles.legendLabel}>Recurring</AppText>
+          <AppText style={[styles.legendLabel, { color: c.textSecondary }]}>Recurring</AppText>
         </View>
-        <AppText style={styles.legendHint}>Tap a bar for details</AppText>
+        <AppText style={[styles.legendHint, { color: c.textSecondary }]}>Tap a bar for details</AppText>
       </View>
     </View>
   );
@@ -421,12 +423,10 @@ const styles = StyleSheet.create({
   legendLabel: {
     fontFamily: typography.sansRegular,
     fontSize: 10,
-    color: colors.gray500,
   },
   legendHint: {
     fontFamily: typography.sansRegular,
     fontSize: 10,
-    color: colors.gray400,
     marginLeft: 'auto',
   },
 });

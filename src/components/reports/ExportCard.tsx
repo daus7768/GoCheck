@@ -85,9 +85,9 @@ export function ExportCard({ bills, currency }: Props) {
           disabled={isExportingPdf}
         >
           {isExportingPdf ? (
-            <ActivityIndicator size="small" color={colors.gray600} />
+            <ActivityIndicator size="small" color={c.textSecondary} />
           ) : (
-            <Feather name="file-text" size={14} color={colors.gray600} />
+            <Feather name="file-text" size={14} color={c.textSecondary} />
           )}
           <AppText style={[styles.btnLabel, { color: c.textPrimary }]}>{isExportingPdf ? 'Preparing…' : 'Export PDF'}</AppText>
         </Pressable>
@@ -126,8 +126,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     paddingVertical: 11,
   },
-  btnCsv: {},
-  btnPdf: {},
   btnPressed: {
     opacity: 0.85,
   },
