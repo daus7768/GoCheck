@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo } from 'react';
-import Animated, { useSharedValue, withTiming, Easing, SharedValue } from 'react-native-reanimated';
+import { useSharedValue, withTiming, Easing, SharedValue } from 'react-native-reanimated';
 import { colors } from './tokens';
 
 const darkColors = {
