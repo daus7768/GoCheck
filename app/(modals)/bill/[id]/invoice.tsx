@@ -8,7 +8,7 @@ import {
   Share,
   Image,
 } from 'react-native';
-import { AppText } from '../../../../src/components/effects/AppText';
+import { AppText } from '../../../../src/components/AppText';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
