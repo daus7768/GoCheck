@@ -16,7 +16,7 @@ import {
   DMMono_500Medium,
 } from '@expo-google-fonts/dm-mono';
 import { colors } from '../src/theme/tokens';
-import { ThemeProvider, useTheme } from '../src/theme/ThemeContext';
+import { ThemeProvider, useTheme, DARK_BACKGROUND } from '../src/theme/ThemeContext';
 import { ColourfulClockProvider } from '../src/theme/ColourfulClockContext';
 import { useProfileStore } from '../src/store/profileStore';
 import { supabase } from '../src/lib/supabase';
@@ -75,17 +75,17 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
-  const { themeProgress } = useTheme();
+  const { themeProgress, isDark } = useTheme();
   const animStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
       themeProgress.value,
       [0, 1],
-      [colors.background, '#070710']
+      [colors.background, DARK_BACKGROUND]
     ),
   }));
   if (Platform.OS === 'web') {
     return (
-      <View style={styles.webContainer}>
+      <View style={[styles.webContainer, { backgroundColor: isDark ? '#0A0A14' : '#E5E7EB' }]}>
         <Animated.View style={[styles.webPhone, animStyle]}>{children}</Animated.View>
       </View>
     );

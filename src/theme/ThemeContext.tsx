@@ -30,6 +30,8 @@ const darkColors = {
   gray200: '#252535',
 } as const;
 
+export const DARK_BACKGROUND = '#070710';
+
 // Light mode gets the same extra tokens so ThemeColors stays consistent
 const lightColors = {
   ...colors,
