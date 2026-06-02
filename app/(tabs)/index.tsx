@@ -341,7 +341,7 @@ export default function HomeScreen() {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               style={styles.bellBtn}
             >
-              <Feather name="bell" size={22} color={colors.textPrimary} />
+              <Feather name="bell" size={22} color={c.textPrimary} />
               {needsNudge.length > 0 && (
                 <View style={styles.bellBadge}>
                   <AppText style={styles.bellBadgeText}>{needsNudge.length}</AppText>
@@ -632,9 +632,7 @@ export default function HomeScreen() {
                   <AppText style={styles.emptyTitle}>All </AppText>
                   <ColourfulText text="settled" style={styles.emptyTitle} />
                 </View>
-                <FadeInUp index={1}>
-                  <AppText style={styles.emptySub}>You're all caught up. Time to relax.</AppText>
-                </FadeInUp>
+                <AppText style={styles.emptySub}>You're all caught up. Time to relax.</AppText>
               </View>
             </FadeInUp>
           ) : (
