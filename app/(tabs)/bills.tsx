@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import {
-  colors, typography, fontSize, spacing, radius, shadow,
+  colors, typography, fontSize, spacing, radius,
 } from '../../src/theme/tokens';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { useBillStore } from '../../src/store/billStore';
@@ -227,12 +227,12 @@ export default function BillsScreen() {
     return activeBills;
   }, [filter, bills, activeBills, overdueBills, recurringBills]);
 
-  const filterTabs: { id: FilterId; label: string; count: number }[] = [
+  const filterTabs = useMemo<{ id: FilterId; label: string; count: number }[]>(() => [
     { id: 'active',    label: 'Active',    count: activeBills.length },
     { id: 'overdue',   label: 'Overdue',   count: overdueBills.length },
     { id: 'recurring', label: 'Recurring', count: recurringBills.length },
     { id: 'all',       label: 'All',       count: bills.length },
-  ];
+  ], [activeBills.length, overdueBills.length, recurringBills.length, bills.length]);
 
   const ListHeader = useCallback(() => (
     <>
