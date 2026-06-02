@@ -221,6 +221,9 @@ export default function TabLayout() {
   return (
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}
+      // Make the Tabs scene container transparent so the global BackgroundBeams
+      // in AnimatedThemeRoot shows through every tab screen.
+      sceneContainerStyle={{ backgroundColor: 'transparent' }}
       screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="index"   options={{ title: 'Home' }} />
