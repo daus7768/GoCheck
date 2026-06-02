@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   View,
   StyleSheet,
@@ -165,12 +166,29 @@ export default function ProfileScreen() {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing[5] }]}>
+        <LinearGradient
+          colors={['rgba(99,102,241,0.13)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <View style={styles.headerAmbient} />
         <AppText style={[styles.headerTitle, { color: c.textPrimary }]}>Profile</AppText>
+        <AppText style={[styles.headerSub, { color: c.textSecondary }]}>
+          Manage your account & preferences
+        </AppText>
       </View>
 
       {/* Profile card with glowing border */}
       <View style={styles.profileCardWrap}>
         <GlowingCard radius={radius.xl} color={colors.primary} background={c.surface} innerPadding={0}>
+          <LinearGradient
+            colors={[colors.primary, colors.primaryLight, colors.secondary]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.profileCardBanner}
+          />
           <View style={styles.profileCardInner}>
             <Pressable
               accessibilityRole="button"
@@ -180,9 +198,9 @@ export default function ProfileScreen() {
               disabled={avatarBusy}
             >
               {avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+                <Image source={{ uri: avatarUrl }} style={[styles.avatar, styles.avatarGlow]} />
               ) : (
-                <View style={[styles.avatarFallback, { backgroundColor: colors.primary }]}>
+                <View style={[styles.avatarFallback, { backgroundColor: colors.primary }, styles.avatarGlow]}>
                   <AppText style={styles.avatarInitial}>{initial}</AppText>
                 </View>
               )}
@@ -193,7 +211,7 @@ export default function ProfileScreen() {
                   <Feather name="camera" size={11} color={colors.white} />
                 )}
               </View>
-              <View style={[styles.organizerBadge, { backgroundColor: c.primarySurface }]}>
+              <View style={[styles.organizerBadge, { backgroundColor: c.primarySurface, borderWidth: 1, borderColor: c.primaryBorder }]}>
                 <Feather name="shield" size={10} color={colors.primary} />
                 <AppText style={styles.organizerBadgeText}>Organizer</AppText>
               </View>
@@ -232,6 +250,7 @@ export default function ProfileScreen() {
         />
         <SettingRow
           label="Dark Mode"
+          sub={darkMode ? 'Deep Void theme active' : 'Light mode active'}
           icon="moon"
           last
           right={
@@ -642,5 +661,29 @@ const styles = StyleSheet.create({
     fontFamily: typography.sansRegular,
     fontSize: fontSize.xs,
     marginTop: 1,
+  },
+  headerSub: {
+    fontFamily: typography.sansRegular,
+    fontSize: fontSize.sm,
+    marginTop: spacing[1],
+  },
+  headerAmbient: {
+    position: 'absolute',
+    top: -40,
+    right: -20,
+    width: 160,
+    height: 160,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(99,102,241,0.08)',
+  },
+  profileCardBanner: {
+    height: 5,
+  },
+  avatarGlow: {
+    shadowColor: colors.primary,
+    shadowOpacity: 0.38,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 10,
   },
 });
