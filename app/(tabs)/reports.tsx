@@ -6,6 +6,7 @@ import {
 import Animated, {
   useSharedValue, useAnimatedStyle,
   withRepeat, withSequence, withTiming,
+  makeMutable,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -23,20 +24,23 @@ import { ExportCard } from '../../src/components/reports/ExportCard';
 import { ReportsSummaryStrip } from '../../src/components/reports/ReportsSummaryStrip';
 import { AppText } from '../../src/components/AppText';
 
+const skeletonPulseShared = makeMutable(0.4);
+
 function SkeletonBlock({ height = 100 }: { height?: number }) {
   const { colors: c } = useTheme();
-  const pulse = useSharedValue(0.4);
 
-  pulse.value = withRepeat(
-    withSequence(
-      withTiming(0.85, { duration: 900 }),
-      withTiming(0.4,  { duration: 900 })
-    ),
-    -1,
-    false
-  );
+  useEffect(() => {
+    skeletonPulseShared.value = withRepeat(
+      withSequence(
+        withTiming(0.85, { duration: 900 }),
+        withTiming(0.4,  { duration: 900 })
+      ),
+      -1,
+      false
+    );
+  }, []);
 
-  const animStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
+  const animStyle = useAnimatedStyle(() => ({ opacity: skeletonPulseShared.value }));
 
   return (
     <Animated.View
@@ -49,7 +53,7 @@ function EmptyState() {
   const { colors: c } = useTheme();
   return (
     <View style={styles.emptyWrap}>
-      <View style={styles.emptyIconWrap}>
+      <View style={[styles.emptyIconWrap, { backgroundColor: c.secondarySurface }]}>
         <Feather name="bar-chart-2" size={36} color={colors.secondary} />
       </View>
       <AppText style={[styles.emptyTitle, { color: c.textPrimary }]}>No data yet</AppText>
@@ -223,7 +227,6 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: radius.full,
-    backgroundColor: colors.secondarySurface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing[2],
