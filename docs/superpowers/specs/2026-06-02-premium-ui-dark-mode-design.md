@@ -192,21 +192,51 @@ This is the weakest screen. Full redesign of `BillCard` and the header.
 - Dynamic subtitle: `"Deep Void theme active"` when on, `"Light mode active"` when off
 - `ToggleV2`: add Reanimated glow pulse animation when `on === true` (see 1.4 above)
 
-### 2.5 Tab Bar (`app/(tabs)/_layout.tsx`)
+### 2.5 Tab Bar (`app/(tabs)/_layout.tsx`) — Floating Rounded Bar
 
-**Structure change:**
-- Replace the `dot` indicator with a filled pill background behind the active tab icon + label
-- Active tab: render a `View` with `backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)'`, `borderRadius: radius.lg`, padding wrapping the icon + label
-- Animate the pill appearance with Reanimated spring (`withSpring(1, { damping: 16, stiffness: 200 })`) on `opacity` and `scale` when a tab becomes active
+**Design: Option A — Floating pill lifted off the bottom edge.**
 
-**Tab bar background:**
-- Dark mode: `backgroundColor: 'rgba(7,7,16,0.88)'` + `expo-blur BlurView` wrapper (`intensity: 20`, `tint: 'dark'`)
-- Light mode: `backgroundColor: 'rgba(255,255,255,0.92)'` + `BlurView` (`intensity: 15`, `tint: 'light'`)
-- Remove the `borderTopColor` hairline — replace with a 1px gradient line: `rgba(99,102,241,0.10)` in dark, `rgba(99,102,241,0.08)` in light
+The tab bar detaches from the screen bottom and becomes a floating rounded card, giving GoCheck an immediately distinctive look that signals "premium product."
 
-**Icon size:** 22px → 20px (slightly tighter, matches pill proportions better)
+**Layout structure:**
+- Remove the default `tabBarStyle` entirely from `<Tabs screenOptions>`
+- Render a fully custom `tabBar` prop component: `tabBar={(props) => <FloatingTabBar {...props} />}`
+- `FloatingTabBar` is a new component in `app/(tabs)/_layout.tsx`
 
-**Read:** uses `useTheme()` for `isDark` to choose the pill color variant.
+**FloatingTabBar visual spec:**
+```
+[safe area bottom padding]
+[8px gap from screen edge]
+[floating pill — borderRadius: 28, height: 64]
+[8px gap from pill to screen edge — not touching sides]
+```
+- `marginHorizontal: 16` — pill floats with side gap
+- `marginBottom: 8 + insets.bottom` — lifted off bottom
+- `borderRadius: 28` — fully rounded pill shape
+- Background dark: `rgba(10,10,20,0.88)` + `BlurView intensity={24} tint="dark"`
+- Background light: `rgba(255,255,255,0.9)` + `BlurView intensity={20} tint="light"`
+- Border: `1px solid rgba(99,102,241,0.18)` dark / `rgba(99,102,241,0.12)` light
+- Top-edge shimmer line: absolute positioned 1px `LinearGradient` from `transparent → rgba(99,102,241,0.5) → rgba(99,102,241,0.3) → transparent`, gives the glass a lit top edge
+- Shadow: `shadowColor: '#4F46E5'`, `shadowOpacity: 0.18`, `shadowRadius: 24`, `shadowOffset: { width: 0, height: -4 }`, `elevation: 16`
+
+**Active tab indicator — animated glow pill:**
+- Each tab renders an `Animated.View` inner pill with `borderRadius: 16`
+- Active: `backgroundColor` animates to `rgba(99,102,241,0.18)` dark / `rgba(99,102,241,0.1)` light via `withTiming(1, { duration: 200 })`
+- Active also gets: `boxShadow` equivalent — `shadowColor: '#6366F1'`, `shadowOpacity: 0.35`, `shadowRadius: 12` on the pill container
+
+**Active underline dot:**
+- A 16×2px absolute `View` below the icon, `borderRadius: 1`, background `#6366F1`
+- `shadowColor: '#6366F1'`, `shadowOpacity: 0.9`, `shadowRadius: 6` — a sharp indigo glow dot
+- Animates `opacity` 0→1 with `withSpring({ damping: 16, stiffness: 200 })`
+
+**Animations on tab press:**
+1. **Icon scale bounce**: `withSpring(1.18, { damping: 10, stiffness: 280 })` then back to 1.0 — a quick bounce up on press
+2. **Pill opacity spring**: `withSpring(1, { damping: 18, stiffness: 220 })` from 0 when newly active
+3. **Icon glow**: active icon `Feather` renders with a `shadowColor` matching the tab's semantic color (Home=indigo, Bills=indigo, Reports=emerald, Profile=indigo), `shadowOpacity: animatedValue`, `shadowRadius: 8`
+4. **Inactive fade**: non-active icon opacity transitions to 0.28 via `withTiming(0.28, { duration: 180 })`
+5. **Haptic**: `haptic.selection()` on every tab switch (reusing existing `src/lib/haptics.ts`)
+
+**Icon sizes:** 20px for inactive, 22px for active (driven by Reanimated interpolation on the shared value)
 
 ### 2.6 BillDetailModal (`src/components/dashboard/BillDetailModal.tsx`)
 
@@ -241,23 +271,53 @@ All of these use existing libraries already in the project (Reanimated v3, expo-
 
 ---
 
-## Part 4: What to Preserve Exactly (Do Not Touch)
+## Part 4: Signature Effects — PRESERVE EXACTLY, DO NOT MODIFY
 
-- `GlowingCard` — cursor-aware on web, rotating glow on native
-- `TiltCard` — 3D tilt on Home hero
-- `DottedGlowBackground` — on hero and empty states
-- `AnimatedDonut` — hero progress ring
-- `CountUp` — hero amount counter
-- `AnimatedBar` — all progress bars
-- `FadeInUp` — entrance animations on all sections
-- `SheenButton` — "New bill" button on Home
-- `GradientBorderRing` — filter tabs on Home
-- `ColourfulText` + `AppText` rainbow cycling — branding element
-- `AuroraBackground` — on create screen
-- `BeamBackground` / `GlowingSection` — on create screen
-- `ConfettiBurst` — on success states
-- All Reanimated spring configs in `tokens.ts` — `springSnappy`, `springBouncy`, `springGentle`
-- All haptic feedback calls (`haptic.impact()`, `haptic.selection()`)
+These are GoCheck's core visual identity. They must not be removed, simplified, or altered. Any screen or component that currently uses them must continue using them after changes.
+
+### 4.1 TiltCard — 3D Perspective Tilt (Perplexity Comet style)
+- **File:** `src/components/effects/TiltCard.tsx`
+- **Used on:** Home screen hero card
+- **What it does:** Gyroscope/pointer-driven 3D perspective transform. On native, uses device motion for real tilt. On web, follows cursor position.
+- **Rule:** Do not remove from the Home hero. Do not simplify the perspective math. Do not reduce the tilt depth.
+
+### 4.2 GlareCard — Hover Glare Reflection (Linear style)
+- **File:** `src/components/effects/GlareCard.tsx`
+- **What it does:** A specular light reflection that tracks pointer/touch position across the card surface — the bright "glare" spot moves with the cursor on web.
+- **Rule:** Keep all pointer/touch tracking logic intact. Do not remove the glare overlay. Do not reduce opacity or blur.
+
+### 4.3 ColourfulText + AppText — Animated Rainbow Text (Character-level)
+- **Files:** `src/components/effects/ColourfulText.tsx`, `src/components/AppText.tsx`, `src/theme/ColourfulClockContext.tsx`
+- **What it does:** Each character cycles through a palette of colours in sequence, synchronized across all `AppText` instances via `ColourfulClockContext`. Creates a living, breathing text effect throughout the whole app.
+- **Rule:** Do not remove `ColourfulClockProvider` from root layout. Do not replace `AppText` with plain `Text`. Do not change the colour cycling logic in `ColourfulClockContext`. The rainbow effect is a deliberate brand signature.
+
+### 4.4 GradientBorderRing — Animated Moving Border
+- **File:** `src/components/effects/GradientBorderRing.tsx`
+- **What it does:** A gradient border that rotates/animates around its container. Makes buttons and filter pills visually stand out with a living border effect.
+- **Used on:** Home screen filter tabs
+- **Rule:** Keep on all filter tabs in Home. When Bills screen adds filter tabs (Part 2.2), wrap them in `GradientBorderRing` exactly as Home does. Do not swap for a static border.
+
+### 4.5 All Other Preserved Effects
+
+These must also be kept exactly as-is:
+
+| Effect | File | Used on |
+|---|---|---|
+| `GlowingCard` | `effects/GlowingCard.tsx` | Bill rows, nudge rows, profile card, Bills cards |
+| `DottedGlowBackground` | `effects/DottedGlowBackground.tsx` | Home hero, empty states |
+| `AnimatedDonut` | `effects/AnimatedDonut.tsx` | Home hero progress ring |
+| `CountUp` | `effects/CountUp.tsx` | Home hero amount |
+| `AnimatedBar` | `effects/AnimatedBar.tsx` | All progress bars — do not replace with static View |
+| `FadeInUp` | `effects/FadeInUp.tsx` | All section/card entrance animations |
+| `SheenButton` | `effects/SheenButton.tsx` | "New bill" button on Home |
+| `AuroraBackground` | `effects/AuroraBackground.tsx` | Create bill modal |
+| `BeamBackground` | `create/BeamBackground.tsx` | Create bill modal |
+| `GlowingSection` | `create/GlowingSection.tsx` | Create bill modal form sections |
+| `AnimatedTooltipStack` | `dashboard/AnimatedTooltipStack.tsx` | Bill row avatar stacks |
+| `ConfettiBurst` | `common/ConfettiBurst.tsx` | Success states |
+| `NoiseBackground` | `effects/NoiseBackground.tsx` | Where currently used |
+| All spring configs | `theme/tokens.ts` | `springSnappy`, `springBouncy`, `springGentle` |
+| All haptics | `lib/haptics.ts` | Every interactive element |
 
 ---
 
