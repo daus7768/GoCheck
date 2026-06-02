@@ -40,6 +40,11 @@ const APP_VERSION = '2.0';
 
 const ALL_PAYMENT_METHODS: PaymentMethodKey[] = ['duitnow', 'card', 'paypal', 'bank_transfer'];
 
+// Text colours that always pop against the cosmic dark BackgroundBeams used
+// for page-level (outside-card) text on the profile screen.
+const COSMIC_TEXT_PRIMARY = '#F0F0FF';
+const COSMIC_TEXT_SECONDARY = 'rgba(240,240,255,0.62)';
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors: c } = useTheme();
@@ -174,8 +179,8 @@ export default function ProfileScreen() {
           pointerEvents="none"
         />
         <View style={styles.headerAmbient} />
-        <AppText style={[styles.headerTitle, { color: c.textPrimary }]}>Profile</AppText>
-        <AppText style={[styles.headerSub, { color: c.textSecondary }]}>
+        <AppText style={[styles.headerTitle, { color: COSMIC_TEXT_PRIMARY }]}>Profile</AppText>
+        <AppText style={[styles.headerSub, { color: COSMIC_TEXT_SECONDARY }]}>
           Manage your account & preferences
         </AppText>
       </View>

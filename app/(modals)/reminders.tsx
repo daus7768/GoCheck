@@ -111,7 +111,9 @@ export default function RemindersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  // Transparent so the global cosmic BackgroundBeams from RootLayout shows
+  // through; the opaque header below + per-card surfaces handle legibility.
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

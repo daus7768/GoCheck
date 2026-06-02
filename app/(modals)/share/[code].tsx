@@ -224,7 +224,9 @@ export default function ShareBillScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.background },
+  // Transparent so the global cosmic BackgroundBeams from RootLayout shows
+  // through; the opaque header below + per-card surfaces handle legibility.
+  root: { flex: 1, backgroundColor: 'transparent' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing[3], padding: spacing[6] },
   errorTitle: { fontFamily: typography.sansBold, fontSize: fontSize.lg, color: colors.textPrimary },
   errorText: { fontFamily: typography.sansRegular, fontSize: fontSize.base, color: colors.textSecondary, textAlign: 'center' },

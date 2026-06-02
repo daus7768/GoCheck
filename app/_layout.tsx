@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { Platform, View, StyleSheet } from 'react-native';
-import Animated, { useAnimatedStyle, interpolateColor } from 'react-native-reanimated';
 import { Stack, useRouter, useSegments, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -16,8 +15,7 @@ import {
   DMMono_400Regular,
   DMMono_500Medium,
 } from '@expo-google-fonts/dm-mono';
-import { colors } from '../src/theme/tokens';
-import { ThemeProvider, useTheme, DARK_BACKGROUND } from '../src/theme/ThemeContext';
+import { ThemeProvider } from '../src/theme/ThemeContext';
 import { ColourfulClockProvider } from '../src/theme/ColourfulClockContext';
 import { useProfileStore } from '../src/store/profileStore';
 import { supabase } from '../src/lib/supabase';
@@ -76,29 +74,26 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
-  const { themeProgress, isDark } = useTheme();
-  const animStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(
-      themeProgress.value,
-      [0, 1],
-      [colors.background, DARK_BACKGROUND]
-    ),
-  }));
+  // Cosmic background beams are always-on and theme-independent. The bright
+  // SVG beams + dark gradient base become THE app backdrop; cards (light or
+  // dark per theme) float above it. We keep the animated themeProgress hook
+  // available because some descendants read it, but we no longer interpolate
+  // the bg colour — the beams' built-in gradient base owns the canvas.
   if (Platform.OS === 'web') {
     return (
       <View style={styles.webContainer}>
-        <Animated.View style={[styles.webPhone, animStyle]}>
-          <BackgroundBeams opacityScale={isDark ? 0.62 : 0.22} showBase={isDark} />
+        <View style={styles.webPhone}>
+          <BackgroundBeams opacityScale={1} showBase />
           {children}
-        </Animated.View>
+        </View>
       </View>
     );
   }
   return (
-    <Animated.View style={[{ flex: 1 }, animStyle]}>
-      <BackgroundBeams opacityScale={isDark ? 0.58 : 0.18} showBase={isDark} />
+    <View style={styles.nativeRoot}>
+      <BackgroundBeams opacityScale={0.95} showBase />
       {children}
-    </Animated.View>
+    </View>
   );
 }
 
@@ -174,7 +169,8 @@ export default function RootLayout() {
       <ThemeProvider isDark={isDark}>
         <ColourfulClockProvider>
           <AuthGuard>
-            <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor="transparent" />
+            {/* Status bar icons are always light because the cosmic backdrop is permanently dark */}
+            <StatusBar style="light" backgroundColor="transparent" />
             <AnimatedThemeRoot>{app}</AnimatedThemeRoot>
           </AuthGuard>
         </ColourfulClockProvider>
@@ -185,6 +181,9 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  // Native: rich dark fallback under the BackgroundBeams (prevents a flash
+  // of white before the SVG paints on first layout).
+  nativeRoot: { flex: 1, backgroundColor: '#070710' },
   webContainer: {
     flex: 1,
     // Rich dark void — gradient isn't available here so we use a very deep indigo-black
@@ -200,6 +199,9 @@ const styles = StyleSheet.create({
     maxHeight: 932,
     flex: 1,
     overflow: 'hidden',
+    // Dark fallback so the cosmic beams have something to paint over the
+    // very first frame (the SVG runs an onLayout pass before drawing paths).
+    backgroundColor: '#070710',
     // @ts-ignore — web-only properties
     borderRadius: 28,
     boxShadow:

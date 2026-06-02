@@ -46,6 +46,11 @@ function SkeletonBlock({ height = 100 }: { height?: number }) {
   );
 }
 
+// Text colours that always pop against the cosmic dark BackgroundBeams used
+// for page-level (outside-card) text on the reports screen.
+const COSMIC_TEXT_PRIMARY = '#F0F0FF';
+const COSMIC_TEXT_SECONDARY = 'rgba(240,240,255,0.62)';
+
 function EmptyState() {
   const { colors: c } = useTheme();
   return (
@@ -53,8 +58,8 @@ function EmptyState() {
       <View style={[styles.emptyIconWrap, { backgroundColor: c.secondarySurface }]}>
         <Feather name="bar-chart-2" size={36} color={colors.secondary} />
       </View>
-      <AppText style={[styles.emptyTitle, { color: c.textPrimary }]}>No data yet</AppText>
-      <AppText style={[styles.emptySub, { color: c.textSecondary }]}>
+      <AppText style={[styles.emptyTitle, { color: COSMIC_TEXT_PRIMARY }]}>No data yet</AppText>
+      <AppText style={[styles.emptySub, { color: COSMIC_TEXT_SECONDARY }]}>
         Create your first bill to start seeing insights here.
       </AppText>
       <Pressable

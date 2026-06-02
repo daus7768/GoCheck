@@ -39,6 +39,11 @@ function fmt(amount: number): string {
   return amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Text colours that always pop against the cosmic dark BackgroundBeams used
+// for page-level (outside-card) text on the bills screen.
+const COSMIC_TEXT_PRIMARY = '#F0F0FF';
+const COSMIC_TEXT_SECONDARY = 'rgba(240,240,255,0.62)';
+
 function BillCard({ bill, index, onPress }: { bill: Bill; index: number; onPress: () => void }) {
   const { colors: c, isDark } = useTheme();
   const stats = getBillStats(bill);
@@ -179,10 +184,10 @@ function EmptyState({ filter }: { filter: FilterId }) {
           </View>
         </View>
         <View style={styles.emptyTitleRow}>
-          <AppText style={[styles.emptyTitle, { color: c.textPrimary }]}>{title}</AppText>
-          <ColourfulText text={colorWord} style={[styles.emptyTitle, { color: c.textPrimary }]} />
+          <AppText style={[styles.emptyTitle, { color: COSMIC_TEXT_PRIMARY }]}>{title}</AppText>
+          <ColourfulText text={colorWord} style={[styles.emptyTitle, { color: COSMIC_TEXT_PRIMARY }]} />
         </View>
-        <AppText style={[styles.emptySub, { color: c.textSecondary }]}>{sub}</AppText>
+        <AppText style={[styles.emptySub, { color: COSMIC_TEXT_SECONDARY }]}>{sub}</AppText>
         <SheenButton
           onPress={() => router.push('/(modals)/create')}
           accessibilityLabel="Create new bill"
