@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, ActivityIndicator, Pressable, Image, useWindowDimensions } from 'react-native';
-import { AppText } from '../../src/components/effects/AppText';
+import { AppText } from '../../src/components/AppText';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';

@@ -1,5 +1,5 @@
 import { View, StyleSheet } from 'react-native';
-import { AppText } from '../effects/AppText';
+import { AppText } from '../AppText';
 import { colors, typography, radius } from '../../theme/tokens';
 import type { Participant } from '../../types';
 
