@@ -25,20 +25,17 @@ import { ReportsSummaryStrip } from '../../src/components/reports/ReportsSummary
 import { AppText } from '../../src/components/AppText';
 
 const skeletonPulseShared = makeMutable(0.4);
+skeletonPulseShared.value = withRepeat(
+  withSequence(
+    withTiming(0.85, { duration: 900 }),
+    withTiming(0.4,  { duration: 900 })
+  ),
+  -1,
+  false
+);
 
 function SkeletonBlock({ height = 100 }: { height?: number }) {
   const { colors: c } = useTheme();
-
-  useEffect(() => {
-    skeletonPulseShared.value = withRepeat(
-      withSequence(
-        withTiming(0.85, { duration: 900 }),
-        withTiming(0.4,  { duration: 900 })
-      ),
-      -1,
-      false
-    );
-  }, []);
 
   const animStyle = useAnimatedStyle(() => ({ opacity: skeletonPulseShared.value }));
 

@@ -112,7 +112,7 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
         >
           <View style={styles.billRowTitleWrap}>
             <View style={styles.billRowTitleLine}>
-              <AppText style={styles.billRowTitle} numberOfLines={1}>
+              <AppText style={[styles.billRowTitle, { color: c.textPrimary }]} numberOfLines={1}>
                 {bill.title}
               </AppText>
               {bill.isRecurring ? (
@@ -133,7 +133,7 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
                   </AppText>
                 </>
               ) : (
-                <AppText style={styles.billRowMetaText}>
+                <AppText style={[styles.billRowMetaText, { color: c.textSecondary }]}>
                   Due {new Date(bill.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })} ·{' '}
                   {stats.paidCount}/{stats.totalCount} paid
                 </AppText>
@@ -141,11 +141,11 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
             </View>
           </View>
           <View style={styles.billRowAmountWrap}>
-            <AppText style={styles.billRowAmount}>
+            <AppText style={[styles.billRowAmount, { color: c.textPrimary }]}>
               {sym}
               {fmt(bill.totalAmount)}
             </AppText>
-            <AppText style={styles.billRowCollected}>
+            <AppText style={[styles.billRowCollected, { color: c.textSecondary }]}>
               {sym}
               {fmt(stats.collected)} in
             </AppText>
@@ -163,7 +163,7 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
             <AnimatedBar
               pct={stats.pct}
               height={5}
-              trackColor={colors.gray100}
+              trackColor={c.gray100}
               fillColor={barColor}
               duration={780}
               delay={120}
@@ -305,7 +305,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: c.background }]}>
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + spacing[2] }]}
         showsVerticalScrollIndicator={false}
@@ -333,7 +333,7 @@ export default function HomeScreen() {
                 </View>
               </LinearGradient>
             </Pressable>
-            <AppText style={styles.topTitle}>GoCheck</AppText>
+            <AppText style={[styles.topTitle, { color: c.textPrimary }]}>GoCheck</AppText>
             <Pressable
               onPress={() => router.push('/(modals)/reminders')}
               accessibilityRole="button"
@@ -461,7 +461,7 @@ export default function HomeScreen() {
             <FadeInUp index={2}>
               <View style={styles.sectionHead}>
                 <View style={styles.sectionHeadLeft}>
-                  <AppText style={styles.sectionTitle}>Needs a nudge</AppText>
+                  <AppText style={[styles.sectionTitle, { color: c.textPrimary }]}>Needs a nudge</AppText>
                   <View style={styles.nudgeCount}>
                     <AppText style={styles.nudgeCountText}>{needsNudge.length}</AppText>
                   </View>
@@ -493,7 +493,7 @@ export default function HomeScreen() {
                         </View>
                         <View style={styles.nudgeInfo}>
                           <View style={styles.nudgeNameLine}>
-                            <AppText style={styles.nudgeName} numberOfLines={1}>
+                            <AppText style={[styles.nudgeName, { color: c.textPrimary }]} numberOfLines={1}>
                               {row.item.participantName}
                             </AppText>
                             {row.pendingReview ? (
@@ -507,7 +507,7 @@ export default function HomeScreen() {
                               </View>
                             )}
                           </View>
-                          <AppText style={styles.nudgeMeta} numberOfLines={1}>
+                          <AppText style={[styles.nudgeMeta, { color: c.textSecondary }]} numberOfLines={1}>
                             {row.item.billTitle} ·{' '}
                             {row.pendingReview ? (
                               <AppText style={styles.nudgeMetaPending}>submitted payment</AppText>
@@ -521,7 +521,7 @@ export default function HomeScreen() {
                           </AppText>
                         </View>
                         <View style={styles.nudgeRight}>
-                          <AppText style={styles.nudgeAmount}>
+                          <AppText style={[styles.nudgeAmount, { color: c.textPrimary }]}>
                             {s}
                             {fmt(row.item.amount)}
                           </AppText>
@@ -558,7 +558,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <FadeInUp index={needsNudge.length > 0 ? 4 : 2}>
             <View style={styles.billsHead}>
-              <AppText style={styles.sectionTitle}>Your bills</AppText>
+              <AppText style={[styles.sectionTitle, { color: c.textPrimary }]}>Your bills</AppText>
               <SheenButton
                 onPress={() => router.push('/(modals)/create')}
                 accessibilityLabel="Create new bill"
@@ -588,13 +588,13 @@ export default function HomeScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={`${t.label} bills`}
                     accessibilityState={{ selected: active }}
-                    style={[styles.filterPill, active ? styles.filterPillActive : styles.filterPillIdle]}
+                    style={[styles.filterPill, active ? styles.filterPillActive : [styles.filterPillIdle, { backgroundColor: c.surface }]]}
                   >
-                    <AppText style={[styles.filterPillText, active && styles.filterPillTextActive]}>
+                    <AppText style={[styles.filterPillText, { color: c.textSecondary }, active && styles.filterPillTextActive]}>
                       {t.label}
                     </AppText>
-                    <View style={[styles.filterBadge, active && styles.filterBadgeActive]}>
-                      <AppText style={[styles.filterBadgeText, active && styles.filterBadgeTextActive]}>
+                    <View style={[styles.filterBadge, { backgroundColor: c.gray100 }, active && styles.filterBadgeActive]}>
+                      <AppText style={[styles.filterBadgeText, { color: c.textSecondary }, active && styles.filterBadgeTextActive]}>
                         {t.count}
                       </AppText>
                     </View>
@@ -629,10 +629,10 @@ export default function HomeScreen() {
                   </View>
                 </View>
                 <View style={styles.emptyTitleRow}>
-                  <AppText style={styles.emptyTitle}>All </AppText>
-                  <ColourfulText text="settled" style={styles.emptyTitle} />
+                  <AppText style={[styles.emptyTitle, { color: c.textPrimary }]}>All </AppText>
+                  <ColourfulText text="settled" style={[styles.emptyTitle, { color: c.textPrimary }]} />
                 </View>
-                <AppText style={styles.emptySub}>You're all caught up. Time to relax.</AppText>
+                <AppText style={[styles.emptySub, { color: c.textSecondary }]}>You're all caught up. Time to relax.</AppText>
               </View>
             </FadeInUp>
           ) : (
@@ -661,7 +661,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   scroll: { paddingBottom: spacing[12] },
 
   topBar: {
@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
   },
-  topTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base, color: colors.textPrimary },
+  topTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base },
   bellBtn: { padding: spacing[1.5] },
   bellBadge: {
     position: 'absolute',
@@ -811,7 +811,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[2],
   },
   sectionHeadLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
-  sectionTitle: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: colors.textPrimary },
+  sectionTitle: { fontFamily: typography.sansBold, fontSize: fontSize.base },
   nudgeCount: {
     backgroundColor: colors.warningSurface,
     borderRadius: radius.full,
@@ -837,17 +837,17 @@ const styles = StyleSheet.create({
   nudgeAvatarText: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: colors.white },
   nudgeInfo: { flex: 1, minWidth: 0 },
   nudgeNameLine: { flexDirection: 'row', alignItems: 'center', gap: spacing[1.5] },
-  nudgeName: { fontFamily: typography.sansSemiBold, fontSize: fontSize.sm, color: colors.textPrimary, flexShrink: 1 },
+  nudgeName: { fontFamily: typography.sansSemiBold, fontSize: fontSize.sm, flexShrink: 1 },
   relChip: { borderRadius: radius.full, paddingHorizontal: spacing[1.5], paddingVertical: 1 },
   relChipText: { fontFamily: typography.sansBold, fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.3 },
-  nudgeMeta: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: colors.textSecondary, marginTop: 1 },
+  nudgeMeta: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, marginTop: 1 },
   nudgeMetaOverdue: { fontFamily: typography.sansSemiBold, color: colors.error },
   nudgeMetaPending: { fontFamily: typography.sansSemiBold, color: '#B45309' },
   reviewChip: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#FEF3C7', borderRadius: radius.full, paddingHorizontal: 6, paddingVertical: 2 },
   reviewChipText: { fontFamily: typography.sansBold, fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.3, color: '#B45309' },
   reviewBtn: { backgroundColor: '#B45309', shadowColor: '#B45309' },
   nudgeRight: { alignItems: 'flex-end', gap: spacing[1.5] },
-  nudgeAmount: { fontFamily: typography.monoMedium, fontSize: fontSize.sm, color: colors.textPrimary },
+  nudgeAmount: { fontFamily: typography.monoMedium, fontSize: fontSize.sm },
   waBtn: {
     width: 32,
     height: 32,
@@ -880,11 +880,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   filterPillActive: { backgroundColor: colors.gray900 },
-  filterPillIdle: { backgroundColor: colors.surface },
-  filterPillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs, color: colors.textSecondary },
+  filterPillIdle: {},
+  filterPillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs },
   filterPillTextActive: { color: colors.white },
   filterBadge: {
-    backgroundColor: colors.gray100,
     borderRadius: radius.full,
     paddingHorizontal: spacing[1.5],
     paddingVertical: 1,
@@ -892,7 +891,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterBadgeActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
-  filterBadgeText: { fontFamily: typography.sansMedium, fontSize: fontSize['2xs'], color: colors.textSecondary },
+  filterBadgeText: { fontFamily: typography.sansMedium, fontSize: fontSize['2xs'] },
   filterBadgeTextActive: { color: colors.white },
 
   billRow: {
@@ -902,7 +901,7 @@ const styles = StyleSheet.create({
   billRowTop: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing[2.5] },
   billRowTitleWrap: { flex: 1, minWidth: 0 },
   billRowTitleLine: { flexDirection: 'row', alignItems: 'center', gap: spacing[1.5] },
-  billRowTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base, color: colors.textPrimary, flexShrink: 1 },
+  billRowTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base, flexShrink: 1 },
   recurringChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -914,11 +913,11 @@ const styles = StyleSheet.create({
   },
   recurringChipText: { fontFamily: typography.sansBold, fontSize: 9, color: colors.primary, letterSpacing: 0.3 },
   billRowMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], marginTop: 3 },
-  billRowMetaText: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: colors.textSecondary },
+  billRowMetaText: { fontFamily: typography.sansRegular, fontSize: fontSize.xs },
   billRowMetaOverdue: { fontFamily: typography.sansMedium, fontSize: fontSize.xs, color: colors.error },
   billRowAmountWrap: { alignItems: 'flex-end' },
-  billRowAmount: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: colors.textPrimary },
-  billRowCollected: { fontFamily: typography.monoRegular, fontSize: fontSize['2xs'], color: colors.textSecondary, marginTop: 2 },
+  billRowAmount: { fontFamily: typography.sansBold, fontSize: fontSize.base },
+  billRowCollected: { fontFamily: typography.monoRegular, fontSize: fontSize['2xs'], marginTop: 2 },
   billRowBottom: { flexDirection: 'row', alignItems: 'center', gap: spacing[2.5] },
   billRowBar: { flex: 1 },
 
@@ -940,6 +939,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyTitleRow: { flexDirection: 'row', alignItems: 'baseline' },
-  emptyTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.md, color: colors.textPrimary },
-  emptySub: { fontFamily: typography.sansRegular, fontSize: fontSize.sm, color: colors.textSecondary },
+  emptyTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.md },
+  emptySub: { fontFamily: typography.sansRegular, fontSize: fontSize.sm },
 });

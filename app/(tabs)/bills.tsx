@@ -249,11 +249,11 @@ export default function BillsScreen() {
                 accessibilityState={{ selected: active }}
                 style={[styles.filterPill, active ? styles.filterPillActive : { backgroundColor: c.surface }]}
               >
-                <AppText style={[styles.filterPillText, active && styles.filterPillTextActive]}>
+                <AppText style={[styles.filterPillText, { color: c.textSecondary }, active && styles.filterPillTextActive]}>
                   {t.label}
                 </AppText>
-                <View style={[styles.filterBadge, active && styles.filterBadgeActive]}>
-                  <AppText style={[styles.filterBadgeText, active && styles.filterBadgeTextActive]}>
+                <View style={[styles.filterBadge, { backgroundColor: c.gray100 }, active && styles.filterBadgeActive]}>
+                  <AppText style={[styles.filterBadgeText, { color: c.textSecondary }, active && styles.filterBadgeTextActive]}>
                     {t.count}
                   </AppText>
                 </View>
@@ -378,14 +378,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   filterPillActive: { backgroundColor: colors.gray900 },
-  filterPillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs, color: colors.textSecondary },
+  filterPillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs },
   filterPillTextActive: { color: colors.white },
   filterBadge: {
-    backgroundColor: colors.gray100, borderRadius: radius.full,
+    borderRadius: radius.full,
     paddingHorizontal: spacing[1.5], paddingVertical: 1, minWidth: 18, alignItems: 'center',
   },
   filterBadgeActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
-  filterBadgeText: { fontFamily: typography.sansMedium, fontSize: fontSize['2xs'], color: colors.textSecondary },
+  filterBadgeText: { fontFamily: typography.sansMedium, fontSize: fontSize['2xs'] },
   filterBadgeTextActive: { color: colors.white },
 
   list: { paddingHorizontal: spacing[4], paddingTop: 0, gap: spacing[2.5] },
