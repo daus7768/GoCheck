@@ -315,7 +315,7 @@ function ExpandedStats({ bill }: { bill: Bill }) {
       <AnimatedBar
         pct={stats.pct}
         height={6}
-        trackColor={colors.gray100}
+        trackColor={c.gray100}
         fillColor={stats.done ? colors.secondary : stats.overdue ? colors.error : colors.primary}
         delay={150}
         style={{ marginTop: spacing[3] }}
@@ -354,7 +354,7 @@ function ExpandedParticipants({
                 <View style={[styles.partAvatar, { backgroundColor: p.avatarColor }]}>
                   <AppText style={styles.partAvatarText}>{initial}</AppText>
                   {p.isPaid && (
-                    <View style={styles.partPaidBadge}>
+                    <View style={[styles.partPaidBadge, { borderColor: c.surface }]}>
                       <Feather name="check" size={9} color={colors.white} />
                     </View>
                   )}
