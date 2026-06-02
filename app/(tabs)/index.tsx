@@ -29,6 +29,7 @@ import { AnimatedDonut } from '../../src/components/effects/AnimatedDonut';
 import { ColourfulText } from '../../src/components/effects/ColourfulText';
 import { DottedGlowBackground } from '../../src/components/effects/DottedGlowBackground';
 import { SheenButton } from '../../src/components/effects/SheenButton';
+import { TiltCard } from '../../src/components/effects/TiltCard';
 import { GradientBorderRing } from '../../src/components/effects/GradientBorderRing';
 import { AppText } from '../../src/components/AppText';
 import { CURRENCY_SYMBOLS } from '../../src/types';
@@ -349,15 +350,15 @@ export default function HomeScreen() {
 
         {/* Hero */}
         <FadeInUp index={1}>
-          <View style={styles.heroWrap}>
-            <GlowingCard radius={radius.xl} color={colors.primaryLight} background="transparent" borderWidth={1.5}>
+          <TiltCard style={styles.heroWrap}>
+            <GlowingCard radius={radius['2xl']} color={colors.primaryLight} background="transparent" borderWidth={1.5}>
               <LinearGradient
                 colors={[colors.primaryLight, colors.primaryDark]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.hero}
               >
-                {/* Ambient dotted glow behind hero content */}
+                {/* Ambient dotted glow */}
                 <DottedGlowBackground
                   gap={18}
                   radius={1.4}
@@ -373,7 +374,15 @@ export default function HomeScreen() {
                 <View style={styles.heroBlobTop} />
                 <View style={styles.heroBlobBottom} />
                 <View style={styles.heroContent}>
-                  <AppText style={styles.heroEyebrow}>Still to collect</AppText>
+                  {/* Eyebrow row with date */}
+                  <View style={styles.heroEyebrowRow}>
+                    <AppText style={styles.heroEyebrow}>Still to collect</AppText>
+                    <AppText style={styles.heroDateLabel}>
+                      {new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
+                    </AppText>
+                  </View>
+
+                  {/* Amount + donut */}
                   <View style={styles.heroMainRow}>
                     <View style={styles.heroAmountWrap}>
                       {isLoading && bills.length === 0 ? (
@@ -396,8 +405,13 @@ export default function HomeScreen() {
                         across {activeBills.length} active {activeBills.length === 1 ? 'bill' : 'bills'}
                       </AppText>
                     </View>
-                    <AnimatedDonut pct={overallPct} size={78} stroke={6} />
+                    <AnimatedDonut pct={overallPct} size={82} stroke={6} />
                   </View>
+
+                  {/* Separator */}
+                  <View style={styles.heroSeparator} />
+
+                  {/* Progress bar */}
                   <AnimatedBar
                     pct={overallPct}
                     height={6}
@@ -405,7 +419,6 @@ export default function HomeScreen() {
                     fillColor={colors.white}
                     delay={220}
                     duration={950}
-                    style={{ marginTop: spacing[3.5] }}
                   />
                   <View style={styles.splitLabels}>
                     <AppText style={styles.splitLabel}>
@@ -415,10 +428,28 @@ export default function HomeScreen() {
                       Total {sym} {fmt(totals.amount)}
                     </AppText>
                   </View>
+
+                  {/* Quick action row */}
+                  {needsNudge.length > 0 && (
+                    <Pressable
+                      onPress={() => router.push('/(modals)/reminders')}
+                      style={({ pressed }) => [styles.heroActionRow, pressed && { opacity: 0.78 }]}
+                      accessibilityRole="button"
+                      accessibilityLabel="View pending reminders"
+                    >
+                      <View style={styles.heroActionLeft}>
+                        <Feather name="zap" size={12} color="rgba(255,255,255,0.9)" />
+                        <AppText style={styles.heroActionText}>
+                          {needsNudge.length} pending {needsNudge.length === 1 ? 'nudge' : 'nudges'}
+                        </AppText>
+                      </View>
+                      <Feather name="chevron-right" size={14} color="rgba(255,255,255,0.5)" />
+                    </Pressable>
+                  )}
                 </View>
               </LinearGradient>
             </GlowingCard>
-          </View>
+          </TiltCard>
         </FadeInUp>
 
         {/* Needs a nudge */}
@@ -675,8 +706,9 @@ const styles = StyleSheet.create({
   bellBadgeText: { fontFamily: typography.sansBold, fontSize: 9, color: colors.white },
 
   heroWrap: {
-    marginHorizontal: spacing[4],
-    ...shadow.lg,
+    marginTop: spacing[1],
+    marginBottom: spacing[1],
+    ...shadow.indigoPulse,
   },
   hero: {
     padding: spacing[5],
@@ -701,12 +733,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.05)',
   },
   heroContent: { position: 'relative' },
+  heroEyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   heroEyebrow: {
     fontFamily: typography.sansBold,
     fontSize: fontSize.xs,
     color: 'rgba(255,255,255,0.85)',
     letterSpacing: 1,
     textTransform: 'uppercase',
+  },
+  heroDateLabel: {
+    fontFamily: typography.sansRegular,
+    fontSize: fontSize['2xs'],
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 0.4,
   },
   heroMainRow: {
     flexDirection: 'row',
@@ -730,6 +773,31 @@ const styles = StyleSheet.create({
   heroSubBold: { fontFamily: typography.sansBold, color: colors.white },
   splitLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing[1.5] },
   splitLabel: { fontFamily: typography.sansRegular, fontSize: fontSize['2xs'], color: 'rgba(255,255,255,0.85)' },
+  heroSeparator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    marginTop: spacing[3.5],
+    marginBottom: spacing[1],
+  },
+  heroActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing[3],
+    paddingTop: spacing[2.5],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+  },
+  heroActionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1.5],
+  },
+  heroActionText: {
+    fontFamily: typography.sansMedium,
+    fontSize: fontSize.xs,
+    color: 'rgba(255,255,255,0.9)',
+  },
 
   section: { marginHorizontal: spacing[4], marginTop: spacing[4] },
   sectionHead: {
