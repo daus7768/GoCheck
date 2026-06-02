@@ -88,7 +88,7 @@ function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
     return (
       <View style={styles.webContainer}>
         <Animated.View style={[styles.webPhone, animStyle]}>
-          <BackgroundBeams opacityScale={isDark ? 0.55 : 0.18} />
+          <BackgroundBeams opacityScale={isDark ? 0.62 : 0.22} showBase={isDark} />
           {children}
         </Animated.View>
       </View>
@@ -96,7 +96,7 @@ function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
   }
   return (
     <Animated.View style={[{ flex: 1 }, animStyle]}>
-      <BackgroundBeams opacityScale={isDark ? 0.5 : 0.14} />
+      <BackgroundBeams opacityScale={isDark ? 0.58 : 0.18} showBase={isDark} />
       {children}
     </Animated.View>
   );
