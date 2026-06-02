@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoCheck Tab Bar — Wow Factor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0A0A14;
+    color: #F0F0FF;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 32px 24px 60px;
+    min-height: 100vh;
+  }
+
+  h1 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .subtitle { color: #6B7280; font-size: 14px; margin-bottom: 36px; line-height: 1.6; }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+    margin-top: 16px;
+  }
+
+  .option-card {
+    border-radius: 24px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.06);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    background: #0F0F1A;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .option-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.5); border-color: rgba(99,102,241,0.3); }
+  .option-card.selected { border-color: #6366F1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.3), 0 16px 48px rgba(0,0,0,0.5); }
+
+  .card-preview {
+    background: #070710;
+    padding: 20px 16px;
+    position: relative;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+  }
+
+  /* fake screen content behind tab bar */
+  .screen-bg {
+    position: absolute; top: 0; left: 0; right: 0; height: 130px;
+    display: flex; flex-direction: column; gap: 8px; padding: 14px;
+  }
+  .fake-hero {
+    background: linear-gradient(135deg, #4F46E5, #4338CA);
+    border-radius: 12px; height: 56px;
+    box-shadow: 0 4px 20px rgba(79,70,229,0.4);
+    position: relative; overflow: hidden;
+    padding: 10px 12px;
+  }
+  .fake-hero::after {
+    content: ''; position: absolute; top: -20px; right: -20px;
+    width: 80px; height: 80px; border-radius: 99px;
+    background: rgba(255,255,255,0.06);
+  }
+  .fake-hero-text { font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 600; letter-spacing: 0.5px; }
+  .fake-hero-amt  { font-size: 18px; color: #fff; font-weight: 800; margin-top: 2px; }
+  .fake-card {
+    background: rgba(255,255,255,0.03); border-radius: 10px; height: 28px;
+    border: 1px solid rgba(99,102,241,0.1);
+  }
+
+  /* ─── OPTION A: Floating Pill ─── */
+  .tab-floating {
+    position: relative;
+    margin: 0 8px;
+    background: rgba(15,15,28,0.92);
+    border-radius: 24px;
+    border: 1px solid rgba(99,102,241,0.2);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 -4px 32px rgba(99,102,241,0.15), 0 8px 32px rgba(0,0,0,0.5);
+    padding: 8px 6px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 4px;
+  }
+  .tab-floating::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99,102,241,0.5), rgba(99,102,241,0.3), transparent);
+    border-radius: 24px 24px 0 0;
+  }
+  .float-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 2px; padding: 6px 14px; border-radius: 16px;
+    position: relative; flex: 1;
+    transition: all 0.2s;
+  }
+  .float-item.active {
+    background: rgba(99,102,241,0.18);
+    box-shadow: 0 0 20px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .float-item.active::after {
+    content: '';
+    position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+    width: 16px; height: 2px; border-radius: 99px;
+    background: #6366F1;
+    box-shadow: 0 0 8px rgba(99,102,241,0.8);
+  }
+  .float-icon { font-size: 16px; line-height: 1; }
+  .float-icon.active { filter: drop-shadow(0 0 6px rgba(129,140,248,0.8)); }
+  .float-label { font-size: 9px; font-weight: 700; letter-spacing: 0.3px; }
+  .float-label.active { color: #818CF8; }
+  .float-label:not(.active) { color: rgba(255,255,255,0.25); }
+
+  /* ─── OPTION B: Sliding Glow Indicator ─── */
+  .tab-sliding {
+    position: relative;
+    background: rgba(7,7,16,0.9);
+    border-top: 1px solid rgba(99,102,241,0.1);
+    backdrop-filter: blur(24px);
+    padding: 6px 4px 10px;
+    display: flex; justify-content: space-around; align-items: center;
+  }
+  .slide-indicator {
+    position: absolute;
+    top: 6px; left: 22px;
+    width: 56px; height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(99,102,241,0.08));
+    box-shadow: 0 0 24px rgba(99,102,241,0.35);
+    border: 1px solid rgba(99,102,241,0.3);
+  }
+  .slide-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 8px 12px; border-radius: 14px; position: relative; z-index: 1;
+    min-width: 56px;
+  }
+  .slide-icon { font-size: 18px; }
+  .slide-icon.active { filter: drop-shadow(0 0 8px rgba(129,140,248,1)); font-size: 20px; }
+  .slide-label { font-size: 9px; font-weight: 700; }
+  .slide-label.active { color: #A5B4FC; }
+  .slide-label:not(.active) { color: rgba(255,255,255,0.2); }
+
+  /* ─── OPTION C: Icon-Only Expander ─── */
+  .tab-expander {
+    background: rgba(7,7,16,0.88);
+    border-top: 1px solid rgba(99,102,241,0.08);
+    backdrop-filter: blur(24px);
+    padding: 8px 8px 12px;
+    display: flex; justify-content: space-around; align-items: flex-end;
+  }
+  .exp-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .exp-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 99px;
+  }
+  .exp-pill.active {
+    background: linear-gradient(135deg, #4F46E5, #6366F1);
+    box-shadow: 0 0 20px rgba(99,102,241,0.5), 0 4px 12px rgba(79,70,229,0.3);
+    padding: 8px 18px;
+  }
+  .exp-icon { font-size: 16px; }
+  .exp-label { font-size: 10px; font-weight: 700; color: #fff; }
+  .exp-dot { width: 3px; height: 3px; border-radius: 99px; background: rgba(255,255,255,0.3); margin-top: 2px; }
+  .exp-dot.active { background: #6366F1; box-shadow: 0 0 6px rgba(99,102,241,0.8); }
+
+  /* card meta */
+  .card-meta {
+    padding: 16px 20px 20px;
+    background: #0F0F1A;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .option-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 99px;
+    margin-bottom: 8px;
+  }
+  .tag-a { background: rgba(99,102,241,0.12); color: #818CF8; border: 1px solid rgba(99,102,241,0.25); }
+  .tag-b { background: rgba(16,185,129,0.1); color: #34D399; border: 1px solid rgba(16,185,129,0.2); }
+  .tag-c { background: rgba(245,158,11,0.1); color: #FCD34D; border: 1px solid rgba(245,158,11,0.2); }
+  .card-title { font-size: 15px; font-weight: 800; color: #F0F0FF; margin-bottom: 6px; }
+  .card-desc { font-size: 12px; color: #6B7280; line-height: 1.65; }
+
+  /* animation details */
+  .anim-list {
+    margin-top: 12px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .anim-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 11px; color: #9CA3AF; line-height: 1.5;
+  }
+  .anim-bullet { color: #6366F1; font-size: 10px; margin-top: 2px; flex-shrink: 0; }
+
+  .rec-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, rgba(99,102,241,0.2), rgba(16,185,129,0.15));
+    color: #A5B4FC; font-size: 10px; font-weight: 700;
+    padding: 3px 10px; border-radius: 99px;
+    border: 1px solid rgba(99,102,241,0.3);
+    margin-left: 8px;
+  }
+
+  .note-box {
+    margin-top: 32px;
+    padding: 18px 20px;
+    background: rgba(99,102,241,0.05);
+    border: 1px solid rgba(99,102,241,0.12);
+    border-radius: 16px;
+    font-size: 12px; color: #9CA3AF; line-height: 1.7;
+  }
+  .note-box strong { color: #A5B4FC; }
+</style>
+</head>
+<body>
+
+<h1>Tab Bar — Which "wow" direction? ✨</h1>
+<p class="subtitle">Three premium tab bar designs. All have spring animations, haptics, and glow effects. Pick the one that excites you most.</p>
+
+<div class="options-grid">
+
+  <!-- A: Floating Pill -->
+  <div class="option-card" data-choice="floating" onclick="toggleSelect(this)">
+    <div class="card-preview">
+      <div class="screen-bg">
+        <div class="fake-hero">
+          <div class="fake-hero-text">STILL TO COLLECT</div>
+          <div class="fake-hero-amt">RM 47.80</div>
+        </div>
+        <div class="fake-card"></div>
+      </div>
+      <div class="tab-floating">
+        <div class="float-item active">
+          <span class="float-icon active">⌂</span>
+          <span class="float-label active">Home</span>
+        </div>
+        <div class="float-item">
+          <span class="float-icon" style="color:rgba(255,255,255,0.3)">≡</span>
+          <span class="float-label">Bills</span>
+        </div>
+        <div class="float-item">
+          <span class="float-icon" style="color:rgba(255,255,255,0.3)">↗</span>
+          <span class="float-label">Reports</span>
+        </div>
+        <div class="float-item">
+          <span class="float-icon" style="color:rgba(255,255,255,0.3)">◎</span>
+          <span class="float-label">Profile</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-meta">
+      <span class="option-tag tag-a">A</span>
+      <span class="rec-badge">★ Recommended</span>
+      <div class="card-title">Floating Rounded Bar</div>
+      <div class="card-desc">The entire tab bar is a floating pill with rounded corners, lifted off the bottom edge. Glassmorphic dark glass with an indigo top-edge shimmer line.</div>
+      <div class="anim-list">
+        <div class="anim-item"><span class="anim-bullet">◆</span> Active pill springs in with scale + opacity (Reanimated withSpring)</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Active icon glows with drop-shadow pulse (withRepeat)</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> A 2px indigo line slides under the active tab (withSpring translateX)</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Icon scales 1.0 → 1.15 on press (withSpring bounce)</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Haptic feedback on every tab switch</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B: Sliding Glow -->
+  <div class="option-card" data-choice="sliding" onclick="toggleSelect(this)">
+    <div class="card-preview">
+      <div class="screen-bg">
+        <div class="fake-hero">
+          <div class="fake-hero-text">STILL TO COLLECT</div>
+          <div class="fake-hero-amt">RM 47.80</div>
+        </div>
+        <div class="fake-card"></div>
+      </div>
+      <div class="tab-sliding">
+        <div class="slide-indicator"></div>
+        <div class="slide-item">
+          <span class="slide-icon active">⌂</span>
+          <span class="slide-label active">Home</span>
+        </div>
+        <div class="slide-item">
+          <span class="slide-icon" style="color:rgba(255,255,255,0.25)">≡</span>
+          <span class="slide-label">Bills</span>
+        </div>
+        <div class="slide-item">
+          <span class="slide-icon" style="color:rgba(255,255,255,0.25)">↗</span>
+          <span class="slide-label">Reports</span>
+        </div>
+        <div class="slide-item">
+          <span class="slide-icon" style="color:rgba(255,255,255,0.25)">◎</span>
+          <span class="slide-label">Profile</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-meta">
+      <span class="option-tag tag-b">B</span>
+      <div class="card-title">Sliding Glow Indicator</div>
+      <div class="card-desc">A glowing indigo highlight box slides horizontally between tabs. The icon itself grows and glows when active. Bar stays flush to bottom.</div>
+      <div class="anim-list">
+        <div class="anim-item"><span class="anim-bullet">◆</span> Glow box slides with Reanimated withSpring (damping 20, stiffness 250)</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Active icon scales 1.0 → 1.2 + brightness boost</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Inactive icons fade to 25% opacity (withTiming 180ms)</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Label fades in below active icon only</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Haptic on each switch</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C: Icon Expander Pill -->
+  <div class="option-card" data-choice="expander" onclick="toggleSelect(this)">
+    <div class="card-preview">
+      <div class="screen-bg">
+        <div class="fake-hero">
+          <div class="fake-hero-text">STILL TO COLLECT</div>
+          <div class="fake-hero-amt">RM 47.80</div>
+        </div>
+        <div class="fake-card"></div>
+      </div>
+      <div class="tab-expander">
+        <div class="exp-item">
+          <div class="exp-pill active">
+            <span class="exp-icon">⌂</span>
+            <span class="exp-label">Home</span>
+          </div>
+          <div class="exp-dot active"></div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-pill">
+            <span class="exp-icon" style="color:rgba(255,255,255,0.3);font-size:16px">≡</span>
+          </div>
+          <div class="exp-dot"></div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-pill">
+            <span class="exp-icon" style="color:rgba(255,255,255,0.3);font-size:16px">↗</span>
+          </div>
+          <div class="exp-dot"></div>
+        </div>
+        <div class="exp-item">
+          <div class="exp-pill">
+            <span class="exp-icon" style="color:rgba(255,255,255,0.3);font-size:16px">◎</span>
+          </div>
+          <div class="exp-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-meta">
+      <span class="option-tag tag-c">C</span>
+      <div class="card-title">Expanding Active Pill</div>
+      <div class="card-desc">Inactive tabs show icon only. The active tab expands into a full indigo gradient pill with icon + label. The pill contracts when you leave. Very dynamic.</div>
+      <div class="anim-list">
+        <div class="anim-item"><span class="anim-bullet">◆</span> Pill width expands with Reanimated withSpring (bouncy) from icon-width → icon+label-width</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Label fades in during expansion (staggered 80ms delay)</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Gradient pill: linear indigo with strong glow shadow</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Inactive icons spring down 2px on tab leave</div>
+        <div class="anim-item"><span class="anim-bullet">◆</span> Haptic impact on every switch</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="note-box">
+  <strong>All three options share:</strong> BlurView glassmorphic background (expo-blur, already installed), indigo glow on active state, spring-physics animations via Reanimated v3, haptic feedback on every tap, and work in both light + dark mode. <strong>My recommendation is A (Floating)</strong> — it's the most distinctive and premium-feeling, and the floating style is immediately recognizable as "not a template app."
+</div>
+
+</body>
+</html>

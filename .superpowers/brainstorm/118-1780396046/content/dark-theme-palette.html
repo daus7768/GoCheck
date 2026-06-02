@@ -1,0 +1,243 @@
+<h2>Advanced Dark Mode — Which aesthetic direction?</h2>
+<p class="subtitle">GoCheck uses Indigo (#4F46E5) as primary. Pick the dark atmosphere that feels most premium to you.</p>
+
+<style>
+  .palette-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    margin-top: 8px;
+  }
+  .palette-card {
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+  .palette-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .palette-card.selected { border-color: #6366F1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.35); }
+
+  .screen-preview {
+    padding: 18px;
+    height: 240px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ── A: Deep Void (current + enhanced) ── */
+  .void-bg { background: linear-gradient(145deg, #0A0A0F 0%, #0D0D17 100%); }
+  .void-hero {
+    background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+    border-radius: 14px; padding: 14px;
+    box-shadow: 0 8px 32px rgba(99,102,241,0.45);
+  }
+  .void-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(99,102,241,0.12);
+    border-radius: 12px; padding: 12px;
+    backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .void-tab {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(13,13,23,0.92);
+    border-top: 1px solid rgba(99,102,241,0.12);
+    backdrop-filter: blur(16px);
+    padding: 8px 18px;
+    display: flex; justify-content: space-around; align-items: center;
+  }
+
+  /* ── B: Midnight Navy ── */
+  .navy-bg { background: linear-gradient(145deg, #080E1D 0%, #0B1425 100%); }
+  .navy-hero {
+    background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+    border-radius: 14px; padding: 14px;
+    box-shadow: 0 8px 32px rgba(59,130,246,0.4);
+  }
+  .navy-card {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(59,130,246,0.15);
+    border-radius: 12px; padding: 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .navy-tab {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(8,14,29,0.92);
+    border-top: 1px solid rgba(59,130,246,0.12);
+    backdrop-filter: blur(16px);
+    padding: 8px 18px;
+    display: flex; justify-content: space-around; align-items: center;
+  }
+
+  /* ── C: Dark Slate / Vercel-style ── */
+  .slate-bg { background: linear-gradient(145deg, #0F0F13 0%, #171720 100%); }
+  .slate-hero {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    border-radius: 14px; padding: 14px;
+    box-shadow: 0 8px 32px rgba(124,58,237,0.4);
+  }
+  .slate-card {
+    background: #1A1A24;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .slate-tab {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #111118;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 8px 18px;
+    display: flex; justify-content: space-around; align-items: center;
+  }
+
+  .mini-text { color: rgba(255,255,255,0.9); font-size: 12px; font-weight: 700; font-family: -apple-system, sans-serif; }
+  .mini-sub  { color: rgba(255,255,255,0.55); font-size: 10px; font-family: -apple-system, sans-serif; margin-top: 2px; }
+  .mini-amt  { color: #fff; font-size: 20px; font-weight: 800; font-family: -apple-system, sans-serif; }
+  .mini-icon { color: rgba(255,255,255,0.35); font-size: 16px; }
+  .mini-icon.active { color: #6366F1; }
+
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; font-family: -apple-system, sans-serif;
+    padding: 4px 12px; border-radius: 99px;
+    margin-bottom: 8px;
+  }
+  .tag-void  { background: rgba(99,102,241,0.15); color: #818CF8; border: 1px solid rgba(99,102,241,0.25); }
+  .tag-navy  { background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid rgba(59,130,246,0.25); }
+  .tag-slate { background: rgba(124,58,237,0.15); color: #A78BFA; border: 1px solid rgba(124,58,237,0.25); }
+
+  .card-meta { padding: 14px 16px 16px; }
+  .card-meta h3 { margin: 0 0 4px; font-size: 14px; font-weight: 700; font-family: -apple-system, sans-serif; }
+  .card-meta p  { margin: 0; font-size: 12px; color: #888; font-family: -apple-system, sans-serif; line-height: 1.5; }
+
+  .dot-row { display: flex; gap: 6px; margin-top: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .glow-bar {
+    height: 4px; border-radius: 2px;
+    background: linear-gradient(90deg, #6366F1, #10B981);
+    margin-top: 6px; opacity: 0.7;
+  }
+</style>
+
+<div class="palette-cards">
+
+  <!-- A: Deep Void -->
+  <div class="palette-card" data-choice="void" onclick="toggleSelect(this)" style="background:#0A0A0F">
+    <div class="screen-preview void-bg">
+      <div class="void-hero">
+        <div class="mini-sub">STILL TO COLLECT</div>
+        <div class="mini-amt">RM 47.80</div>
+        <div class="glow-bar"></div>
+      </div>
+      <div class="void-card">
+        <div class="mini-text">Nasi Kandar</div>
+        <div class="mini-sub">Due Jun 8 · 1/2 paid</div>
+      </div>
+      <div class="void-card">
+        <div class="mini-text">Team Lunch</div>
+        <div class="mini-sub">Due Jun 12 · 0/3 paid</div>
+      </div>
+      <div class="void-tab">
+        <span class="mini-icon active">⌂</span>
+        <span class="mini-icon">≡</span>
+        <span class="mini-icon">↗</span>
+        <span class="mini-icon">◎</span>
+      </div>
+    </div>
+    <div class="card-meta" style="background:#0D0D17; border-top: 1px solid rgba(99,102,241,0.1)">
+      <span class="tag tag-void">⬛ Deep Void</span>
+      <h3 style="color:#F9FAFB">Ultra-dark + Indigo Glow</h3>
+      <p>Near-black backgrounds (#0A0A0F) with indigo atmospheric glow on cards. Cards use glassmorphism with subtle indigo border. Feels like outer space. Dramatic.</p>
+      <div class="dot-row">
+        <div class="dot" style="background:#0A0A0F;border:1px solid #333"></div>
+        <div class="dot" style="background:#13131A;border:1px solid #333"></div>
+        <div class="dot" style="background:#6366F1"></div>
+        <div class="dot" style="background:#10B981"></div>
+        <div class="dot" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B: Midnight Navy -->
+  <div class="palette-card" data-choice="navy" onclick="toggleSelect(this)" style="background:#080E1D">
+    <div class="screen-preview navy-bg">
+      <div class="navy-hero">
+        <div class="mini-sub">STILL TO COLLECT</div>
+        <div class="mini-amt">RM 47.80</div>
+        <div class="glow-bar" style="background:linear-gradient(90deg,#6366F1,#3B82F6)"></div>
+      </div>
+      <div class="navy-card">
+        <div class="mini-text">Nasi Kandar</div>
+        <div class="mini-sub">Due Jun 8 · 1/2 paid</div>
+      </div>
+      <div class="navy-card">
+        <div class="mini-text">Team Lunch</div>
+        <div class="mini-sub">Due Jun 12 · 0/3 paid</div>
+      </div>
+      <div class="navy-tab">
+        <span class="mini-icon active" style="color:#6366F1">⌂</span>
+        <span class="mini-icon">≡</span>
+        <span class="mini-icon">↗</span>
+        <span class="mini-icon">◎</span>
+      </div>
+    </div>
+    <div class="card-meta" style="background:#0B1425; border-top: 1px solid rgba(59,130,246,0.1)">
+      <span class="tag tag-navy">🌊 Midnight Navy</span>
+      <h3 style="color:#F9FAFB">Rich Navy + Blue Tones</h3>
+      <p>Deep navy backgrounds (#080E1D) with blue-indigo gradient accents. Warmer feel, like a premium finance app. Reminds of Bloomberg, Robinhood dark.</p>
+      <div class="dot-row">
+        <div class="dot" style="background:#080E1D;border:1px solid #333"></div>
+        <div class="dot" style="background:#0D1830;border:1px solid #333"></div>
+        <div class="dot" style="background:#6366F1"></div>
+        <div class="dot" style="background:#3B82F6"></div>
+        <div class="dot" style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C: Dark Slate -->
+  <div class="palette-card" data-choice="slate" onclick="toggleSelect(this)" style="background:#0F0F13">
+    <div class="screen-preview slate-bg">
+      <div class="slate-hero">
+        <div class="mini-sub">STILL TO COLLECT</div>
+        <div class="mini-amt">RM 47.80</div>
+        <div class="glow-bar" style="background:linear-gradient(90deg,#4F46E5,#7C3AED)"></div>
+      </div>
+      <div class="slate-card">
+        <div class="mini-text">Nasi Kandar</div>
+        <div class="mini-sub" style="color:rgba(255,255,255,0.45)">Due Jun 8 · 1/2 paid</div>
+      </div>
+      <div class="slate-card">
+        <div class="mini-text">Team Lunch</div>
+        <div class="mini-sub" style="color:rgba(255,255,255,0.45)">Due Jun 12 · 0/3 paid</div>
+      </div>
+      <div class="slate-tab">
+        <span class="mini-icon active" style="color:#A78BFA">⌂</span>
+        <span class="mini-icon">≡</span>
+        <span class="mini-icon">↗</span>
+        <span class="mini-icon">◎</span>
+      </div>
+    </div>
+    <div class="card-meta" style="background:#171720; border-top: 1px solid rgba(255,255,255,0.05)">
+      <span class="tag tag-slate">🎯 Dark Slate</span>
+      <h3 style="color:#F9FAFB">Pure Dark + Purple Accent</h3>
+      <p>Near-neutral dark slate (#0F0F13) with purple-indigo accents. Clean, solid surfaces like Linear or Vercel. Most legible, most "standard premium" feel.</p>
+      <div class="dot-row">
+        <div class="dot" style="background:#0F0F13;border:1px solid #333"></div>
+        <div class="dot" style="background:#1A1A24;border:1px solid #333"></div>
+        <div class="dot" style="background:#4F46E5"></div>
+        <div class="dot" style="background:#7C3AED"></div>
+        <div class="dot" style="background:#1A1A24;border:1px solid rgba(255,255,255,0.1)"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:20px;text-align:center">Click a card to select it, then let me know in the terminal. You can also mix ideas ("I want A's darkness with C's card style").</p>
