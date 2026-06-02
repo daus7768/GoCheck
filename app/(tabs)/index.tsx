@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
+import { useTheme } from '../../src/theme/ThemeContext';
 import { useBillStore } from '../../src/store/billStore';
 import { useReminderStore } from '../../src/store/reminderStore';
 import { useProfileStore } from '../../src/store/profileStore';
@@ -81,6 +82,7 @@ interface NudgeRow {
 }
 
 function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
+  const { colors: c } = useTheme();
   const stats = getBillStats(bill);
   const sym = CURRENCY_SYMBOLS[bill.currency] ?? bill.currency;
   const status = stats.done ? 'paid' : stats.overdue ? 'overdue' : stats.pct >= 50 ? 'partial' : 'unpaid';
@@ -100,7 +102,7 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
   const openLabel = `Open ${bill.title}`;
 
   return (
-    <GlowingCard radius={radius.lg} color={glowColor} background={colors.surface}>
+    <GlowingCard radius={radius.lg} color={glowColor} background={c.surface}>
       <View style={styles.billRow}>
         <Pressable
           style={({ pressed }) => [styles.billRowTop, pressed && { opacity: 0.92 }]}
@@ -182,6 +184,7 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
 }
 
 export default function HomeScreen() {
+  const { colors: c } = useTheme();
   const insets = useSafeAreaInsets();
   const { bills, fetchBills, isLoading } = useBillStore();
   const { sendReminder } = useReminderStore();
@@ -629,7 +632,9 @@ export default function HomeScreen() {
                   <AppText style={styles.emptyTitle}>All </AppText>
                   <ColourfulText text="settled" style={styles.emptyTitle} />
                 </View>
-                <AppText style={styles.emptySub}>You're all caught up. Time to relax.</AppText>
+                <FadeInUp index={1}>
+                  <AppText style={styles.emptySub}>You're all caught up. Time to relax.</AppText>
+                </FadeInUp>
               </View>
             </FadeInUp>
           ) : (
@@ -708,6 +713,7 @@ const styles = StyleSheet.create({
   heroWrap: {
     marginTop: spacing[1],
     marginBottom: spacing[1],
+    marginHorizontal: spacing[4],
     ...shadow.indigoPulse,
   },
   hero: {
@@ -799,7 +805,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.9)',
   },
 
-  section: { marginHorizontal: spacing[4], marginTop: spacing[4] },
+  section: { marginHorizontal: spacing[4], marginTop: spacing[5] },
   sectionHead: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -807,7 +813,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[2],
   },
   sectionHeadLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
-  sectionTitle: { fontFamily: typography.sansBold, fontSize: fontSize.sm, color: colors.textPrimary },
+  sectionTitle: { fontFamily: typography.sansBold, fontSize: fontSize.base, color: colors.textPrimary },
   nudgeCount: {
     backgroundColor: colors.warningSurface,
     borderRadius: radius.full,
