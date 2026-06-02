@@ -484,7 +484,7 @@ export default function HomeScreen() {
                   <FadeInUp index={3 + i} key={`${row.item.billId}:${row.item.participantId}`}>
                     <GlowingCard
                       radius={radius.lg}
-                      background={colors.surface}
+                      background={c.surface}
                       color={row.overdue ? colors.error : colors.primary}
                     >
                       <View style={styles.nudgeRow}>
