@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
   Pressable,
@@ -20,6 +19,7 @@ import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill } from '../../src/types';
 import { shareBillLink } from '../../src/lib/share';
 import { GlowingCard } from '../../src/components/effects/GlowingCard';
+import { AppText } from '../../src/components/AppText';
 
 function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void; onShare: () => void }) {
   const paidCount = bill.participants.filter((p) => p.isPaid).length;
@@ -38,15 +38,15 @@ function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void;
     >
       <View style={styles.cardHeader}>
         <View style={styles.cardTitleRow}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{bill.title}</Text>
+          <AppText style={styles.cardTitle} numberOfLines={1}>{bill.title}</AppText>
           <View style={[styles.badge, bill.status === 'complete' && styles.badgeDone]}>
-            <Text style={[styles.badgeText, bill.status === 'complete' && styles.badgeTextDone]}>
+            <AppText style={[styles.badgeText, bill.status === 'complete' && styles.badgeTextDone]}>
               {bill.status === 'complete' ? 'Completed' : 'Active'}
-            </Text>
+            </AppText>
           </View>
         </View>
         {bill.description ? (
-          <Text style={styles.cardDesc} numberOfLines={1}>{bill.description}</Text>
+          <AppText style={styles.cardDesc} numberOfLines={1}>{bill.description}</AppText>
         ) : null}
       </View>
 
@@ -54,21 +54,21 @@ function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void;
         <View style={styles.progressBarTrack}>
           <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
         </View>
-        <Text style={styles.progressLabel}>{percent}%</Text>
+        <AppText style={styles.progressLabel}>{percent}%</AppText>
       </View>
 
       <View style={styles.cardMeta}>
         <View style={styles.metaItem}>
           <Feather name="users" size={13} color={colors.textSecondary} />
-          <Text style={styles.metaText}>{paidCount}/{total} paid</Text>
+          <AppText style={styles.metaText}>{paidCount}/{total} paid</AppText>
         </View>
         <View style={styles.metaItem}>
           <Feather name="calendar" size={13} color={colors.textSecondary} />
-          <Text style={styles.metaText}>Due {format(new Date(bill.dueDate), 'dd MMM')}</Text>
+          <AppText style={styles.metaText}>Due {format(new Date(bill.dueDate), 'dd MMM')}</AppText>
         </View>
-        <Text style={styles.cardAmount}>
+        <AppText style={styles.cardAmount}>
           {sym}{amountCollected.toFixed(2)} / {sym}{bill.totalAmount.toFixed(2)}
-        </Text>
+        </AppText>
       </View>
 
       <View style={styles.cardActions}>
@@ -78,14 +78,14 @@ function BillCard({ bill, onPress, onShare }: { bill: Bill; onPress: () => void;
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Feather name="share-2" size={14} color={colors.primary} />
-          <Text style={styles.actionBtnText}>Share Link</Text>
+          <AppText style={styles.actionBtnText}>Share Link</AppText>
         </Pressable>
         <Pressable
           style={[styles.actionBtn, styles.actionBtnFilled]}
           onPress={onPress}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={styles.actionBtnFilledText}>View Details</Text>
+          <AppText style={styles.actionBtnFilledText}>View Details</AppText>
           <Feather name="chevron-right" size={14} color={colors.white} />
         </Pressable>
       </View>
@@ -126,11 +126,11 @@ export default function BillsScreen() {
     return (
       <View style={styles.centered}>
         <Feather name="file-text" size={52} color={colors.gray300} />
-        <Text style={styles.emptyTitle}>No bills yet</Text>
-        <Text style={styles.emptyHint}>Bills you create will appear here.</Text>
+        <AppText style={styles.emptyTitle}>No bills yet</AppText>
+        <AppText style={styles.emptyHint}>Bills you create will appear here.</AppText>
         <Pressable style={styles.createBtn} onPress={() => router.push('/(modals)/create')}>
           <Feather name="plus" size={16} color={colors.white} />
-          <Text style={styles.createBtnText}>Create Bill</Text>
+          <AppText style={styles.createBtnText}>Create Bill</AppText>
         </Pressable>
       </View>
     );
@@ -139,7 +139,7 @@ export default function BillsScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>My Bills</Text>
+        <AppText style={styles.title}>My Bills</AppText>
         <View style={styles.headerActions}>
           <Pressable
             style={styles.headerBtn}
@@ -150,7 +150,7 @@ export default function BillsScreen() {
             <Feather name="bell" size={20} color={colors.primary} />
             {bellBadge > 0 && (
               <View style={styles.bellBadge}>
-                <Text style={styles.bellBadgeCount}>{bellBadge > 99 ? '99+' : bellBadge}</Text>
+                <AppText style={styles.bellBadgeCount}>{bellBadge > 99 ? '99+' : bellBadge}</AppText>
               </View>
             )}
           </Pressable>

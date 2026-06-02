@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -23,6 +22,7 @@ import { shareBillLink } from '../../../src/lib/share';
 import { participantUrl } from '../../../src/lib/urls';
 import { GlowingCard } from '../../../src/components/effects/GlowingCard';
 import { PaymentReviewSheet } from '../../../src/components/payment/PaymentReviewSheet';
+import { AppText } from '../../../src/components/AppText';
 
 export default function BillDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -168,7 +168,7 @@ export default function BillDetailScreen() {
         >
           <Feather name="chevron-left" size={22} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>{bill.title}</Text>
+        <AppText style={styles.headerTitle} numberOfLines={1}>{bill.title}</AppText>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <Pressable
             onPress={() => router.push(`/(modals)/bill/${id}/invoice`)}
@@ -198,28 +198,28 @@ export default function BillDetailScreen() {
         <View style={styles.progressCard}>
           <View style={styles.progressHeader}>
             <View>
-              <Text style={styles.progressTitle}>Payment Progress</Text>
-              <Text style={styles.progressSub}>
+              <AppText style={styles.progressTitle}>Payment Progress</AppText>
+              <AppText style={styles.progressSub}>
                 {sym}{amountCollected.toFixed(2)} of {sym}{bill.totalAmount.toFixed(2)}
-              </Text>
+              </AppText>
             </View>
-            <Text style={styles.progressPercent}>{percent}%</Text>
+            <AppText style={styles.progressPercent}>{percent}%</AppText>
           </View>
           <View style={styles.progressBarTrack}>
             <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
           </View>
           <View style={styles.progressStats}>
             <View style={styles.progressStat}>
-              <Text style={styles.progressStatValue}>{confirmedCount}</Text>
-              <Text style={styles.progressStatLabel}>Paid</Text>
+              <AppText style={styles.progressStatValue}>{confirmedCount}</AppText>
+              <AppText style={styles.progressStatLabel}>Paid</AppText>
             </View>
             <View style={styles.progressStat}>
-              <Text style={styles.progressStatValue}>{pendingCount}</Text>
-              <Text style={styles.progressStatLabel}>Review</Text>
+              <AppText style={styles.progressStatValue}>{pendingCount}</AppText>
+              <AppText style={styles.progressStatLabel}>Review</AppText>
             </View>
             <View style={styles.progressStat}>
-              <Text style={styles.progressStatValue}>{unpaidCount}</Text>
-              <Text style={styles.progressStatLabel}>Unpaid</Text>
+              <AppText style={styles.progressStatValue}>{unpaidCount}</AppText>
+              <AppText style={styles.progressStatLabel}>Unpaid</AppText>
             </View>
           </View>
         </View>
@@ -229,23 +229,23 @@ export default function BillDetailScreen() {
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Feather name="calendar" size={14} color={colors.textSecondary} />
-            <Text style={styles.infoText}>Due {format(new Date(bill.dueDate), 'dd MMM yyyy')}</Text>
+            <AppText style={styles.infoText}>Due {format(new Date(bill.dueDate), 'dd MMM yyyy')}</AppText>
           </View>
           <View style={styles.infoItem}>
             <Feather name="globe" size={14} color={colors.textSecondary} />
-            <Text style={styles.infoText}>{bill.currency}</Text>
+            <AppText style={styles.infoText}>{bill.currency}</AppText>
           </View>
           <View style={[styles.infoBadge, bill.status === 'complete' && styles.infoBadgeDone]}>
-            <Text style={[styles.infoBadgeText, bill.status === 'complete' && styles.infoBadgeTextDone]}>
+            <AppText style={[styles.infoBadgeText, bill.status === 'complete' && styles.infoBadgeTextDone]}>
               {bill.status === 'complete' ? 'Completed' : 'Active'}
-            </Text>
+            </AppText>
           </View>
         </View>
 
         {/* Participants */}
         <GlowingCard radius={radius['2xl']} background={colors.surface}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Participants ({totalCount})</Text>
+          <AppText style={styles.sectionTitle}>Participants ({totalCount})</AppText>
           {bill.participants.map((p) => {
             const isConfirmed = p.paymentStatus === 'confirmed';
             const isPending   = p.paymentStatus === 'pending';
@@ -259,33 +259,33 @@ export default function BillDetailScreen() {
                 accessibilityLabel={`Review ${p.name}'s payment`}
               >
                 <View style={[styles.avatar, { backgroundColor: p.avatarColor ?? (isConfirmed ? colors.secondary : colors.gray300) }]}>
-                  <Text style={styles.avatarText}>{p.name.slice(0, 1).toUpperCase()}</Text>
+                  <AppText style={styles.avatarText}>{p.name.slice(0, 1).toUpperCase()}</AppText>
                 </View>
                 <View style={styles.participantInfo}>
-                  <Text style={styles.participantName}>{p.name}</Text>
-                  {p.email ? <Text style={styles.participantEmail}>{p.email}</Text> : null}
-                  {!p.email && p.phone ? <Text style={styles.participantEmail}>{p.phone}</Text> : null}
+                  <AppText style={styles.participantName}>{p.name}</AppText>
+                  {p.email ? <AppText style={styles.participantEmail}>{p.email}</AppText> : null}
+                  {!p.email && p.phone ? <AppText style={styles.participantEmail}>{p.phone}</AppText> : null}
                   {isConfirmed && p.confirmedAt ? (
-                    <Text style={styles.paidAt}>Paid {format(new Date(p.confirmedAt), 'dd MMM, HH:mm')}</Text>
+                    <AppText style={styles.paidAt}>Paid {format(new Date(p.confirmedAt), 'dd MMM, HH:mm')}</AppText>
                   ) : isPending && p.submittedAt ? (
-                    <Text style={styles.pendingAt}>Submitted {format(new Date(p.submittedAt), 'dd MMM, HH:mm')}</Text>
+                    <AppText style={styles.pendingAt}>Submitted {format(new Date(p.submittedAt), 'dd MMM, HH:mm')}</AppText>
                   ) : isRejected && p.rejectedReason ? (
-                    <Text style={styles.rejectedHint} numberOfLines={1}>{p.rejectedReason}</Text>
+                    <AppText style={styles.rejectedHint} numberOfLines={1}>{p.rejectedReason}</AppText>
                   ) : null}
                 </View>
                 <View style={styles.participantRight}>
-                  <Text style={[styles.participantAmount, isConfirmed && styles.participantAmountPaid]}>
+                  <AppText style={[styles.participantAmount, isConfirmed && styles.participantAmountPaid]}>
                     {sym}{p.amount.toFixed(2)}
-                  </Text>
+                  </AppText>
                   {isConfirmed ? (
                     <View style={[styles.statusPill, styles.statusPillPaid]}>
                       <Feather name="check" size={11} color="#059669" />
-                      <Text style={[styles.statusPillText, { color: '#059669' }]}>Paid</Text>
+                      <AppText style={[styles.statusPillText, { color: '#059669' }]}>Paid</AppText>
                     </View>
                   ) : isPending ? (
                     <View style={[styles.statusPill, styles.statusPillPending]}>
                       <Feather name="eye" size={11} color="#B45309" />
-                      <Text style={[styles.statusPillText, { color: '#B45309' }]}>Review</Text>
+                      <AppText style={[styles.statusPillText, { color: '#B45309' }]}>Review</AppText>
                     </View>
                   ) : isRejected ? (
                     <Pressable
@@ -293,7 +293,7 @@ export default function BillDetailScreen() {
                       style={[styles.statusPill, styles.statusPillRejected]}
                     >
                       <Feather name="rotate-cw" size={11} color="#DC2626" />
-                      <Text style={[styles.statusPillText, { color: '#DC2626' }]}>Re-send</Text>
+                      <AppText style={[styles.statusPillText, { color: '#DC2626' }]}>Re-send</AppText>
                     </Pressable>
                   ) : (
                     <Pressable
@@ -301,7 +301,7 @@ export default function BillDetailScreen() {
                       style={[styles.statusPill, styles.statusPillSend]}
                     >
                       <Feather name="send" size={11} color={colors.primary} />
-                      <Text style={[styles.statusPillText, { color: colors.primary }]}>Send link</Text>
+                      <AppText style={[styles.statusPillText, { color: colors.primary }]}>Send link</AppText>
                     </Pressable>
                   )}
                 </View>
@@ -324,7 +324,7 @@ export default function BillDetailScreen() {
               ) : (
                 <>
                   <Feather name="check-circle" size={16} color={colors.white} />
-                  <Text style={styles.completeBtnText}>Mark as Complete</Text>
+                  <AppText style={styles.completeBtnText}>Mark as Complete</AppText>
                 </>
               )}
             </Pressable>
@@ -334,7 +334,7 @@ export default function BillDetailScreen() {
               disabled={actionLoading}
             >
               <Feather name="trash-2" size={16} color={colors.error} />
-              <Text style={styles.deleteBtnText}>Delete Bill</Text>
+              <AppText style={styles.deleteBtnText}>Delete Bill</AppText>
             </Pressable>
           </View>
         )}

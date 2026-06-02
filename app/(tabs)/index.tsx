@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   View,
-  Text,
   Image,
   StyleSheet,
   ScrollView,
@@ -31,6 +30,7 @@ import { ColourfulText } from '../../src/components/effects/ColourfulText';
 import { DottedGlowBackground } from '../../src/components/effects/DottedGlowBackground';
 import { SheenButton } from '../../src/components/effects/SheenButton';
 import { GradientBorderRing } from '../../src/components/effects/GradientBorderRing';
+import { AppText } from '../../src/components/AppText';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { Bill, QueueItem, ReliabilityLabel } from '../../src/types';
 
@@ -109,15 +109,15 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
         >
           <View style={styles.billRowTitleWrap}>
             <View style={styles.billRowTitleLine}>
-              <Text style={styles.billRowTitle} numberOfLines={1}>
+              <AppText style={styles.billRowTitle} numberOfLines={1}>
                 {bill.title}
-              </Text>
+              </AppText>
               {bill.isRecurring ? (
                 <View style={styles.recurringChip}>
                   <Feather name="repeat" size={9} color={colors.primary} />
-                  <Text style={styles.recurringChipText}>
+                  <AppText style={styles.recurringChipText}>
                     {bill.isRecurring === 'yearly' ? 'YEARLY' : 'MONTHLY'}
-                  </Text>
+                  </AppText>
                 </View>
               ) : null}
             </View>
@@ -125,27 +125,27 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
               {stats.overdue ? (
                 <>
                   <Feather name="alert-circle" size={11} color={colors.error} />
-                  <Text style={styles.billRowMetaOverdue}>
+                  <AppText style={styles.billRowMetaOverdue}>
                     {Math.abs(stats.daysToDue)}d overdue · {stats.paidCount}/{stats.totalCount} paid
-                  </Text>
+                  </AppText>
                 </>
               ) : (
-                <Text style={styles.billRowMetaText}>
+                <AppText style={styles.billRowMetaText}>
                   Due {new Date(bill.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })} ·{' '}
                   {stats.paidCount}/{stats.totalCount} paid
-                </Text>
+                </AppText>
               )}
             </View>
           </View>
           <View style={styles.billRowAmountWrap}>
-            <Text style={styles.billRowAmount}>
+            <AppText style={styles.billRowAmount}>
               {sym}
               {fmt(bill.totalAmount)}
-            </Text>
-            <Text style={styles.billRowCollected}>
+            </AppText>
+            <AppText style={styles.billRowCollected}>
               {sym}
               {fmt(stats.collected)} in
-            </Text>
+            </AppText>
           </View>
         </Pressable>
 
@@ -329,7 +329,7 @@ export default function HomeScreen() {
                 </View>
               </LinearGradient>
             </Pressable>
-            <Text style={styles.topTitle}>GoCheck</Text>
+            <AppText style={styles.topTitle}>GoCheck</AppText>
             <Pressable
               onPress={() => router.push('/(modals)/reminders')}
               accessibilityRole="button"
@@ -340,7 +340,7 @@ export default function HomeScreen() {
               <Feather name="bell" size={22} color={colors.textPrimary} />
               {needsNudge.length > 0 && (
                 <View style={styles.bellBadge}>
-                  <Text style={styles.bellBadgeText}>{needsNudge.length}</Text>
+                  <AppText style={styles.bellBadgeText}>{needsNudge.length}</AppText>
                 </View>
               )}
             </Pressable>
@@ -373,7 +373,7 @@ export default function HomeScreen() {
                 <View style={styles.heroBlobTop} />
                 <View style={styles.heroBlobBottom} />
                 <View style={styles.heroContent}>
-                  <Text style={styles.heroEyebrow}>Still to collect</Text>
+                  <AppText style={styles.heroEyebrow}>Still to collect</AppText>
                   <View style={styles.heroMainRow}>
                     <View style={styles.heroAmountWrap}>
                       {isLoading && bills.length === 0 ? (
@@ -388,13 +388,13 @@ export default function HomeScreen() {
                           style={styles.heroAmount}
                         />
                       )}
-                      <Text style={styles.heroSub}>
+                      <AppText style={styles.heroSub}>
                         from{' '}
-                        <Text style={styles.heroSubBold}>
+                        <AppText style={styles.heroSubBold}>
                           {needsNudge.length} {needsNudge.length === 1 ? 'person' : 'people'}
-                        </Text>{' '}
+                        </AppText>{' '}
                         across {activeBills.length} active {activeBills.length === 1 ? 'bill' : 'bills'}
-                      </Text>
+                      </AppText>
                     </View>
                     <AnimatedDonut pct={overallPct} size={78} stroke={6} />
                   </View>
@@ -408,12 +408,12 @@ export default function HomeScreen() {
                     style={{ marginTop: spacing[3.5] }}
                   />
                   <View style={styles.splitLabels}>
-                    <Text style={styles.splitLabel}>
+                    <AppText style={styles.splitLabel}>
                       Collected {sym} {fmt(totals.collected)}
-                    </Text>
-                    <Text style={styles.splitLabel}>
+                    </AppText>
+                    <AppText style={styles.splitLabel}>
                       Total {sym} {fmt(totals.amount)}
-                    </Text>
+                    </AppText>
                   </View>
                 </View>
               </LinearGradient>
@@ -427,9 +427,9 @@ export default function HomeScreen() {
             <FadeInUp index={2}>
               <View style={styles.sectionHead}>
                 <View style={styles.sectionHeadLeft}>
-                  <Text style={styles.sectionTitle}>Needs a nudge</Text>
+                  <AppText style={styles.sectionTitle}>Needs a nudge</AppText>
                   <View style={styles.nudgeCount}>
-                    <Text style={styles.nudgeCountText}>{needsNudge.length}</Text>
+                    <AppText style={styles.nudgeCountText}>{needsNudge.length}</AppText>
                   </View>
                 </View>
                 <Pressable
@@ -437,7 +437,7 @@ export default function HomeScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="See all reminders"
                 >
-                  <Text style={styles.seeAll}>See all →</Text>
+                  <AppText style={styles.seeAll}>See all →</AppText>
                 </Pressable>
               </View>
             </FadeInUp>
@@ -455,42 +455,42 @@ export default function HomeScreen() {
                     >
                       <View style={styles.nudgeRow}>
                         <View style={[styles.nudgeAvatar, { backgroundColor: row.item.participantAvatarColor }]}>
-                          <Text style={styles.nudgeAvatarText}>{initial}</Text>
+                          <AppText style={styles.nudgeAvatarText}>{initial}</AppText>
                         </View>
                         <View style={styles.nudgeInfo}>
                           <View style={styles.nudgeNameLine}>
-                            <Text style={styles.nudgeName} numberOfLines={1}>
+                            <AppText style={styles.nudgeName} numberOfLines={1}>
                               {row.item.participantName}
-                            </Text>
+                            </AppText>
                             {row.pendingReview ? (
                               <View style={styles.reviewChip}>
                                 <Feather name="eye" size={10} color="#B45309" />
-                                <Text style={styles.reviewChipText}>Review</Text>
+                                <AppText style={styles.reviewChipText}>Review</AppText>
                               </View>
                             ) : (
                               <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
-                                <Text style={[styles.relChipText, { color: chip.text }]}>{chip.label}</Text>
+                                <AppText style={[styles.relChipText, { color: chip.text }]}>{chip.label}</AppText>
                               </View>
                             )}
                           </View>
-                          <Text style={styles.nudgeMeta} numberOfLines={1}>
+                          <AppText style={styles.nudgeMeta} numberOfLines={1}>
                             {row.item.billTitle} ·{' '}
                             {row.pendingReview ? (
-                              <Text style={styles.nudgeMetaPending}>submitted payment</Text>
+                              <AppText style={styles.nudgeMetaPending}>submitted payment</AppText>
                             ) : row.overdue ? (
-                              <Text style={styles.nudgeMetaOverdue}>{Math.abs(row.daysToDue)}d late</Text>
+                              <AppText style={styles.nudgeMetaOverdue}>{Math.abs(row.daysToDue)}d late</AppText>
                             ) : row.daysToDue === 0 ? (
                               'due today'
                             ) : (
                               `in ${row.daysToDue}d`
                             )}
-                          </Text>
+                          </AppText>
                         </View>
                         <View style={styles.nudgeRight}>
-                          <Text style={styles.nudgeAmount}>
+                          <AppText style={styles.nudgeAmount}>
                             {s}
                             {fmt(row.item.amount)}
-                          </Text>
+                          </AppText>
                           {row.pendingReview ? (
                             <Pressable
                               onPress={() => router.push(`/(modals)/bill/${row.item.billId}`)}
@@ -524,7 +524,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <FadeInUp index={needsNudge.length > 0 ? 4 : 2}>
             <View style={styles.billsHead}>
-              <Text style={styles.sectionTitle}>Your bills</Text>
+              <AppText style={styles.sectionTitle}>Your bills</AppText>
               <SheenButton
                 onPress={() => router.push('/(modals)/create')}
                 accessibilityLabel="Create new bill"
@@ -532,7 +532,7 @@ export default function HomeScreen() {
                 glowBorder
               >
                 <Feather name="plus" size={13} color={colors.white} />
-                <Text style={styles.newBillText}>New bill</Text>
+                <AppText style={styles.newBillText}>New bill</AppText>
               </SheenButton>
             </View>
           </FadeInUp>
@@ -556,13 +556,13 @@ export default function HomeScreen() {
                     accessibilityState={{ selected: active }}
                     style={[styles.filterPill, active ? styles.filterPillActive : styles.filterPillIdle]}
                   >
-                    <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
+                    <AppText style={[styles.filterPillText, active && styles.filterPillTextActive]}>
                       {t.label}
-                    </Text>
+                    </AppText>
                     <View style={[styles.filterBadge, active && styles.filterBadgeActive]}>
-                      <Text style={[styles.filterBadgeText, active && styles.filterBadgeTextActive]}>
+                      <AppText style={[styles.filterBadgeText, active && styles.filterBadgeTextActive]}>
                         {t.count}
-                      </Text>
+                      </AppText>
                     </View>
                   </Pressable>
                 </GradientBorderRing>
@@ -595,10 +595,10 @@ export default function HomeScreen() {
                   </View>
                 </View>
                 <View style={styles.emptyTitleRow}>
-                  <Text style={styles.emptyTitle}>All </Text>
+                  <AppText style={styles.emptyTitle}>All </AppText>
                   <ColourfulText text="settled" style={styles.emptyTitle} />
                 </View>
-                <Text style={styles.emptySub}>You're all caught up. Time to relax.</Text>
+                <AppText style={styles.emptySub}>You're all caught up. Time to relax.</AppText>
               </View>
             </FadeInUp>
           ) : (

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, LayoutChangeEvent } from 'react-native';
+import { View, Pressable, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -12,6 +12,7 @@ import { useProfileStore } from '../../src/store/profileStore';
 import { QueuePane } from '../../src/components/reminders/QueuePane';
 import { SentPane } from '../../src/components/reminders/SentPane';
 import { SettingsPane } from '../../src/components/reminders/SettingsPane';
+import { AppText } from '../../src/components/AppText';
 
 type Tab = 'queue' | 'sent' | 'settings';
 const TABS: { value: Tab; label: string }[] = [
@@ -70,7 +71,7 @@ export default function RemindersScreen() {
         >
           <Feather name="arrow-left" size={22} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.title}>Reminders</Text>
+        <AppText style={styles.title}>Reminders</AppText>
         <View style={styles.headerRight} />
       </View>
 
@@ -88,11 +89,11 @@ export default function RemindersScreen() {
                 accessibilityRole="tab"
                 accessibilityState={{ selected: isActive }}
               >
-                <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+                <AppText style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
                   {tab.value === 'queue' && badgeCount > 0
                     ? `Queue (${badgeCount})`
                     : tab.label}
-                </Text>
+                </AppText>
               </Pressable>
             );
           })}

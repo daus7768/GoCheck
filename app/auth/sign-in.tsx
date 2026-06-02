@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -22,6 +21,7 @@ import { FadeInUp } from '../../src/components/effects/FadeInUp';
 import { GlowingCard } from '../../src/components/effects/GlowingCard';
 import { GlareCard } from '../../src/components/effects/GlareCard';
 import { NoiseBackground } from '../../src/components/effects/NoiseBackground';
+import { AppText } from '../../src/components/AppText';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -83,19 +83,19 @@ export default function SignInScreen() {
             <View style={styles.logoGlow}>
               <Image source={require('../../assets/logo.png')} style={styles.logoIcon} />
             </View>
-            <Text style={styles.logoText}>GoCheck</Text>
-            <Text style={styles.tagline}>Bill splitting, beautifully simple</Text>
+            <AppText style={styles.logoText}>GoCheck</AppText>
+            <AppText style={styles.tagline}>Bill splitting, beautifully simple</AppText>
           </FadeInUp>
 
           {/* Hero */}
           <FadeInUp index={1} style={styles.heroSection}>
-            <Text style={styles.heroTitle}>
+            <AppText style={styles.heroTitle}>
               Welcome,{' '}
-              <Text style={styles.heroTitleAccent}>Organizer</Text>
-            </Text>
-            <Text style={styles.heroSubtitle}>
+              <AppText style={styles.heroTitleAccent}>Organizer</AppText>
+            </AppText>
+            <AppText style={styles.heroSubtitle}>
               Create bills, track payments, and settle up with your group — all in one place.
-            </Text>
+            </AppText>
           </FadeInUp>
 
           {/* Features */}
@@ -117,7 +117,7 @@ export default function SignInScreen() {
                         color="#A5B4FC"
                       />
                     </View>
-                    <Text style={styles.featureText}>{f.text}</Text>
+                    <AppText style={styles.featureText}>{f.text}</AppText>
                     <GlareCard radius={radius.lg} intensity={0.3} />
                   </View>
                 </GlowingCard>
@@ -136,10 +136,10 @@ export default function SignInScreen() {
             >
               <View style={styles.cardInner}>
                 <GlassCard>
-                  <Text style={styles.cardTitle}>Get started</Text>
-                  <Text style={styles.cardSubtitle}>
+                  <AppText style={styles.cardTitle}>Get started</AppText>
+                  <AppText style={styles.cardSubtitle}>
                     Use your Google account to sign in or create your organizer account.
-                  </Text>
+                  </AppText>
 
                   <NoiseBackground
                     radius={999}
@@ -159,19 +159,19 @@ export default function SignInScreen() {
                       ) : (
                         <>
                           <GoogleLogo />
-                          <Text style={styles.googleBtnText} numberOfLines={1}>Continue with Google</Text>
+                          <AppText style={styles.googleBtnText} numberOfLines={1}>Continue with Google</AppText>
                           <Feather name="arrow-right" size={18} color="#111827" style={styles.googleBtnArrow} />
                         </>
                       )}
                     </TouchableOpacity>
                   </NoiseBackground>
 
-                  <Text style={styles.terms}>
+                  <AppText style={styles.terms}>
                     By continuing you agree to our{' '}
-                    <Text style={styles.termsLink}>Terms of Service</Text>
+                    <AppText style={styles.termsLink}>Terms of Service</AppText>
                     {' '}and{' '}
-                    <Text style={styles.termsLink}>Privacy Policy</Text>
-                  </Text>
+                    <AppText style={styles.termsLink}>Privacy Policy</AppText>
+                  </AppText>
                 </GlassCard>
                 <GlareCard radius={radius['2xl']} />
               </View>
@@ -216,7 +216,7 @@ function GlassCard({ children }: { children: React.ReactNode }) {
 function GoogleLogo() {
   return (
     <View style={styles.googleLogo}>
-      <Text style={styles.googleLogoG}>G</Text>
+      <AppText style={styles.googleLogoG}>G</AppText>
     </View>
   );
 }

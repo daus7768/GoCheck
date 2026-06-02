@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, RefreshControl, StyleSheet,
+  View, ScrollView, RefreshControl, StyleSheet,
   Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ import { CategoryCard } from '../../src/components/reports/CategoryCard';
 import { ReliabilityCard } from '../../src/components/reports/ReliabilityCard';
 import { ExportCard } from '../../src/components/reports/ExportCard';
 import { ReportsSummaryStrip } from '../../src/components/reports/ReportsSummaryStrip';
+import { AppText } from '../../src/components/AppText';
 
 function SkeletonBlock({ height = 100 }: { height?: number }) {
   return <View style={[styles.skeleton, { height }]} />;
@@ -25,15 +26,15 @@ function EmptyState() {
   return (
     <View style={styles.emptyWrap}>
       <Feather name="bar-chart-2" size={48} color={colors.gray300} />
-      <Text style={styles.emptyTitle}>No data yet</Text>
-      <Text style={styles.emptySub}>
+      <AppText style={styles.emptyTitle}>No data yet</AppText>
+      <AppText style={styles.emptySub}>
         Create your first bill to start seeing insights here.
-      </Text>
+      </AppText>
       <Pressable
         style={styles.emptyBtn}
         onPress={() => router.push('/(modals)/create')}
       >
-        <Text style={styles.emptyBtnText}>Create a bill</Text>
+        <AppText style={styles.emptyBtnText}>Create a bill</AppText>
       </Pressable>
     </View>
   );
@@ -82,7 +83,7 @@ export default function ReportsScreen() {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Reports & Insights</Text>
+          <AppText style={styles.headerTitle}>Reports & Insights</AppText>
         </View>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.skeletonRow}>
@@ -101,11 +102,11 @@ export default function ReportsScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={[styles.header, shadow.sm]}>
-        <Text style={styles.headerTitle}>Reports & Insights</Text>
+        <AppText style={styles.headerTitle}>Reports & Insights</AppText>
         {lastRefreshed !== null && bills.length > 0 && (
-          <Text style={styles.headerSub}>
+          <AppText style={styles.headerSub}>
             Updated {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </Text>
+          </AppText>
         )}
       </View>
 

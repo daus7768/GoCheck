@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   StyleSheet,
   Pressable,
@@ -18,6 +17,7 @@ import { colors, typography, fontSize, spacing, radius } from '../../../src/them
 import type { Currency } from '../../../src/types';
 import { CURRENCY_SYMBOLS } from '../../../src/types';
 import { GlowingCard } from '../../../src/components/effects/GlowingCard';
+import { AppText } from '../../../src/components/AppText';
 
 interface BillData {
   id: string;
@@ -115,10 +115,10 @@ export default function ShareBillScreen() {
     return (
       <View style={styles.centered}>
         <Feather name="alert-circle" size={48} color={colors.error} />
-        <Text style={styles.errorTitle}>Bill not found</Text>
-        <Text style={styles.errorText}>{error}</Text>
+        <AppText style={styles.errorTitle}>Bill not found</AppText>
+        <AppText style={styles.errorText}>{error}</AppText>
         <Pressable style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>Go Back</Text>
+          <AppText style={styles.backBtnText}>Go Back</AppText>
         </Pressable>
       </View>
     );
@@ -139,7 +139,7 @@ export default function ShareBillScreen() {
         <Pressable onPress={() => router.back()} style={styles.headerBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="chevron-left" size={22} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>{bill.title}</Text>
+        <AppText style={styles.headerTitle} numberOfLines={1}>{bill.title}</AppText>
         <Pressable onPress={handleShare} style={styles.shareBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="share-2" size={18} color={colors.primary} />
         </Pressable>
@@ -151,19 +151,19 @@ export default function ShareBillScreen() {
           <GlowingCard radius={radius['2xl']} background={colors.surface}>
             <View style={styles.progressCard}>
               <View style={styles.progressHeader}>
-                <Text style={styles.progressTitle}>Payment Progress</Text>
-                <Text style={styles.progressCount}>{paidCount}/{totalCount} paid</Text>
+                <AppText style={styles.progressTitle}>Payment Progress</AppText>
+                <AppText style={styles.progressCount}>{paidCount}/{totalCount} paid</AppText>
               </View>
               <View style={styles.progressBarTrack}>
                 <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
               </View>
               <View style={styles.progressAmounts}>
-                <Text style={styles.progressCollected}>
+                <AppText style={styles.progressCollected}>
                   {symbol}{amountCollected.toFixed(2)} collected
-                </Text>
-                <Text style={styles.progressRemaining}>
+                </AppText>
+                <AppText style={styles.progressRemaining}>
                   {symbol}{(bill.total_amount - amountCollected).toFixed(2)} remaining
-                </Text>
+                </AppText>
               </View>
             </View>
           </GlowingCard>
@@ -173,21 +173,21 @@ export default function ShareBillScreen() {
         <View style={styles.cardWrap}>
           <GlowingCard radius={radius['2xl']} background={colors.surface}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Participants</Text>
+          <AppText style={styles.sectionTitle}>Participants</AppText>
           {bill.participants.map((p) => (
             <View key={p.id} style={styles.participantRow}>
               <View style={[styles.avatar, { backgroundColor: p.is_paid ? colors.secondary : colors.gray200 }]}>
-                <Text style={styles.avatarText}>{p.name.slice(0, 1).toUpperCase()}</Text>
+                <AppText style={styles.avatarText}>{p.name.slice(0, 1).toUpperCase()}</AppText>
               </View>
               <View style={styles.participantInfo}>
-                <Text style={styles.participantName}>{p.name}</Text>
+                <AppText style={styles.participantName}>{p.name}</AppText>
                 {p.is_paid && p.paid_at && (
-                  <Text style={styles.paidAt}>Paid {format(new Date(p.paid_at), 'dd MMM, HH:mm')}</Text>
+                  <AppText style={styles.paidAt}>Paid {format(new Date(p.paid_at), 'dd MMM, HH:mm')}</AppText>
                 )}
               </View>
-              <Text style={[styles.participantAmount, p.is_paid && styles.participantAmountPaid]}>
+              <AppText style={[styles.participantAmount, p.is_paid && styles.participantAmountPaid]}>
                 {symbol}{p.amount.toFixed(2)}
-              </Text>
+              </AppText>
               {p.is_paid ? (
                 <View style={styles.paidBadge}>
                   <Feather name="check" size={14} color={colors.secondary} />
@@ -201,7 +201,7 @@ export default function ShareBillScreen() {
                   {paying === p.id ? (
                     <ActivityIndicator size="small" color={colors.white} />
                   ) : (
-                    <Text style={styles.payBtnText}>Pay</Text>
+                    <AppText style={styles.payBtnText}>Pay</AppText>
                   )}
                 </Pressable>
               )}
@@ -214,9 +214,9 @@ export default function ShareBillScreen() {
         {/* Due date */}
         <View style={styles.dueRow}>
           <Feather name="calendar" size={14} color={colors.textSecondary} />
-          <Text style={styles.dueText}>
+          <AppText style={styles.dueText}>
             Due {format(new Date(bill.due_date), 'EEEE, dd MMMM yyyy')}
-          </Text>
+          </AppText>
         </View>
       </ScrollView>
     </View>

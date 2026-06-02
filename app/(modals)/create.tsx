@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import {
   View,
-  Text,
   TextInput,
   ScrollView,
   StyleSheet,
@@ -41,6 +40,7 @@ import { useSplitSuggest } from '../../src/hooks/useSplitSuggest';
 import { BeamBackground } from '../../src/components/create/BeamBackground';
 import { GlowingSection } from '../../src/components/create/GlowingSection';
 import { StatusBar } from 'expo-status-bar';
+import { AppText } from '../../src/components/AppText';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -75,13 +75,13 @@ function Field({ label, required, icon, badge, children, error, hint }: FieldInp
     <View style={fieldStyles.container}>
       <View style={fieldStyles.labelRow}>
         {icon && <Feather name={icon} size={14} color={colors.textSecondary} />}
-        <Text style={fieldStyles.label}>
+        <AppText style={fieldStyles.label}>
           {label}
-          {required && <Text style={fieldStyles.required}> *</Text>}
-        </Text>
+          {required && <AppText style={fieldStyles.required}> *</AppText>}
+        </AppText>
         {badge && (
           <View style={fieldStyles.badge}>
-            <Text style={fieldStyles.badgeText}>{badge}</Text>
+            <AppText style={fieldStyles.badgeText}>{badge}</AppText>
           </View>
         )}
       </View>
@@ -91,7 +91,7 @@ function Field({ label, required, icon, badge, children, error, hint }: FieldInp
           {error}
         </Animated.Text>
       ) : hint ? (
-        <Text style={fieldStyles.hint}>{hint}</Text>
+        <AppText style={fieldStyles.hint}>{hint}</AppText>
       ) : null}
     </View>
   );
@@ -175,7 +175,7 @@ function AiBadge({ loading, label, onPress }: { loading: boolean; label: string;
       ) : (
         <Feather name="zap" size={11} color={colors.primary} />
       )}
-      <Text style={aiStyles.label}>{loading ? 'Thinking…' : label}</Text>
+      <AppText style={aiStyles.label}>{loading ? 'Thinking…' : label}</AppText>
     </Pressable>
   );
 }
@@ -210,7 +210,7 @@ function SuggestionChips({ items, onSelect }: { items: string[]; onSelect: (v: s
     <View style={chipStyles.row}>
       {items.map((s) => (
         <Pressable key={s} onPress={() => onSelect(s)} style={chipStyles.chip} hitSlop={{ top: 6, bottom: 6 }}>
-          <Text style={chipStyles.label}>{s}</Text>
+          <AppText style={chipStyles.label}>{s}</AppText>
         </Pressable>
       ))}
     </View>
@@ -244,7 +244,7 @@ function TaxChip({ label, active, onToggle }: { label: string; active: boolean; 
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
     >
       {active && <Feather name="check" size={11} color="#fff" />}
-      <Text style={[taxStyles.label, active && taxStyles.labelActive]}>{label}</Text>
+      <AppText style={[taxStyles.label, active && taxStyles.labelActive]}>{label}</AppText>
     </Pressable>
   );
 }
@@ -609,16 +609,16 @@ export default function CreateBillScreen() {
         </Pressable>
 
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>New Bill</Text>
-          <Text style={styles.headerSub}>
+          <AppText style={styles.headerTitle}>New Bill</AppText>
+          <AppText style={styles.headerSub}>
             {participants.length > 0
               ? `${participants.length} participant${participants.length !== 1 ? 's' : ''}`
               : 'Draft · saved just now'}
-          </Text>
+          </AppText>
         </View>
 
         <View style={styles.draftBtn}>
-          <Text style={styles.draftBtnText}>Draft</Text>
+          <AppText style={styles.draftBtnText}>Draft</AppText>
         </View>
       </View>
 
@@ -643,12 +643,12 @@ export default function CreateBillScreen() {
               ) : (
                 <View style={styles.photoPlaceholder}>
                   <Feather name="camera" size={22} color={colors.gray400} />
-                  <Text style={styles.photoLabel}>Group Photo</Text>
+                  <AppText style={styles.photoLabel}>Group Photo</AppText>
                 </View>
               )}
               <View style={styles.photoMeta}>
-                <Text style={styles.photoTitle}>{groupPhotoUri ? 'Change photo' : 'Add group photo'}</Text>
-                <Text style={styles.photoHint}>Optional · Square crop recommended</Text>
+                <AppText style={styles.photoTitle}>{groupPhotoUri ? 'Change photo' : 'Add group photo'}</AppText>
+                <AppText style={styles.photoHint}>Optional · Square crop recommended</AppText>
               </View>
               {groupPhotoUri && (
                 <Pressable
@@ -676,7 +676,7 @@ export default function CreateBillScreen() {
                   maxLength={100}
                   onSubmitEditing={() => descRef.current?.focus()}
                 />
-                {title.length > 80 && <Text style={styles.charCount}>{100 - title.length}</Text>}
+                {title.length > 80 && <AppText style={styles.charCount}>{100 - title.length}</AppText>}
               </View>
             </Field>
 
@@ -709,7 +709,7 @@ export default function CreateBillScreen() {
 
             {/* Category — 6 pills */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Category</Text>
+              <AppText style={styles.fieldLabel}>Category</AppText>
               <View style={styles.chipRow}>
                 {(
                   [
@@ -727,9 +727,9 @@ export default function CreateBillScreen() {
                     onPress={() => { setCategory(item.key); haptic.selection(); }}
                     hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                   >
-                    <Text style={[styles.chipLabel, category === item.key && { color: '#fff' }]}>
+                    <AppText style={[styles.chipLabel, category === item.key && { color: '#fff' }]}>
                       {item.label}
-                    </Text>
+                    </AppText>
                   </Pressable>
                 ))}
               </View>
@@ -746,14 +746,14 @@ export default function CreateBillScreen() {
                 {scanState === 'scanning' || scanState === 'converting' ? (
                   <>
                     <ActivityIndicator size="small" color={colors.primary} />
-                    <Text style={styles.receiptBtnText}>
+                    <AppText style={styles.receiptBtnText}>
                       {scanState === 'converting' ? 'Preparing…' : 'Scanning receipt with AI…'}
-                    </Text>
+                    </AppText>
                   </>
                 ) : receiptUri ? (
                   <>
                     <Feather name="check-circle" size={16} color={colors.primary} />
-                    <Text style={styles.receiptBtnText}>Receipt attached · tap to change</Text>
+                    <AppText style={styles.receiptBtnText}>Receipt attached · tap to change</AppText>
                     <Pressable
                       onPress={() => { setReceiptUri(undefined); resetScan(); }}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -765,7 +765,7 @@ export default function CreateBillScreen() {
                 ) : (
                   <>
                     <Feather name="camera" size={16} color={colors.primary} />
-                    <Text style={styles.receiptBtnText}>Scan or upload receipt</Text>
+                    <AppText style={styles.receiptBtnText}>Scan or upload receipt</AppText>
                     <Feather name="zap" size={13} color={colors.textSecondary} />
                   </>
                 )}
@@ -774,9 +774,9 @@ export default function CreateBillScreen() {
               {scanState === 'review' && scanResult && (
                 <Animated.View entering={FadeIn.duration(300)} style={styles.scanBanner}>
                   <Feather name="check-circle" size={13} color={colors.primary} />
-                  <Text style={styles.scanBannerText}>
+                  <AppText style={styles.scanBannerText}>
                     Receipt scanned ({Math.round(scanResult.confidence * 100)}% confidence) · review the filled fields
-                  </Text>
+                  </AppText>
                   <Pressable onPress={resetScan} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                     <Feather name="x" size={13} color={colors.textSecondary} />
                   </Pressable>
@@ -787,11 +787,11 @@ export default function CreateBillScreen() {
                 <Animated.View entering={FadeIn.duration(200)} style={styles.scanError}>
                   <View style={styles.scanErrorHeader}>
                     <Feather name="alert-circle" size={14} color={gc.danger} />
-                    <Text style={styles.scanErrorTitle}>Resit tidak dapat dibaca</Text>
+                    <AppText style={styles.scanErrorTitle}>Resit tidak dapat dibaca</AppText>
                   </View>
-                  <Text style={styles.scanErrorText}>
+                  <AppText style={styles.scanErrorText}>
                     {scanError ?? 'Could not read receipt. Fill in details manually.'}
-                  </Text>
+                  </AppText>
                   <View style={styles.scanErrorActions}>
                     <Pressable
                       onPress={() => receiptUri && scanReceipt(receiptUri)}
@@ -799,14 +799,14 @@ export default function CreateBillScreen() {
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <Feather name="refresh-cw" size={12} color={gc.white} />
-                      <Text style={styles.scanRetryText}>Cuba semula</Text>
+                      <AppText style={styles.scanRetryText}>Cuba semula</AppText>
                     </Pressable>
                     <Pressable
                       onPress={() => { setReceiptUri(undefined); resetScan(); }}
                       style={styles.scanDismissBtn}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                      <Text style={styles.scanDismissText}>Isi manual</Text>
+                      <AppText style={styles.scanDismissText}>Isi manual</AppText>
                     </Pressable>
                   </View>
                 </Animated.View>
@@ -839,11 +839,11 @@ export default function CreateBillScreen() {
                 />
               </View>
             </View>
-            {amountError && <Text style={styles.amountError}>{amountError}</Text>}
+            {amountError && <AppText style={styles.amountError}>{amountError}</AppText>}
 
             {/* Tax toggles */}
             <View style={styles.taxRow}>
-              <Text style={styles.taxRowLabel}>Tax</Text>
+              <AppText style={styles.taxRowLabel}>Tax</AppText>
               <View style={styles.taxChips}>
                 <TaxChip label="SST 6%" active={taxSst} onToggle={() => setTaxSst(v => !v)} />
                 <TaxChip label={`Service ${taxServiceRate}%`} active={taxService} onToggle={() => setTaxService(v => !v)} />
@@ -853,24 +853,24 @@ export default function CreateBillScreen() {
             {(taxSst || taxService) && effectiveBase > 0 && (
               <Animated.View entering={FadeIn.duration(200)} style={styles.taxBreakdown}>
                 <View style={styles.taxBreakdownRow}>
-                  <Text style={styles.taxBreakdownLabel}>Subtotal</Text>
-                  <Text style={styles.taxBreakdownValue}>{currencySymbol}{effectiveBase.toFixed(2)}</Text>
+                  <AppText style={styles.taxBreakdownLabel}>Subtotal</AppText>
+                  <AppText style={styles.taxBreakdownValue}>{currencySymbol}{effectiveBase.toFixed(2)}</AppText>
                 </View>
                 {taxSst && (
                   <View style={styles.taxBreakdownRow}>
-                    <Text style={styles.taxBreakdownLabel}>SST (6%)</Text>
-                    <Text style={styles.taxBreakdownValue}>+{currencySymbol}{sstAdd.toFixed(2)}</Text>
+                    <AppText style={styles.taxBreakdownLabel}>SST (6%)</AppText>
+                    <AppText style={styles.taxBreakdownValue}>+{currencySymbol}{sstAdd.toFixed(2)}</AppText>
                   </View>
                 )}
                 {taxService && (
                   <View style={styles.taxBreakdownRow}>
-                    <Text style={styles.taxBreakdownLabel}>Service ({taxServiceRate}%)</Text>
-                    <Text style={styles.taxBreakdownValue}>+{currencySymbol}{serviceAdd.toFixed(2)}</Text>
+                    <AppText style={styles.taxBreakdownLabel}>Service ({taxServiceRate}%)</AppText>
+                    <AppText style={styles.taxBreakdownValue}>+{currencySymbol}{serviceAdd.toFixed(2)}</AppText>
                   </View>
                 )}
                 <View style={[styles.taxBreakdownRow, styles.taxBreakdownTotal]}>
-                  <Text style={styles.taxBreakdownTotalLabel}>Total</Text>
-                  <Text style={styles.taxBreakdownTotalValue}>{currencySymbol}{effectiveTotal.toFixed(2)}</Text>
+                  <AppText style={styles.taxBreakdownTotalLabel}>Total</AppText>
+                  <AppText style={styles.taxBreakdownTotalValue}>{currencySymbol}{effectiveTotal.toFixed(2)}</AppText>
                 </View>
               </Animated.View>
             )}
@@ -879,9 +879,9 @@ export default function CreateBillScreen() {
             {participants.length >= 2 && effectiveTotal > 0 && (
               <Animated.View entering={FadeIn.duration(300)} style={styles.perPersonBadge}>
                 <Feather name="users" size={13} color={colors.primary} />
-                <Text style={styles.perPersonText}>
+                <AppText style={styles.perPersonText}>
                   {currencySymbol}{perPerson.toFixed(2)} per person
-                </Text>
+                </AppText>
               </Animated.View>
             )}
           </Section>
@@ -897,24 +897,24 @@ export default function CreateBillScreen() {
                 <View style={styles.splitSuggestionLeft}>
                   <View style={styles.splitSuggestionHeader}>
                     <Feather name="zap" size={12} color={colors.primary} />
-                    <Text style={styles.splitSuggestionTag}>AI Recommendation</Text>
+                    <AppText style={styles.splitSuggestionTag}>AI Recommendation</AppText>
                   </View>
-                  <Text style={styles.splitSuggestionRec}>{splitSuggestion.recommended} split</Text>
-                  <Text style={styles.splitSuggestionReason}>{splitSuggestion.reason}</Text>
+                  <AppText style={styles.splitSuggestionRec}>{splitSuggestion.recommended} split</AppText>
+                  <AppText style={styles.splitSuggestionReason}>{splitSuggestion.reason}</AppText>
                 </View>
                 <Pressable onPress={handleApplySplitSuggestion} style={styles.splitApplyBtn}>
-                  <Text style={styles.splitApplyText}>Apply</Text>
+                  <AppText style={styles.splitApplyText}>Apply</AppText>
                 </Pressable>
               </Animated.View>
             )}
 
             <SplitTypeControl value={splitType} onChange={setSplitType} />
-            <Text style={styles.splitHint}>
+            <AppText style={styles.splitHint}>
               {splitType === 'equal' && 'Amount divided equally among all participants.'}
               {splitType === 'custom' && 'Set a specific amount for each participant.'}
               {splitType === 'percent' && 'Assign a percentage share to each participant.'}
               {splitType === 'shares' && 'Assign weighted shares — amounts scale with total.'}
-            </Text>
+            </AppText>
           </Section>
 
           {/* ── Participants ─────────────────────────────────────── */}
@@ -922,7 +922,7 @@ export default function CreateBillScreen() {
             {participantsError && (
               <Animated.View entering={FadeIn.duration(200)} style={styles.participantsErrorBadge}>
                 <Feather name="alert-circle" size={13} color={colors.error} />
-                <Text style={styles.participantsErrorText}>{participantsError}</Text>
+                <AppText style={styles.participantsErrorText}>{participantsError}</AppText>
               </Animated.View>
             )}
 
@@ -941,13 +941,13 @@ export default function CreateBillScreen() {
                 {participants.map((p) => (
                   <View key={p.id} style={styles.customAmountRow}>
                     <View style={[styles.customAvatar, { backgroundColor: p.avatarColor }]}>
-                      <Text style={styles.customAvatarText}>{p.name.slice(0, 1).toUpperCase()}</Text>
+                      <AppText style={styles.customAvatarText}>{p.name.slice(0, 1).toUpperCase()}</AppText>
                     </View>
-                    <Text style={styles.customName} numberOfLines={1}>{p.name}</Text>
+                    <AppText style={styles.customName} numberOfLines={1}>{p.name}</AppText>
                     <View style={styles.customInputBox}>
-                      {splitType === 'percent' && <Text style={styles.customInputUnit}>%</Text>}
-                      {splitType === 'shares' && <Text style={styles.customInputUnit}>×</Text>}
-                      {splitType === 'custom' && <Text style={styles.customInputUnit}>{currencySymbol}</Text>}
+                      {splitType === 'percent' && <AppText style={styles.customInputUnit}>%</AppText>}
+                      {splitType === 'shares' && <AppText style={styles.customInputUnit}>×</AppText>}
+                      {splitType === 'custom' && <AppText style={styles.customInputUnit}>{currencySymbol}</AppText>}
                       <TextInput
                         style={styles.customInput}
                         value={
@@ -974,11 +974,11 @@ export default function CreateBillScreen() {
               <View style={styles.equalPreview}>
                 {participants.map((p) => (
                   <View key={p.id} style={styles.equalPreviewRow}>
-                    <Text style={styles.equalPreviewName} numberOfLines={1}>{p.name}</Text>
-                    <Text style={styles.equalPreviewAmount}>
+                    <AppText style={styles.equalPreviewName} numberOfLines={1}>{p.name}</AppText>
+                    <AppText style={styles.equalPreviewAmount}>
                       {splitType === 'percent' ? `${p.percent ?? 0}% = ` : ''}
                       {currencySymbol}{p.amount.toFixed(2)}
-                    </Text>
+                    </AppText>
                   </View>
                 ))}
               </View>
@@ -987,7 +987,7 @@ export default function CreateBillScreen() {
 
           {/* ── Line Items ───────────────────────────────────────── */}
           <Section title="Line Items" icon="list" delay={250}>
-            <Text style={styles.lineItemsHint}>Break down costs by item for invoice-grade tracking.</Text>
+            <AppText style={styles.lineItemsHint}>Break down costs by item for invoice-grade tracking.</AppText>
             {lineItems.map((item, index) => (
               <LineItemRow key={item.id} item={item} index={index} onUpdate={handleUpdateLineItem} onRemove={handleRemoveLineItem} />
             ))}
@@ -995,9 +995,9 @@ export default function CreateBillScreen() {
             {showLineItemsMismatch && (
               <Animated.View entering={FadeIn.duration(200)} style={styles.mismatchWarning}>
                 <Feather name="alert-triangle" size={13} color="#B45309" />
-                <Text style={styles.mismatchText}>
+                <AppText style={styles.mismatchText}>
                   Line items ({currencySymbol}{lineItemsTotal.toFixed(2)}) differ from total ({currencySymbol}{baseAmount.toFixed(2)})
-                </Text>
+                </AppText>
               </Animated.View>
             )}
           </Section>
@@ -1006,25 +1006,25 @@ export default function CreateBillScreen() {
           {lineItems.length > 0 && (
             <Section title="Totals" icon="bar-chart-2" delay={300}>
               <View style={styles.totalsRow}>
-                <Text style={styles.totalsLabel}>Subtotal</Text>
-                <Text style={styles.totalsValue}>{currencySymbol}{lineSubtotal.toFixed(2)}</Text>
+                <AppText style={styles.totalsLabel}>Subtotal</AppText>
+                <AppText style={styles.totalsValue}>{currencySymbol}{lineSubtotal.toFixed(2)}</AppText>
               </View>
               {taxSst && (
                 <View style={styles.totalsRow}>
-                  <Text style={styles.totalsLabel}>SST (6%)</Text>
-                  <Text style={styles.totalsValue}>{currencySymbol}{(lineSubtotal * 0.06).toFixed(2)}</Text>
+                  <AppText style={styles.totalsLabel}>SST (6%)</AppText>
+                  <AppText style={styles.totalsValue}>{currencySymbol}{(lineSubtotal * 0.06).toFixed(2)}</AppText>
                 </View>
               )}
               {taxService && (
                 <View style={styles.totalsRow}>
-                  <Text style={styles.totalsLabel}>Service ({taxServiceRate}%)</Text>
-                  <Text style={styles.totalsValue}>{currencySymbol}{(lineSubtotal * taxServiceRate / 100).toFixed(2)}</Text>
+                  <AppText style={styles.totalsLabel}>Service ({taxServiceRate}%)</AppText>
+                  <AppText style={styles.totalsValue}>{currencySymbol}{(lineSubtotal * taxServiceRate / 100).toFixed(2)}</AppText>
                 </View>
               )}
               <View style={styles.totalsDivider} />
               <View style={styles.totalsRow}>
-                <Text style={styles.totalsFinalLabel}>Total</Text>
-                <Text style={styles.totalsFinalValue}>{currencySymbol}{effectiveTotal.toFixed(2)}</Text>
+                <AppText style={styles.totalsFinalLabel}>Total</AppText>
+                <AppText style={styles.totalsFinalValue}>{currencySymbol}{effectiveTotal.toFixed(2)}</AppText>
               </View>
             </Section>
           )}
@@ -1040,9 +1040,9 @@ export default function CreateBillScreen() {
                   hitSlop={{ top: 6, bottom: 6 }}
                 >
                   <Feather name={opt.icon} size={15} color={paymentMethod === opt.key ? '#fff' : colors.textSecondary} />
-                  <Text style={[styles.paymentPillLabel, paymentMethod === opt.key && styles.paymentPillLabelActive]}>
+                  <AppText style={[styles.paymentPillLabel, paymentMethod === opt.key && styles.paymentPillLabelActive]}>
                     {opt.label}
-                  </Text>
+                  </AppText>
                 </Pressable>
               ))}
             </View>
@@ -1084,11 +1084,11 @@ export default function CreateBillScreen() {
                 accessibilityLabel={`Due date: ${format(dueDate, 'dd MMM yyyy')}`}
               >
                 <Feather name="calendar" size={16} color={colors.primary} />
-                <Text style={styles.dateChipText}>{format(dueDate, 'EEEE, dd MMMM yyyy')}</Text>
+                <AppText style={styles.dateChipText}>{format(dueDate, 'EEEE, dd MMMM yyyy')}</AppText>
                 <View style={styles.dateBadge}>
-                  <Text style={styles.dateBadgeText}>
+                  <AppText style={styles.dateBadgeText}>
                     {Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
-                  </Text>
+                  </AppText>
                 </View>
               </Pressable>
             </Field>
@@ -1115,7 +1115,7 @@ export default function CreateBillScreen() {
                     style={[styles.presetChip, active && styles.presetChipActive]}
                     onPress={() => { haptic.selection(); setDueDate(d); }}
                   >
-                    <Text style={[styles.presetText, active && styles.presetTextActive]}>{days}d</Text>
+                    <AppText style={[styles.presetText, active && styles.presetTextActive]}>{days}d</AppText>
                   </Pressable>
                 );
               })}
@@ -1125,8 +1125,8 @@ export default function CreateBillScreen() {
               <View style={styles.reminderInfo}>
                 <Feather name="bell" size={16} color={reminderEnabled ? colors.primary : colors.gray400} />
                 <View>
-                  <Text style={styles.reminderLabel}>Send Reminders</Text>
-                  <Text style={styles.reminderHint}>Notify unpaid participants 2 days before due date</Text>
+                  <AppText style={styles.reminderLabel}>Send Reminders</AppText>
+                  <AppText style={styles.reminderHint}>Notify unpaid participants 2 days before due date</AppText>
                 </View>
               </View>
               <Switch
@@ -1146,10 +1146,10 @@ export default function CreateBillScreen() {
         <View style={[styles.ctaBar, { paddingBottom: Math.max(insets.bottom, spacing[4]) }]}>
           {effectiveTotal > 0 && participants.length > 0 && (
             <View style={styles.ctaSummary}>
-              <Text style={styles.ctaSummaryLabel}>
+              <AppText style={styles.ctaSummaryLabel}>
                 {currencySymbol}{effectiveTotal.toFixed(2)} · {participants.length} people
-              </Text>
-              <Text style={styles.ctaSummaryValue}>{currencySymbol}{perPerson.toFixed(2)} each</Text>
+              </AppText>
+              <AppText style={styles.ctaSummaryValue}>{currencySymbol}{perPerson.toFixed(2)} each</AppText>
             </View>
           )}
           <CreateBillCTA

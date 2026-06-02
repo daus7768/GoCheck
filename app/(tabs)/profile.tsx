@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -23,6 +22,7 @@ import { SettingSection } from '../../src/components/profile/SettingSection';
 import { SettingRow } from '../../src/components/profile/SettingRow';
 import { ToggleV2 } from '../../src/components/profile/ToggleV2';
 import { GlowingCard } from '../../src/components/effects/GlowingCard';
+import { AppText } from '../../src/components/AppText';
 import { haptic } from '../../src/lib/haptics';
 import { uploadAvatarPhoto } from '../../src/lib/supabase';
 import {
@@ -165,7 +165,7 @@ export default function ProfileScreen() {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing[5] }]}>
-        <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Profile</Text>
+        <AppText style={[styles.headerTitle, { color: c.textPrimary }]}>Profile</AppText>
       </View>
 
       {/* Profile card with glowing border */}
@@ -183,7 +183,7 @@ export default function ProfileScreen() {
                 <Image source={{ uri: avatarUrl }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatarFallback, { backgroundColor: colors.primary }]}>
-                  <Text style={styles.avatarInitial}>{initial}</Text>
+                  <AppText style={styles.avatarInitial}>{initial}</AppText>
                 </View>
               )}
               <View style={[styles.avatarBadge, { backgroundColor: colors.primary }]}>
@@ -195,7 +195,7 @@ export default function ProfileScreen() {
               </View>
               <View style={[styles.organizerBadge, { backgroundColor: c.primarySurface }]}>
                 <Feather name="shield" size={10} color={colors.primary} />
-                <Text style={styles.organizerBadgeText}>Organizer</Text>
+                <AppText style={styles.organizerBadgeText}>Organizer</AppText>
               </View>
             </Pressable>
 
@@ -206,15 +206,15 @@ export default function ProfileScreen() {
                 accessibilityLabel="Edit display name"
                 style={styles.namePressable}
               >
-                <Text style={[styles.profileName, { color: c.textPrimary }]} numberOfLines={1}>
+                <AppText style={[styles.profileName, { color: c.textPrimary }]} numberOfLines={1}>
                   {displayName}
-                </Text>
+                </AppText>
                 <Feather name="edit-2" size={13} color={c.textSecondary} />
               </Pressable>
               {email ? (
-                <Text style={[styles.profileEmail, { color: c.textSecondary }]} numberOfLines={1}>
+                <AppText style={[styles.profileEmail, { color: c.textSecondary }]} numberOfLines={1}>
                   {email}
-                </Text>
+                </AppText>
               ) : null}
             </View>
           </View>
@@ -228,7 +228,7 @@ export default function ProfileScreen() {
           sub={`${CURRENCY_LABELS[defaultCurrency]} (${symbol})`}
           onPress={openCurrencyPicker}
           icon="dollar-sign"
-          right={<Text style={[styles.rowValue, { color: c.textSecondary }]}>{symbol}</Text>}
+          right={<AppText style={[styles.rowValue, { color: c.textSecondary }]}>{symbol}</AppText>}
         />
         <SettingRow
           label="Dark Mode"
@@ -345,7 +345,7 @@ export default function ProfileScreen() {
           <View style={styles.signOutIconWrap}>
             <Feather name="log-out" size={18} color={colors.error} />
           </View>
-          <Text style={styles.signOutLabel}>Sign Out</Text>
+          <AppText style={styles.signOutLabel}>Sign Out</AppText>
         </Pressable>
       </SettingSection>
 
@@ -360,10 +360,10 @@ export default function ProfileScreen() {
       >
         <Pressable style={styles.modalBackdrop} onPress={() => setEditingName(false)}>
           <Pressable style={[styles.modalCard, { backgroundColor: c.surface }]} onPress={() => {}}>
-            <Text style={[styles.modalTitle, { color: c.textPrimary }]}>Display name</Text>
-            <Text style={[styles.modalSub, { color: c.textSecondary }]}>
+            <AppText style={[styles.modalTitle, { color: c.textPrimary }]}>Display name</AppText>
+            <AppText style={[styles.modalSub, { color: c.textSecondary }]}>
               Shown to people you split bills with.
-            </Text>
+            </AppText>
             <TextInput
               value={nameDraft}
               onChangeText={setNameDraft}
@@ -377,13 +377,13 @@ export default function ProfileScreen() {
             />
             <View style={styles.modalRow}>
               <Pressable style={styles.modalBtnGhost} onPress={() => setEditingName(false)}>
-                <Text style={[styles.modalBtnText, { color: c.textSecondary }]}>Cancel</Text>
+                <AppText style={[styles.modalBtnText, { color: c.textSecondary }]}>Cancel</AppText>
               </Pressable>
               <Pressable
                 style={[styles.modalBtnPrimary, { backgroundColor: colors.primary }]}
                 onPress={saveDisplayName}
               >
-                <Text style={[styles.modalBtnText, { color: colors.white }]}>Save</Text>
+                <AppText style={[styles.modalBtnText, { color: colors.white }]}>Save</AppText>
               </Pressable>
             </View>
           </Pressable>
@@ -399,10 +399,10 @@ export default function ProfileScreen() {
       >
         <Pressable style={styles.modalBackdrop} onPress={() => setPickingCurrency(false)}>
           <Pressable style={[styles.modalCard, { backgroundColor: c.surface }]} onPress={() => {}}>
-            <Text style={[styles.modalTitle, { color: c.textPrimary }]}>Default currency</Text>
-            <Text style={[styles.modalSub, { color: c.textSecondary }]}>
+            <AppText style={[styles.modalTitle, { color: c.textPrimary }]}>Default currency</AppText>
+            <AppText style={[styles.modalSub, { color: c.textSecondary }]}>
               Used as the default when you create a new bill.
-            </Text>
+            </AppText>
             <View style={styles.currencyList}>
               {SUPPORTED_CURRENCIES.map((cur, i) => {
                 const isActive = cur === defaultCurrency;
@@ -419,15 +419,15 @@ export default function ProfileScreen() {
                     ]}
                   >
                     <View style={[styles.currencyBadge, { backgroundColor: c.primarySurface }]}>
-                      <Text style={[styles.currencySymbol, { color: colors.primary }]}>
+                      <AppText style={[styles.currencySymbol, { color: colors.primary }]}>
                         {CURRENCY_SYMBOLS[cur]}
-                      </Text>
+                      </AppText>
                     </View>
                     <View style={styles.currencyTextWrap}>
-                      <Text style={[styles.currencyName, { color: c.textPrimary }]}>
+                      <AppText style={[styles.currencyName, { color: c.textPrimary }]}>
                         {CURRENCY_LABELS[cur]}
-                      </Text>
-                      <Text style={[styles.currencyCode, { color: c.textSecondary }]}>{cur}</Text>
+                      </AppText>
+                      <AppText style={[styles.currencyCode, { color: c.textSecondary }]}>{cur}</AppText>
                     </View>
                     {isActive && <Feather name="check" size={18} color={colors.primary} />}
                   </Pressable>
