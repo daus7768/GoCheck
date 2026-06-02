@@ -109,7 +109,7 @@ export default function ReportsScreen() {
 
   if (isLoading && bills.length === 0) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.background }]}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={[styles.header, { backgroundColor: c.surface }]}>
           <AppText style={[styles.headerTitle, { color: c.textPrimary }]}>Reports & Insights</AppText>
         </View>
@@ -128,7 +128,7 @@ export default function ReportsScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.background }]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={[styles.header, { backgroundColor: c.surface }]}>
         <AppText style={[styles.headerTitle, { color: c.textPrimary }]}>Reports & Insights</AppText>
         {lastRefreshed !== null && bills.length > 0 && (

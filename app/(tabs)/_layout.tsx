@@ -135,65 +135,82 @@ function TabItem({ label, icon, focused, isDark, onPress }: TabItemProps) {
 
 function FloatingTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   const { isDark } = useTheme();
+  // On devices with no home indicator, add a minimum visual breathing room
+  const bottomPad = Math.max(insets.bottom, 8);
 
   return (
-    <View style={[styles.tabBarOuter, { paddingBottom: insets.bottom + 8 }]}>
+    <View style={[styles.tabBarOuter, { paddingBottom: bottomPad }]}>
+      {/* Shadow wrapper — overflow visible so shadow is not clipped */}
       <View style={[
-        styles.tabBarPill,
+        styles.tabBarShadow,
         {
-          borderColor: isDark ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.12)',
           shadowColor: '#4F46E5',
-          shadowOpacity: isDark ? 0.22 : 0.12,
-          shadowRadius: 28,
-          shadowOffset: { width: 0, height: -4 },
-          elevation: 16,
+          shadowOpacity: isDark ? 0.32 : 0.16,
+          shadowRadius: 24,
+          shadowOffset: { width: 0, height: -2 },
+          elevation: 20,
         },
       ]}>
-        {/* Glassmorphic blur fill */}
-        <BlurView
-          intensity={isDark ? 24 : 20}
-          tint={isDark ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFill}
-        />
-        {/* Android fallback opaque bg (BlurView on old Android = transparent) */}
-        {Platform.OS === 'android' && (
-          <View style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: isDark ? 'rgba(10,10,20,0.95)' : 'rgba(255,255,255,0.97)', borderRadius: 28 },
-          ]} />
-        )}
-        {/* Top-edge shimmer line */}
-        <LinearGradient
-          colors={['transparent', 'rgba(99,102,241,0.55)', 'rgba(99,102,241,0.3)', 'transparent']}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={styles.shimmerLine}
-        />
-        {/* Tab items */}
-        <View style={styles.tabRow} accessibilityRole="tablist">
-          {state.routes.map((route, index) => {
-            const config = ROUTE_CONFIG[route.name] ?? { label: route.name, icon: 'circle' as const };
-            const focused = state.index === index;
-            return (
-              <TabItem
-                key={route.key}
-                label={config.label}
-                icon={config.icon}
-                focused={focused}
-                isDark={isDark}
-                onPress={() => {
-                  const event = navigation.emit({
-                    type: 'tabPress',
-                    target: route.key,
-                    canPreventDefault: true,
-                  });
-                  if (!focused && !event.defaultPrevented) {
-                    navigation.navigate(route.name);
-                  }
-                }}
-              />
-            );
-          })}
+        {/* Clip wrapper — overflow hidden so BlurView/gradient clip to pill shape */}
+        <View style={[
+          styles.tabBarPill,
+          {
+            borderColor: isDark ? 'rgba(99,102,241,0.22)' : 'rgba(99,102,241,0.14)',
+          },
+        ]}>
+          {/* Glassmorphic blur fill */}
+          <BlurView
+            intensity={isDark ? 28 : 22}
+            tint={isDark ? 'dark' : 'light'}
+            style={StyleSheet.absoluteFill}
+          />
+          {/* Solid color fallback for Android (BlurView transparent on old Android) */}
+          {Platform.OS === 'android' && (
+            <View style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: isDark ? 'rgba(8,8,20,0.96)' : 'rgba(252,252,255,0.97)' },
+            ]} />
+          )}
+          {/* Web fallback: BlurView not supported, use semi-transparent background */}
+          {Platform.OS === 'web' && (
+            <View style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: isDark ? 'rgba(10,10,22,0.88)' : 'rgba(248,249,255,0.92)' },
+            ]} />
+          )}
+          {/* Top shimmer accent line */}
+          <LinearGradient
+            colors={['transparent', isDark ? 'rgba(129,140,248,0.6)' : 'rgba(99,102,241,0.4)', isDark ? 'rgba(99,102,241,0.35)' : 'rgba(99,102,241,0.2)', 'transparent']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.shimmerLine}
+          />
+          {/* Tab items */}
+          <View style={styles.tabRow} accessibilityRole="tablist">
+            {state.routes.map((route, index) => {
+              const config = ROUTE_CONFIG[route.name] ?? { label: route.name, icon: 'circle' as const };
+              const focused = state.index === index;
+              return (
+                <TabItem
+                  key={route.key}
+                  label={config.label}
+                  icon={config.icon}
+                  focused={focused}
+                  isDark={isDark}
+                  onPress={() => {
+                    const event = navigation.emit({
+                      type: 'tabPress',
+                      target: route.key,
+                      canPreventDefault: true,
+                    });
+                    if (!focused && !event.defaultPrevented) {
+                      navigation.navigate(route.name);
+                    }
+                  }}
+                />
+              );
+            })}
+          </View>
         </View>
       </View>
     </View>
@@ -219,10 +236,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 4,
   },
+  // Outer shadow wrapper — overflow visible so RN shadow is not clipped
+  tabBarShadow: {
+    borderRadius: 28,
+    overflow: Platform.OS === 'android' ? 'visible' : 'visible',
+  },
+  // Inner clip wrapper — overflow hidden so blur/gradient respect border-radius
   tabBarPill: {
     borderRadius: 28,
     borderWidth: 1,
-    overflow: Platform.OS === 'ios' ? 'hidden' : 'visible',
+    overflow: 'hidden',
     position: 'relative',
   },
   shimmerLine: {

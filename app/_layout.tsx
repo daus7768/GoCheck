@@ -5,6 +5,7 @@ import { Stack, useRouter, useSegments, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
+import { BackgroundBeams } from '../src/components/effects/BackgroundBeams';
 import {
   useFonts,
   DMSans_400Regular,
@@ -85,12 +86,20 @@ function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
   }));
   if (Platform.OS === 'web') {
     return (
-      <View style={[styles.webContainer, { backgroundColor: isDark ? '#0A0A14' : '#E5E7EB' }]}>
-        <Animated.View style={[styles.webPhone, animStyle]}>{children}</Animated.View>
+      <View style={styles.webContainer}>
+        <Animated.View style={[styles.webPhone, animStyle]}>
+          <BackgroundBeams opacityScale={isDark ? 0.55 : 0.18} />
+          {children}
+        </Animated.View>
       </View>
     );
   }
-  return <Animated.View style={[{ flex: 1 }, animStyle]}>{children}</Animated.View>;
+  return (
+    <Animated.View style={[{ flex: 1 }, animStyle]}>
+      <BackgroundBeams opacityScale={isDark ? 0.5 : 0.14} />
+      {children}
+    </Animated.View>
+  );
 }
 
 export default function RootLayout() {
@@ -178,16 +187,22 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   webContainer: {
     flex: 1,
-    backgroundColor: '#E5E7EB',
+    // Rich dark void — gradient isn't available here so we use a very deep indigo-black
+    backgroundColor: '#03030D',
     alignItems: 'center',
     justifyContent: 'flex-start',
+    // @ts-ignore — web-only background gradient on the void area
+    background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(79,70,229,0.07) 0%, rgba(3,3,13,1) 70%)',
   },
   webPhone: {
     width: '100%',
     maxWidth: 430,
+    maxHeight: 932,
     flex: 1,
     overflow: 'hidden',
-    // @ts-ignore — web-only shadow
-    boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 8px 48px rgba(0,0,0,0.14)',
+    // @ts-ignore — web-only properties
+    borderRadius: 28,
+    boxShadow:
+      '0 0 0 1.5px rgba(99,102,241,0.15), 0 0 60px rgba(99,102,241,0.06), 0 32px 80px rgba(0,0,0,0.65)',
   },
 });

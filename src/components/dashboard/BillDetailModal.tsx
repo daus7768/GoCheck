@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import {
   Linking,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Share,
@@ -160,6 +161,73 @@ export function BillDetailModal({ bill, allBills, visible, onClose }: BillDetail
     }
   }
 
+  const sheetContent = (
+    <Animated.View style={[styles.backdrop, backdropStyle]}>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={handleClose}
+        accessibilityRole="button"
+        accessibilityLabel="Close bill details"
+      />
+      <Animated.View
+        style={[
+          styles.sheetWrap,
+          {
+            paddingTop: insets.top + spacing[6],
+            paddingBottom: Math.max(insets.bottom, 16) + spacing[5],
+          },
+          sheetStyle,
+        ]}
+        pointerEvents="box-none"
+      >
+        {bill && (
+          <View style={[styles.sheet, { backgroundColor: c.surface }]}>
+            <ExpandedHeader bill={bill} onClose={handleClose} onShare={handleShare} />
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.body}
+            >
+              <ExpandedStats bill={bill} />
+              <ExpandedParticipants
+                bill={bill}
+                allBills={allBills}
+                onWhatsApp={handleWhatsApp}
+              />
+              <View style={{ height: spacing[5] }} />
+              <Pressable
+                onPress={handleOpenFull}
+                accessibilityRole="button"
+                accessibilityLabel="Open full bill"
+                style={({ pressed }) => [pressed && { opacity: 0.9 }]}
+              >
+                <LinearGradient
+                  colors={[colors.primary, colors.primaryDark]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.openFullBtn}
+                >
+                  <AppText style={styles.openFullText}>Open full bill</AppText>
+                  <Feather name="arrow-right" size={16} color={colors.white} />
+                </LinearGradient>
+              </Pressable>
+            </ScrollView>
+          </View>
+        )}
+      </Animated.View>
+    </Animated.View>
+  );
+
+  // On web the RN Modal is portaled to document.body and escapes the phone
+  // frame. Render as an absolute-fill View instead so it stays contained.
+  if (Platform.OS === 'web') {
+    if (!visible && !bill) return null;
+    return (
+      <View style={styles.webOverlay} pointerEvents={visible ? 'auto' : 'none'}>
+        {sheetContent}
+      </View>
+    );
+  }
+
   return (
     <Modal
       transparent
@@ -168,59 +236,7 @@ export function BillDetailModal({ bill, allBills, visible, onClose }: BillDetail
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <Animated.View style={[styles.backdrop, backdropStyle]}>
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={handleClose}
-          accessibilityRole="button"
-          accessibilityLabel="Close bill details"
-        />
-        <Animated.View
-          style={[
-            styles.sheetWrap,
-            {
-              paddingTop: insets.top + spacing[6],
-              paddingBottom: insets.bottom + spacing[5],
-            },
-            sheetStyle,
-          ]}
-          pointerEvents="box-none"
-        >
-          {bill && (
-            <View style={[styles.sheet, { backgroundColor: c.surface }]}>
-              <ExpandedHeader bill={bill} onClose={handleClose} onShare={handleShare} />
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.body}
-              >
-                <ExpandedStats bill={bill} />
-                <ExpandedParticipants
-                  bill={bill}
-                  allBills={allBills}
-                  onWhatsApp={handleWhatsApp}
-                />
-                <View style={{ height: spacing[5] }} />
-                <Pressable
-                  onPress={handleOpenFull}
-                  accessibilityRole="button"
-                  accessibilityLabel="Open full bill"
-                  style={({ pressed }) => [pressed && { opacity: 0.9 }]}
-                >
-                  <LinearGradient
-                    colors={[colors.primary, colors.primaryDark]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.openFullBtn}
-                  >
-                    <AppText style={styles.openFullText}>Open full bill</AppText>
-                    <Feather name="arrow-right" size={16} color={colors.white} />
-                  </LinearGradient>
-                </Pressable>
-              </ScrollView>
-            </View>
-          )}
-        </Animated.View>
-      </Animated.View>
+      {sheetContent}
     </Modal>
   );
 }
@@ -580,5 +596,11 @@ const styles = StyleSheet.create({
     fontFamily: typography.sansBold,
     fontSize: fontSize.sm,
     color: colors.white,
+  },
+
+  // Web-only: contained overlay that stays inside the phone frame
+  webOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
   },
 });

@@ -7,6 +7,15 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -193,8 +202,28 @@ export default function HomeScreen() {
   const [activeBill, setActiveBill] = useState<Bill | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  // ── Logo ring spin ──────────────────────────────────────────────────────────
+  const logoRotation = useSharedValue(0);
   useEffect(() => {
-    if (!sessionUserId) return;
+    logoRotation.value = withRepeat(
+      withTiming(360, { duration: 7000, easing: Easing.linear }),
+      -1,
+      false
+    );
+    return () => cancelAnimation(logoRotation);
+  }, [logoRotation]);
+
+  const logoRingStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${logoRotation.value}deg` }],
+  }));
+  const logoInnerStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${-logoRotation.value}deg` }],
+  }));
+
+  // ── Bell shake when nudges pending ─────────────────────────────────────────
+  const bellShake = useSharedValue(0);
+
+  useEffect(() => {
     fetchBills(sessionUserId);
   }, [sessionUserId]);
 
@@ -287,6 +316,34 @@ export default function HomeScreen() {
     { id: 'all', label: 'All', count: bills.length },
   ];
 
+  // Bell shake fires every ~4 s while nudges are pending
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    cancelAnimation(bellShake);
+    if (needsNudge.length > 0) {
+      bellShake.value = withRepeat(
+        withSequence(
+          withTiming(0,    { duration: 3600 }),
+          withTiming(-14,  { duration: 55, easing: Easing.out(Easing.quad) }),
+          withTiming( 12,  { duration: 55 }),
+          withTiming(-9,   { duration: 55 }),
+          withTiming( 6,   { duration: 55 }),
+          withTiming(-3,   { duration: 55 }),
+          withTiming(0,    { duration: 55 }),
+        ),
+        -1,
+        false
+      );
+    } else {
+      bellShake.value = withTiming(0, { duration: 200 });
+    }
+    return () => cancelAnimation(bellShake);
+  }, [needsNudge.length, bellShake]);
+
+  const bellStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${bellShake.value}deg` }],
+  }));
+
   function handleNudge(row: NudgeRow) {
     haptic.impact();
     sendReminder(row.item, 'whatsapp');
@@ -300,12 +357,11 @@ export default function HomeScreen() {
 
   function closeBill() {
     setModalVisible(false);
-    // Keep the bill in state briefly so the close animation can still render content.
     setTimeout(() => setActiveBill(null), 220);
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: c.background }]}>
+    <View style={styles.container}>
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + spacing[2] }]}
         showsVerticalScrollIndicator={false}
@@ -313,27 +369,39 @@ export default function HomeScreen() {
         {/* Top bar */}
         <FadeInUp index={0}>
           <View style={styles.topBar}>
+            {/* ── Spinning gradient logo ring ── */}
             <Pressable
               onPress={() => router.push('/(tabs)/profile')}
               accessibilityRole="button"
               accessibilityLabel="Open profile"
             >
-              <LinearGradient
-                colors={[colors.primaryLight, colors.primaryDark]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.topAvatarRing}
-              >
-                <View style={styles.topAvatarDisc}>
+              <Animated.View style={[styles.topAvatarRing, logoRingStyle]}>
+                <LinearGradient
+                  colors={[colors.primaryLight, '#A78BFA', colors.primaryDark, '#22D3EE', colors.primaryLight]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                <Animated.View style={[styles.topAvatarDisc, logoInnerStyle]}>
                   <Image
                     source={require('../../assets/logo.png')}
                     style={styles.topAvatarLogo}
                     resizeMode="contain"
                   />
-                </View>
-              </LinearGradient>
+                </Animated.View>
+              </Animated.View>
             </Pressable>
-            <AppText style={[styles.topTitle, { color: c.textPrimary }]}>GoCheck</AppText>
+
+            {/* ── Colourful animated title ── */}
+            <ColourfulText
+              text="GoCheck"
+              style={styles.topTitleColourful}
+              palette={['#818CF8', '#A78BFA', '#22D3EE', '#10B981', '#6366F1', '#818CF8']}
+              duration={5000}
+              letterStaggerMs={80}
+            />
+
+            {/* ── Bell with shake animation ── */}
             <Pressable
               onPress={() => router.push('/(modals)/reminders')}
               accessibilityRole="button"
@@ -341,7 +409,9 @@ export default function HomeScreen() {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               style={styles.bellBtn}
             >
-              <Feather name="bell" size={22} color={c.textPrimary} />
+              <Animated.View style={bellStyle}>
+                <Feather name="bell" size={22} color={c.textPrimary} />
+              </Animated.View>
               {needsNudge.length > 0 && (
                 <View style={styles.bellBadge}>
                   <AppText style={styles.bellBadgeText}>{needsNudge.length}</AppText>
@@ -672,16 +742,17 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[3],
   },
   topAvatarRing: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.sm,
+    overflow: 'hidden',
+    ...shadow.md,
   },
   topAvatarDisc: {
-    width: 30,
-    height: 30,
+    width: 32,
+    height: 32,
     borderRadius: radius.full,
     backgroundColor: colors.white,
     alignItems: 'center',
@@ -692,8 +763,12 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
   },
-  topTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.base },
-  bellBtn: { padding: spacing[1.5] },
+  topTitleColourful: {
+    fontFamily: typography.sansBold,
+    fontSize: fontSize.lg,
+    letterSpacing: 0.3,
+  },
+  bellBtn: { padding: spacing[1.5], position: 'relative' },
   bellBadge: {
     position: 'absolute',
     top: 0,

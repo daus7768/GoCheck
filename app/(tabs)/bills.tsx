@@ -267,7 +267,7 @@ export default function BillsScreen() {
 
   if (isLoading && bills.length === 0) {
     return (
-      <View style={[styles.container, { backgroundColor: c.background, paddingTop: insets.top }]}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={[styles.header, { backgroundColor: c.surface }]}>
           <AppText style={[styles.title, { color: c.textPrimary }]}>My Bills</AppText>
           <ActivityIndicator color={colors.primary} />
@@ -277,7 +277,7 @@ export default function BillsScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: c.background, paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: c.surface }]}>
         <AppText style={[styles.title, { color: c.textPrimary }]}>My Bills</AppText>

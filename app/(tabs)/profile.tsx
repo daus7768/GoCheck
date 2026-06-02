@@ -160,7 +160,7 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: c.background }]}
+      style={styles.container}
       contentContainerStyle={{ paddingBottom: insets.bottom + spacing[8] }}
       showsVerticalScrollIndicator={false}
     >
