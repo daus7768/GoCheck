@@ -20,6 +20,23 @@ import { ColourfulClockProvider } from '../src/theme/ColourfulClockContext';
 import { useProfileStore } from '../src/store/profileStore';
 import { supabase } from '../src/lib/supabase';
 import * as Notifications from 'expo-notifications';
+import {
+  ThemeProvider as NavigationThemeProvider,
+  DarkTheme as NavigationDarkTheme,
+} from '@react-navigation/native';
+
+// Custom navigation theme — overrides @react-navigation/elements' Background
+// (which otherwise paints every screen with the LIGHT default theme bg). We
+// extend DarkTheme so navigation chrome stays dark and "background" matches
+// our cosmic void, ensuring the BackgroundBeams are never obscured.
+const COSMIC_NAV_THEME = {
+  ...NavigationDarkTheme,
+  colors: {
+    ...NavigationDarkTheme.colors,
+    background: 'transparent',
+    card: 'transparent',
+  },
+};
 
 SplashScreen.preventAutoHideAsync();
 
@@ -76,15 +93,33 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
   // Cosmic background beams are always-on and theme-independent. The bright
   // SVG beams + dark gradient base become THE app backdrop; cards (light or
-  // dark per theme) float above it. We keep the animated themeProgress hook
-  // available because some descendants read it, but we no longer interpolate
-  // the bg colour — the beams' built-in gradient base owns the canvas.
+  // dark per theme) float above it.
+  //
+  // Web-only hard reset: react-native-web does not paint the <html> / <body>
+  // element, so the browser default (white) leaks through any transparent
+  // descendant — including @react-navigation/elements' Background, which
+  // defaults to the light navigation theme colour. Forcing the document
+  // background to the cosmic void colour guarantees nothing leaks through.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const prevHtml = document.documentElement.style.backgroundColor;
+    const prevBody = document.body.style.backgroundColor;
+    document.documentElement.style.backgroundColor = '#03030D';
+    document.body.style.backgroundColor = '#03030D';
+    return () => {
+      document.documentElement.style.backgroundColor = prevHtml;
+      document.body.style.backgroundColor = prevBody;
+    };
+  }, []);
+
   if (Platform.OS === 'web') {
     return (
       <View style={styles.webContainer}>
         <View style={styles.webPhone}>
           <BackgroundBeams opacityScale={1} showBase />
-          {children}
+          <NavigationThemeProvider value={COSMIC_NAV_THEME}>
+            {children}
+          </NavigationThemeProvider>
         </View>
       </View>
     );
@@ -92,7 +127,9 @@ function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
   return (
     <View style={styles.nativeRoot}>
       <BackgroundBeams opacityScale={0.95} showBase />
-      {children}
+      <NavigationThemeProvider value={COSMIC_NAV_THEME}>
+        {children}
+      </NavigationThemeProvider>
     </View>
   );
 }
