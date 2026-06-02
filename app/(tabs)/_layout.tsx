@@ -1,9 +1,9 @@
+import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedReaction,
   withSpring,
   withTiming,
   withSequence,
@@ -12,7 +12,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { colors, spacing, radius, typography, fontSize } from '../../src/theme/tokens';
+import { colors, typography, fontSize } from '../../src/theme/tokens';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { AppText } from '../../src/components/AppText';
 import { haptic } from '../../src/lib/haptics';
@@ -42,17 +42,13 @@ function TabItem({ label, icon, focused, isDark, onPress }: TabItemProps) {
   const dotOpacity = useSharedValue(focused ? 1 : 0);
   const iconOpacity = useSharedValue(focused ? 1 : 0.28);
 
-  // React to focus changes
-  useAnimatedReaction(
-    () => focused,
-    (isFocused: boolean) => {
-      'worklet';
-      pillOpacity.value = withTiming(isFocused ? 1 : 0, { duration: 200 });
-      pillScale.value   = withSpring(isFocused ? 1 : 0.82, { damping: 16, stiffness: 220 });
-      dotOpacity.value  = withSpring(isFocused ? 1 : 0, { damping: 16, stiffness: 200 });
-      iconOpacity.value = withTiming(isFocused ? 1 : 0.28, { duration: 180 });
-    }
-  );
+  // React to focus changes (useEffect is correct here — focused is a JS prop, not a shared value)
+  useEffect(() => {
+    pillOpacity.value = withTiming(focused ? 1 : 0, { duration: 200 });
+    pillScale.value   = withSpring(focused ? 1 : 0.82, { damping: 16, stiffness: 220 });
+    dotOpacity.value  = withSpring(focused ? 1 : 0, { damping: 16, stiffness: 200 });
+    iconOpacity.value = withTiming(focused ? 1 : 0.28, { duration: 180 });
+  }, [focused]);
 
   const pillStyle = useAnimatedStyle(() => ({
     opacity: pillOpacity.value,
@@ -88,7 +84,7 @@ function TabItem({ label, icon, focused, isDark, onPress }: TabItemProps) {
     <Pressable
       onPress={handlePress}
       style={styles.tabItem}
-      accessibilityRole="button"
+      accessibilityRole="tab"
       accessibilityLabel={label}
       accessibilityState={{ selected: focused }}
     >
@@ -174,7 +170,7 @@ function FloatingTabBar({ state, descriptors, navigation, insets }: BottomTabBar
           style={styles.shimmerLine}
         />
         {/* Tab items */}
-        <View style={styles.tabRow}>
+        <View style={styles.tabRow} accessibilityRole="tablist">
           {state.routes.map((route, index) => {
             const config = ROUTE_CONFIG[route.name] ?? { label: route.name, icon: 'circle' as const };
             const focused = state.index === index;
