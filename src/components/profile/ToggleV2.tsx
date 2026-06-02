@@ -2,12 +2,12 @@ import { useEffect } from 'react';
 import { Pressable } from 'react-native';
 import Animated, {
   useAnimatedStyle,
-  useDerivedValue,
   withTiming,
   withSpring,
   withRepeat,
   withSequence,
   useSharedValue,
+  cancelAnimation,
   Easing,
 } from 'react-native-reanimated';
 import { colors, hitSlop } from '../../theme/tokens';
@@ -31,16 +31,19 @@ export function ToggleV2({ on, onChange, disabled, accessibilityLabel }: ToggleV
   const reduceMotion = useReduceMotion();
   const { isDark } = useTheme();
 
-  const progress = useDerivedValue(() =>
-    reduceMotion
+  const progress = useSharedValue(on ? 1 : 0);
+
+  useEffect(() => {
+    progress.value = reduceMotion
       ? on ? 1 : 0
-      : withTiming(on ? 1 : 0, { duration: 200, easing: Easing.bezier(0.4, 0, 0.2, 1) })
-  );
+      : withTiming(on ? 1 : 0, { duration: 200, easing: Easing.bezier(0.4, 0, 0.2, 1) });
+  }, [on, reduceMotion]);
 
   // Glow pulse — only runs in dark mode when toggle is ON
   const glowPulse = useSharedValue(0);
 
   useEffect(() => {
+    cancelAnimation(glowPulse);
     if (!isDark || !on || reduceMotion) {
       glowPulse.value = withTiming(0, { duration: 200 });
       return;
@@ -56,6 +59,7 @@ export function ToggleV2({ on, onChange, disabled, accessibilityLabel }: ToggleV
   }, [isDark, on, reduceMotion]);
 
   const trackStyle = useAnimatedStyle(() => ({
+    // isDark is a JS closure capture — safe because ThemeContext re-renders consumers on change
     backgroundColor: progress.value > 0.5
       ? colors.primary
       : isDark ? 'rgba(255,255,255,0.1)' : colors.gray200,
