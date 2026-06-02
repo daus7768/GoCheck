@@ -3,10 +3,15 @@ import {
   View, ScrollView, RefreshControl, StyleSheet,
   Pressable,
 } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle,
+  withRepeat, withSequence, withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
+import { colors, typography, fontSize, spacing, radius } from '../../src/theme/tokens';
+import { useTheme } from '../../src/theme/ThemeContext';
 import { useReportsData } from '../../src/hooks/useReportsData';
 import type { ForecastRange } from '../../src/hooks/useReportsData';
 import { useBillStore } from '../../src/store/billStore';
@@ -19,15 +24,36 @@ import { ReportsSummaryStrip } from '../../src/components/reports/ReportsSummary
 import { AppText } from '../../src/components/AppText';
 
 function SkeletonBlock({ height = 100 }: { height?: number }) {
-  return <View style={[styles.skeleton, { height }]} />;
+  const { colors: c } = useTheme();
+  const pulse = useSharedValue(0.4);
+
+  pulse.value = withRepeat(
+    withSequence(
+      withTiming(0.85, { duration: 900 }),
+      withTiming(0.4,  { duration: 900 })
+    ),
+    -1,
+    false
+  );
+
+  const animStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
+
+  return (
+    <Animated.View
+      style={[styles.skeleton, { height, backgroundColor: c.gray100 }, animStyle]}
+    />
+  );
 }
 
 function EmptyState() {
+  const { colors: c } = useTheme();
   return (
     <View style={styles.emptyWrap}>
-      <Feather name="bar-chart-2" size={48} color={colors.gray300} />
-      <AppText style={styles.emptyTitle}>No data yet</AppText>
-      <AppText style={styles.emptySub}>
+      <View style={styles.emptyIconWrap}>
+        <Feather name="bar-chart-2" size={36} color={colors.secondary} />
+      </View>
+      <AppText style={[styles.emptyTitle, { color: c.textPrimary }]}>No data yet</AppText>
+      <AppText style={[styles.emptySub, { color: c.textSecondary }]}>
         Create your first bill to start seeing insights here.
       </AppText>
       <Pressable
@@ -41,6 +67,7 @@ function EmptyState() {
 }
 
 export default function ReportsScreen() {
+  const { colors: c } = useTheme();
   const insets = useSafeAreaInsets();
   const { bills } = useBillStore();
   const [forecastRange, setForecastRange] = useState<ForecastRange>('6m');
@@ -81,9 +108,9 @@ export default function ReportsScreen() {
 
   if (isLoading && bills.length === 0) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <AppText style={styles.headerTitle}>Reports & Insights</AppText>
+      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.background }]}>
+        <View style={[styles.header, { backgroundColor: c.surface }]}>
+          <AppText style={[styles.headerTitle, { color: c.textPrimary }]}>Reports & Insights</AppText>
         </View>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.skeletonRow}>
@@ -100,11 +127,11 @@ export default function ReportsScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={[styles.header, shadow.sm]}>
-        <AppText style={styles.headerTitle}>Reports & Insights</AppText>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.background }]}>
+      <View style={[styles.header, { backgroundColor: c.surface }]}>
+        <AppText style={[styles.headerTitle, { color: c.textPrimary }]}>Reports & Insights</AppText>
         {lastRefreshed !== null && bills.length > 0 && (
-          <AppText style={styles.headerSub}>
+          <AppText style={[styles.headerSub, { color: c.textSecondary }]}>
             Updated {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </AppText>
         )}
@@ -158,25 +185,19 @@ export default function ReportsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: colors.surface,
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[4],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-    alignItems: 'center',
   },
   headerTitle: {
     fontFamily: typography.sansBold,
-    fontSize: fontSize.lg,
-    color: colors.gray900,
+    fontSize: fontSize.xl,
+    letterSpacing: -0.5,
   },
   headerSub: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize['2xs'],
-    color: colors.gray400,
     marginTop: 2,
   },
   content: {
@@ -189,7 +210,6 @@ const styles = StyleSheet.create({
   },
   skeleton: {
     flex: 1,
-    backgroundColor: colors.gray100,
     borderRadius: radius['2xl'],
   },
   emptyWrap: {
@@ -199,15 +219,22 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     gap: 12,
   },
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.full,
+    backgroundColor: colors.secondarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing[2],
+  },
   emptyTitle: {
     fontFamily: typography.sansBold,
     fontSize: fontSize.xl,
-    color: colors.gray700,
   },
   emptySub: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: colors.gray500,
     textAlign: 'center',
     maxWidth: 260,
     lineHeight: 20,
