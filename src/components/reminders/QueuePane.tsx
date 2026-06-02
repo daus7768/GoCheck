@@ -1,4 +1,5 @@
-import { View, Text, Pressable, FlatList, StyleSheet, Linking } from 'react-native';
+import { View, Pressable, FlatList, StyleSheet, Linking } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { haptic } from '../../lib/haptics';
 import { useReminderStore } from '../../store/reminderStore';
@@ -53,8 +54,8 @@ export function QueuePane({ organizerId }: { organizerId: string }) {
     return (
       <View style={styles.empty}>
         <Feather name="check-circle" size={48} color={colors.gray300} />
-        <Text style={styles.emptyTitle}>All caught up</Text>
-        <Text style={styles.emptyHint}>Nobody to nudge right now.</Text>
+        <AppText style={styles.emptyTitle}>All caught up</AppText>
+        <AppText style={styles.emptyHint}>Nobody to nudge right now.</AppText>
       </View>
     );
   }
@@ -70,12 +71,12 @@ export function QueuePane({ organizerId }: { organizerId: string }) {
           items.length > 0 ? (
             <View style={styles.batchCard}>
               <View style={styles.batchInfo}>
-                <Text style={styles.batchTitle}>Send all {items.length} reminders</Text>
-                <Text style={styles.batchSub}>{settings.tone} tone · via WhatsApp</Text>
+                <AppText style={styles.batchTitle}>Send all {items.length} reminders</AppText>
+                <AppText style={styles.batchSub}>{settings.tone} tone · via WhatsApp</AppText>
               </View>
               <Pressable style={styles.batchBtn} onPress={handleSendAll}>
                 <Feather name="send" size={14} color={colors.white} />
-                <Text style={styles.batchBtnText}>Send all</Text>
+                <AppText style={styles.batchBtnText}>Send all</AppText>
               </Pressable>
             </View>
           ) : null
@@ -86,13 +87,13 @@ export function QueuePane({ organizerId }: { organizerId: string }) {
             return (
               <View style={styles.limitRow}>
                 <View style={[styles.limitAvatar, { backgroundColor: item.participantAvatarColor }]}>
-                  <Text style={styles.limitAvatarText}>
+                  <AppText style={styles.limitAvatarText}>
                     {item.participantName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
-                  </Text>
+                  </AppText>
                 </View>
-                <Text style={styles.limitName}>{item.participantName}</Text>
+                <AppText style={styles.limitName}>{item.participantName}</AppText>
                 <View style={styles.limitBadge}>
-                  <Text style={styles.limitBadgeText}>Limit reached</Text>
+                  <AppText style={styles.limitBadgeText}>Limit reached</AppText>
                 </View>
               </View>
             );

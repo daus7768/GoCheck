@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import { colors, typography, spacing, radius } from '../../theme/tokens';
 import { GlowingCard } from '../effects/GlowingCard';
 import { CategoryBars } from './CategoryBars';
@@ -15,9 +16,9 @@ export function CategoryCard({ data, currency }: Props) {
   return (
     <GlowingCard radius={radius['2xl']} background={colors.surface}>
       <View style={styles.card}>
-        <Text style={styles.title}>Spending by category</Text>
+        <AppText style={styles.title}>Spending by category</AppText>
         {data.length === 0 ? (
-          <Text style={styles.empty}>No category data yet. Add categories when creating bills.</Text>
+          <AppText style={styles.empty}>No category data yet. Add categories when creating bills.</AppText>
         ) : (
           <CategoryBars data={data} currency={currency} />
         )}

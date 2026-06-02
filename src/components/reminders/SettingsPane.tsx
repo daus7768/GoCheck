@@ -1,4 +1,5 @@
-import { View, Text, Switch, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { View, Switch, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { AppText } from '../AppText';
 import { useReminderStore } from '../../store/reminderStore';
 import { useBillStore } from '../../store/billStore';
 import { buildQueueItems } from '../../lib/queueUtils';
@@ -35,7 +36,7 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
       {/* Card 1: Cadence */}
       <GlowingCard radius={radius.xl} background={colors.surface}>
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Cadence</Text>
+        <AppText style={styles.cardTitle}>Cadence</AppText>
         <View style={styles.segmentRow}>
           {CADENCE_OPTIONS.map((opt) => (
             <Pressable
@@ -43,22 +44,22 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
               style={[styles.pill, settings.cadence === opt.value && styles.pillActive]}
               onPress={() => setSetting('cadence', opt.value)}
             >
-              <Text style={[styles.pillText, settings.cadence === opt.value && styles.pillTextActive]}>
+              <AppText style={[styles.pillText, settings.cadence === opt.value && styles.pillTextActive]}>
                 {opt.label}
-              </Text>
+              </AppText>
             </Pressable>
           ))}
         </View>
-        <Text style={styles.helperText}>
+        <AppText style={styles.helperText}>
           {CADENCE_OPTIONS.find((o) => o.value === settings.cadence)?.helper}
-        </Text>
+        </AppText>
       </View>
       </GlowingCard>
 
       {/* Card 2: Message Tone */}
       <GlowingCard radius={radius.xl} background={colors.surface}>
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Message Tone</Text>
+        <AppText style={styles.cardTitle}>Message Tone</AppText>
         <View style={styles.segmentRow}>
           {TONE_OPTIONS.map((opt) => {
             const isFinal = opt.value === 'final';
@@ -75,18 +76,18 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
                 onPress={() => !disabled && setSetting('tone', opt.value)}
                 disabled={disabled}
               >
-                <Text style={[styles.pillText, isActive && styles.pillTextActive, disabled && styles.pillTextDisabled]}>
+                <AppText style={[styles.pillText, isActive && styles.pillTextActive, disabled && styles.pillTextDisabled]}>
                   {opt.label}
-                </Text>
+                </AppText>
               </Pressable>
             );
           })}
         </View>
         {!hasOverdue && (
-          <Text style={styles.finalNote}>Final tone available when at least one participant is overdue.</Text>
+          <AppText style={styles.finalNote}>Final tone available when at least one participant is overdue.</AppText>
         )}
         <View style={styles.previewBox}>
-          <Text style={styles.previewText}>{REMINDER_PREVIEWS[settings.tone]}</Text>
+          <AppText style={styles.previewText}>{REMINDER_PREVIEWS[settings.tone]}</AppText>
         </View>
       </View>
       </GlowingCard>
@@ -94,10 +95,10 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
       {/* Card 3: Skip + Frequency Cap */}
       <GlowingCard radius={radius.xl} background={colors.surface}>
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Skip &amp; Frequency Cap</Text>
+        <AppText style={styles.cardTitle}>Skip &amp; Frequency Cap</AppText>
 
         <View style={styles.toggleRow}>
-          <Text style={styles.toggleTitle}>Skip already-paid people</Text>
+          <AppText style={styles.toggleTitle}>Skip already-paid people</AppText>
           <Switch
             value={settings.skipPaid}
             onValueChange={(v) => setSetting('skipPaid', v)}
@@ -107,22 +108,22 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
         </View>
 
         <View style={styles.stepperRow}>
-          <Text style={styles.sliderLabel}>Max reminders per person per week</Text>
+          <AppText style={styles.sliderLabel}>Max reminders per person per week</AppText>
           <View style={styles.stepper}>
             <Pressable
               style={[styles.stepBtn, settings.maxPerWeek <= 1 && styles.stepBtnDisabled]}
               onPress={() => settings.maxPerWeek > 1 && setSetting('maxPerWeek', settings.maxPerWeek - 1)}
               disabled={settings.maxPerWeek <= 1}
             >
-              <Text style={styles.stepBtnText}>−</Text>
+              <AppText style={styles.stepBtnText}>−</AppText>
             </Pressable>
-            <Text style={styles.stepValue}>{settings.maxPerWeek}</Text>
+            <AppText style={styles.stepValue}>{settings.maxPerWeek}</AppText>
             <Pressable
               style={[styles.stepBtn, settings.maxPerWeek >= 7 && styles.stepBtnDisabled]}
               onPress={() => settings.maxPerWeek < 7 && setSetting('maxPerWeek', settings.maxPerWeek + 1)}
               disabled={settings.maxPerWeek >= 7}
             >
-              <Text style={styles.stepBtnText}>+</Text>
+              <AppText style={styles.stepBtnText}>+</AppText>
             </Pressable>
           </View>
         </View>

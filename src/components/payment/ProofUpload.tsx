@@ -1,7 +1,8 @@
 import { useRef, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, Pressable, ActivityIndicator, Image, Alert, Platform,
+  View, StyleSheet, Pressable, ActivityIndicator, Image, Alert, Platform,
 } from 'react-native';
+import { AppText } from '../AppText';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -170,11 +171,11 @@ export function ProofUpload({ token, organizerName, proofUrl, proofSummary, proo
       <View style={[styles.root, styles.uploadRoot]}>
         <View style={styles.uploadHeader}>
           <View>
-            <Text style={styles.label}>ATTACH PROOF OF PAYMENT</Text>
-            <Text style={styles.hint}>Optional, but helps {organizerName} confirm faster</Text>
+            <AppText style={styles.label}>ATTACH PROOF OF PAYMENT</AppText>
+            <AppText style={styles.hint}>Optional, but helps {organizerName} confirm faster</AppText>
           </View>
           <View style={styles.fileChip}>
-            <Text style={styles.fileChipText}>JPG PNG WebP</Text>
+            <AppText style={styles.fileChipText}>JPG PNG WebP</AppText>
           </View>
         </View>
         {Platform.OS === 'web' && (
@@ -233,12 +234,12 @@ export function ProofUpload({ token, organizerName, proofUrl, proofSummary, proo
             duration={3800}
             containerStyle={styles.uploadTitleRow}
           />
-          <Text style={styles.uploadSubtitle}>
+          <AppText style={styles.uploadSubtitle}>
             {Platform.OS === 'web' ? 'or tap to browse your files' : 'Tap to attach a receipt screenshot'}
-          </Text>
+          </AppText>
           <View style={styles.uploadAction}>
             <Feather name="paperclip" size={14} color="#FFFFFF" />
-            <Text style={styles.uploadActionText}>Choose file</Text>
+            <AppText style={styles.uploadActionText}>Choose file</AppText>
           </View>
         </Pressable>
       </View>
@@ -253,8 +254,8 @@ export function ProofUpload({ token, organizerName, proofUrl, proofSummary, proo
             <ActivityIndicator color={colors.primary} />
           </View>
           <View style={styles.attachedInfo}>
-            <Text style={styles.attachedTitle}>Reading receipt…</Text>
-            <Text style={styles.hint}>This takes a couple of seconds</Text>
+            <AppText style={styles.attachedTitle}>Reading receipt…</AppText>
+            <AppText style={styles.hint}>This takes a couple of seconds</AppText>
           </View>
         </View>
       </View>
@@ -275,13 +276,13 @@ export function ProofUpload({ token, organizerName, proofUrl, proofSummary, proo
         <View style={styles.attachedInfo}>
           <View style={styles.attachedTitleRow}>
             <Feather name={variantIcon} size={14} color={variantTint.icon} />
-            <Text style={[styles.attachedTitle, { color: variantTint.label }]} numberOfLines={2}>
+            <AppText style={[styles.attachedTitle, { color: variantTint.label }]} numberOfLines={2}>
               {proofSummary ?? 'Proof attached'}
-            </Text>
+            </AppText>
           </View>
           {variant === 'mismatch' && (
             <Pressable onPress={Platform.OS === 'web' ? handlePickWeb : handlePickMobile} style={styles.reUploadHint}>
-              <Text style={styles.reUploadText}>Re-upload</Text>
+              <AppText style={styles.reUploadText}>Re-upload</AppText>
             </Pressable>
           )}
           {Platform.OS === 'web' && (

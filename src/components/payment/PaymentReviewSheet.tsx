@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  Modal, View, Text, StyleSheet, Pressable, ActivityIndicator, TextInput, Alert, Image,
+  Modal, View, StyleSheet, Pressable, ActivityIndicator, TextInput, Alert, Image,
 } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, cancelAnimation } from 'react-native-reanimated';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../theme/tokens';
@@ -87,10 +88,10 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
         <Pressable style={styles.backdrop} onPress={onClose}>
           <Pressable style={styles.sheet} onPress={() => {}}>
             <View style={styles.handle} />
-            <Text style={styles.title}>Review payment</Text>
-            <Text style={styles.subtitle}>
+            <AppText style={styles.title}>Review payment</AppText>
+            <AppText style={styles.subtitle}>
               {participant.name} • {symbol}{participant.amount.toFixed(2)}
-            </Text>
+            </AppText>
 
             <AISummaryBanner
               proofUrl={participant.proofUrl}
@@ -100,9 +101,9 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
             />
 
             {participant.submittedAt && (
-              <Text style={styles.meta}>
+              <AppText style={styles.meta}>
                 Submitted {new Date(participant.submittedAt).toLocaleString()}
-              </Text>
+              </AppText>
             )}
 
             {!rejectMode ? (
@@ -113,7 +114,7 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
                   disabled={busy !== null}
                 >
                   <Feather name="x" size={18} color="#DC2626" />
-                  <Text style={[styles.btnText, { color: '#DC2626' }]}>Reject</Text>
+                  <AppText style={[styles.btnText, { color: '#DC2626' }]}>Reject</AppText>
                 </Pressable>
                 <Animated.View style={[{ flex: 1 }, approveAnimatedStyle]}>
                   <Pressable
@@ -125,14 +126,14 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
                       ? <ActivityIndicator color="#FFF" />
                       : <>
                           <Feather name="check" size={18} color="#FFF" />
-                          <Text style={[styles.btnText, { color: '#FFF' }]}>Approve</Text>
+                          <AppText style={[styles.btnText, { color: '#FFF' }]}>Approve</AppText>
                         </>}
                   </Pressable>
                 </Animated.View>
               </View>
             ) : (
               <View style={styles.rejectBlock}>
-                <Text style={styles.rejectLabel}>Reason</Text>
+                <AppText style={styles.rejectLabel}>Reason</AppText>
                 <TextInput
                   style={styles.rejectInput}
                   placeholder="e.g. Amount looks short, try again"
@@ -142,7 +143,7 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
                 />
                 <View style={styles.actions}>
                   <Pressable style={[styles.btn, styles.cancelBtn]} onPress={() => setRejectMode(false)}>
-                    <Text style={[styles.btnText, { color: colors.textSecondary }]}>Cancel</Text>
+                    <AppText style={[styles.btnText, { color: colors.textSecondary }]}>Cancel</AppText>
                   </Pressable>
                   <Pressable
                     style={[styles.btn, styles.rejectConfirmBtn]}
@@ -151,7 +152,7 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
                   >
                     {busy === 'reject'
                       ? <ActivityIndicator color="#FFF" />
-                      : <Text style={[styles.btnText, { color: '#FFF' }]}>Send rejection</Text>}
+                      : <AppText style={[styles.btnText, { color: '#FFF' }]}>Send rejection</AppText>}
                   </Pressable>
                 </View>
               </View>

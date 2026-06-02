@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import { colors, typography, spacing, radius } from '../../theme/tokens';
 import { GlowingCard } from '../effects/GlowingCard';
 import { ForecastChart } from './ForecastChart';
@@ -37,12 +38,12 @@ export function ForecastCard({ data, currency, range, onRangeChange }: Props) {
       <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.title}>{RANGE_TITLES[range]}</Text>
-          <Text style={styles.sub}>Projected outflow + recurring bills</Text>
+          <AppText style={styles.title}>{RANGE_TITLES[range]}</AppText>
+          <AppText style={styles.sub}>Projected outflow + recurring bills</AppText>
           {data.length > 0 && (
-            <Text style={styles.periodTotal}>
+            <AppText style={styles.periodTotal}>
               {formatCurrency(periodTotal, currency)} total projected
-            </Text>
+            </AppText>
           )}
         </View>
         <View style={styles.segControl}>
@@ -53,9 +54,9 @@ export function ForecastCard({ data, currency, range, onRangeChange }: Props) {
               onPress={() => onRangeChange(r.key)}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
-              <Text style={[styles.segLabel, range === r.key && styles.segLabelActive]}>
+              <AppText style={[styles.segLabel, range === r.key && styles.segLabelActive]}>
                 {r.label}
-              </Text>
+              </AppText>
             </Pressable>
           ))}
         </View>
@@ -66,9 +67,9 @@ export function ForecastCard({ data, currency, range, onRangeChange }: Props) {
       {insight !== null && (
         <View style={styles.insightPill}>
           <View style={styles.insightIcon}>
-            <Text style={styles.insightIconText}>⚡</Text>
+            <AppText style={styles.insightIconText}>⚡</AppText>
           </View>
-          <Text style={styles.insightText}>{insight}</Text>
+          <AppText style={styles.insightText}>{insight}</AppText>
         </View>
       )}
       </View>

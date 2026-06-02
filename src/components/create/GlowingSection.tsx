@@ -1,4 +1,5 @@
-import { StyleSheet, View, Text, Platform } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -34,7 +35,7 @@ export function GlowingSection({ title, icon, delay = 0, children }: GlowingSect
         <View style={styles.inner}>
           <View style={styles.titleRow}>
             {icon && <Feather name={icon} size={14} color={gc.primary} />}
-            <Text style={styles.title}>{title}</Text>
+            <AppText style={styles.title}>{title}</AppText>
           </View>
           {children}
         </View>

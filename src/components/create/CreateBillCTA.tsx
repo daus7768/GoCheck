@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Pressable, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
+import { Pressable, StyleSheet, ActivityIndicator, View } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -86,14 +87,14 @@ export function CreateBillCTA({ onPress, state, disabled, label = 'Create Bill' 
         {state === 'loading' ? (
           <View style={styles.content}>
             <ActivityIndicator size="small" color={colors.white} />
-            <Text style={styles.label}>Creating…</Text>
+            <AppText style={styles.label}>Creating…</AppText>
           </View>
         ) : state === 'success' ? (
           <View style={styles.content}>
             <Animated.View style={successIconStyle}>
               <Feather name="check-circle" size={22} color={colors.white} />
             </Animated.View>
-            <Text style={styles.label}>Bill Created!</Text>
+            <AppText style={styles.label}>Bill Created!</AppText>
           </View>
         ) : (
           <View style={styles.content}>
@@ -102,9 +103,9 @@ export function CreateBillCTA({ onPress, state, disabled, label = 'Create Bill' 
               size={18}
               color={disabled ? colors.gray400 : colors.white}
             />
-            <Text style={[styles.label, disabled && styles.labelDisabled]}>
+            <AppText style={[styles.label, disabled && styles.labelDisabled]}>
               {label}
-            </Text>
+            </AppText>
           </View>
         )}
       </Animated.View>

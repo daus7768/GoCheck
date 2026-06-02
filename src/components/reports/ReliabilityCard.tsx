@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -51,13 +52,13 @@ function ReliabilityRow({ item }: { item: ReliabilityResult }) {
           { backgroundColor: hexToRgba(item.band.color, 0.12) },
         ]}
       >
-        <Text style={[styles.avatarText, { color: item.band.color }]}>
+        <AppText style={[styles.avatarText, { color: item.band.color }]}>
           {getInitials(item.name)}
-        </Text>
+        </AppText>
       </View>
       <View style={styles.nameGroup}>
-        <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
-        <Text style={styles.sub}>{avgLabel}</Text>
+        <AppText style={styles.name} numberOfLines={1}>{item.name}</AppText>
+        <AppText style={styles.sub}>{avgLabel}</AppText>
       </View>
       <View style={styles.scoreGroup}>
         <View
@@ -66,16 +67,16 @@ function ReliabilityRow({ item }: { item: ReliabilityResult }) {
             { backgroundColor: hexToRgba(item.band.color, 0.12) },
           ]}
         >
-          <Text style={[styles.bandText, { color: item.band.color }]}>
+          <AppText style={[styles.bandText, { color: item.band.color }]}>
             {item.band.label}
-          </Text>
+          </AppText>
         </View>
         <View style={styles.barTrack}>
           <Animated.View
             style={[styles.barFill, barStyle, { backgroundColor: item.band.color }]}
           />
         </View>
-        <Text style={[styles.score, { color: item.band.color }]}>{item.score}</Text>
+        <AppText style={[styles.score, { color: item.band.color }]}>{item.score}</AppText>
       </View>
     </View>
   );
@@ -89,12 +90,12 @@ export function ReliabilityCard({ data }: Props) {
   return (
     <GlowingCard radius={radius['2xl']} background={colors.surface}>
       <View style={styles.card}>
-        <Text style={styles.title}>Who pays on time</Text>
-        <Text style={styles.cardSub}>Based on past 6 months</Text>
+        <AppText style={styles.title}>Who pays on time</AppText>
+        <AppText style={styles.cardSub}>Based on past 6 months</AppText>
         {data.length === 0 ? (
-          <Text style={styles.empty}>
+          <AppText style={styles.empty}>
             Not enough data yet — needs 1+ paid bills with a due date set.
-          </Text>
+          </AppText>
         ) : (
           <View style={styles.list}>
             {data.map((item) => (

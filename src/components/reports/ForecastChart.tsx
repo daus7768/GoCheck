@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   Platform,
   Pressable,
   type LayoutChangeEvent,
 } from 'react-native';
+import { AppText } from '../AppText';
 import Svg, { Rect, Text as SvgText, G } from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -166,7 +166,7 @@ function ChartTooltip({
       ]}
       pointerEvents="none"
     >
-      <Text style={styles.tooltipText}>{label}</Text>
+      <AppText style={styles.tooltipText}>{label}</AppText>
     </View>
   );
 }
@@ -343,13 +343,13 @@ export function ForecastChart({ data, currency, height = CHART_HEIGHT }: Props) 
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: COLORS.projected }]} />
-          <Text style={styles.legendLabel}>Projected</Text>
+          <AppText style={styles.legendLabel}>Projected</AppText>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: COLORS.recurring }]} />
-          <Text style={styles.legendLabel}>Recurring</Text>
+          <AppText style={styles.legendLabel}>Recurring</AppText>
         </View>
-        <Text style={styles.legendHint}>Tap a bar for details</Text>
+        <AppText style={styles.legendHint}>Tap a bar for details</AppText>
       </View>
     </View>
   );

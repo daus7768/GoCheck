@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, Image, Platform } from 'react-native';
+import { View, StyleSheet, Modal, Image, Platform } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -150,7 +151,7 @@ export function SignOutOverlay({ visible }: Props) {
 
           {/* ── Label + dots ── */}
           <View style={styles.textRow}>
-            <Text style={styles.label}>Signing out</Text>
+            <AppText style={styles.label}>Signing out</AppText>
             <Animated.Text style={[styles.dot, d1]}>.</Animated.Text>
             <Animated.Text style={[styles.dot, d2]}>.</Animated.Text>
             <Animated.Text style={[styles.dot, d3]}>.</Animated.Text>

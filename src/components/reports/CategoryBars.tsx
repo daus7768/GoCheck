@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -38,7 +39,7 @@ function BarRow({ row, maxAmount, currency }: BarRowProps) {
     <View style={styles.row}>
       <View style={styles.labelGroup}>
         <View style={[styles.dot, { backgroundColor: CATEGORY_COLORS[row.cat] }]} />
-        <Text style={styles.label}>{CATEGORY_LABELS[row.cat]}</Text>
+        <AppText style={styles.label}>{CATEGORY_LABELS[row.cat]}</AppText>
       </View>
       <View style={styles.trackWrap}>
         <View style={styles.track}>
@@ -48,9 +49,9 @@ function BarRow({ row, maxAmount, currency }: BarRowProps) {
         </View>
       </View>
       <View style={styles.amountCol}>
-        <Text style={styles.amount}>{formatCurrency(row.amount, currency)}</Text>
+        <AppText style={styles.amount}>{formatCurrency(row.amount, currency)}</AppText>
         {row.percent !== undefined && (
-          <Text style={styles.pct}>{row.percent}%</Text>
+          <AppText style={styles.pct}>{row.percent}%</AppText>
         )}
       </View>
     </View>

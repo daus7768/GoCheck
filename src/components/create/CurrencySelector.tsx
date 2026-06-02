@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   Pressable,
   Modal,
   FlatList,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { AppText } from '../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { haptic, ImpactFeedbackStyle } from '../../lib/haptics';
@@ -50,8 +50,8 @@ export function CurrencySelector({ value, onChange }: Props) {
           accessibilityRole="button"
           accessibilityLabel={`Currency: ${value}`}
         >
-          <Text style={styles.symbol}>{CURRENCY_SYMBOLS[value]}</Text>
-          <Text style={styles.code}>{value}</Text>
+          <AppText style={styles.symbol}>{CURRENCY_SYMBOLS[value]}</AppText>
+          <AppText style={styles.code}>{value}</AppText>
           <Feather name="chevron-down" size={14} color={colors.textSecondary} />
         </Pressable>
       </Animated.View>
@@ -70,7 +70,7 @@ export function CurrencySelector({ value, onChange }: Props) {
             {/* Handle */}
             <View style={styles.handle} />
 
-            <Text style={styles.sheetTitle}>Select Currency</Text>
+            <AppText style={styles.sheetTitle}>Select Currency</AppText>
 
             <FlatList
               data={SUPPORTED_CURRENCIES}
@@ -82,10 +82,10 @@ export function CurrencySelector({ value, onChange }: Props) {
                   activeOpacity={0.7}
                 >
                   <View style={styles.optionLeft}>
-                    <Text style={styles.optionSymbol}>{CURRENCY_SYMBOLS[item]}</Text>
+                    <AppText style={styles.optionSymbol}>{CURRENCY_SYMBOLS[item]}</AppText>
                     <View>
-                      <Text style={styles.optionCode}>{item}</Text>
-                      <Text style={styles.optionLabel}>{CURRENCY_LABELS[item]}</Text>
+                      <AppText style={styles.optionCode}>{item}</AppText>
+                      <AppText style={styles.optionLabel}>{CURRENCY_LABELS[item]}</AppText>
                     </View>
                   </View>
                   {item === value && (

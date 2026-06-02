@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
@@ -30,12 +31,12 @@ export function SentRow({ row }: Props) {
       </View>
       <View style={styles.info}>
         <View style={styles.nameRow}>
-          <Text style={styles.name} numberOfLines={1}>{row.recipientName}</Text>
+          <AppText style={styles.name} numberOfLines={1}>{row.recipientName}</AppText>
           {row.syncFailed && (
             <Feather name="alert-triangle" size={14} color={colors.warning} />
           )}
         </View>
-        <Text style={styles.meta}>via {channelLabel} · {timeAgo}</Text>
+        <AppText style={styles.meta}>via {channelLabel} · {timeAgo}</AppText>
       </View>
     </View>
   );

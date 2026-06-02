@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { View, Pressable, StyleSheet, Linking } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -73,15 +74,15 @@ export function BatchToast() {
     <Animated.View style={[styles.toast, toastStyle]}>
       <View style={styles.toastContent}>
         <Feather name="send" size={16} color={colors.white} />
-        <Text style={styles.toastText}>
+        <AppText style={styles.toastText}>
           {isDone
             ? `All ${batchQueue.length} reminders sent 🎉`
             : `${batchPointer} of ${batchQueue.length} sent — tap to continue`}
-        </Text>
+        </AppText>
       </View>
       {!isDone && (
         <Pressable style={styles.nextBtn} onPress={handleSendNext}>
-          <Text style={styles.nextBtnText}>Send next</Text>
+          <AppText style={styles.nextBtnText}>Send next</AppText>
           <Feather name="chevron-right" size={14} color={colors.primary} />
         </Pressable>
       )}

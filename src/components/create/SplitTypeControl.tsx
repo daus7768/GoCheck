@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, LayoutChangeEvent } from 'react-native';
+import { View, Pressable, StyleSheet, LayoutChangeEvent } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -69,9 +70,9 @@ export function SplitTypeControl({ value, onChange }: Props) {
             accessibilityRole="button"
             accessibilityState={{ selected: isActive }}
           >
-            <Text style={[styles.label, isActive && styles.labelActive]}>
+            <AppText style={[styles.label, isActive && styles.labelActive]}>
               {seg.label}
-            </Text>
+            </AppText>
           </Pressable>
         );
       })}

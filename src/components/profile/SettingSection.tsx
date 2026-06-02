@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import { typography, fontSize, spacing, radius } from '../../theme/tokens';
 import { useTheme } from '../../theme/ThemeContext';
 import { GlowingCard } from '../effects/GlowingCard';
@@ -17,7 +18,7 @@ export function SettingSection({ title, children, accent, noGlow }: SettingSecti
   const { colors: c } = useTheme();
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.title, { color: c.textSecondary }]}>{title}</Text>
+      <AppText style={[styles.title, { color: c.textSecondary }]}>{title}</AppText>
       <GlowingCard radius={radius.lg} color={accent} disabled={noGlow} background={c.surface}>
         <View style={styles.body}>{children}</View>
       </GlowingCard>

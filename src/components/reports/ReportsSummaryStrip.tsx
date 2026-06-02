@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '../../theme/tokens';
 import { GlowingCard } from '../effects/GlowingCard';
@@ -23,8 +24,8 @@ export function ReportsSummaryStrip({
           <Feather name="percent" size={14} color={colors.primary} />
         </View>
         <View>
-          <Text style={styles.value}>{collectionRate}%</Text>
-          <Text style={styles.label}>Collected</Text>
+          <AppText style={styles.value}>{collectionRate}%</AppText>
+          <AppText style={styles.label}>Collected</AppText>
         </View>
       </View>
       <View style={styles.divider} />
@@ -33,8 +34,8 @@ export function ReportsSummaryStrip({
           <Feather name="file-text" size={14} color={colors.secondary} />
         </View>
         <View>
-          <Text style={styles.value}>{totalBills}</Text>
-          <Text style={styles.label}>Total bills</Text>
+          <AppText style={styles.value}>{totalBills}</AppText>
+          <AppText style={styles.label}>Total bills</AppText>
         </View>
       </View>
       <View style={styles.divider} />
@@ -43,8 +44,8 @@ export function ReportsSummaryStrip({
           <Feather name="clock" size={14} color={colors.warning} />
         </View>
         <View>
-          <Text style={styles.value}>{activeBills}</Text>
-          <Text style={styles.label}>Active</Text>
+          <AppText style={styles.value}>{activeBills}</AppText>
+          <AppText style={styles.label}>Active</AppText>
         </View>
       </View>
       </View>

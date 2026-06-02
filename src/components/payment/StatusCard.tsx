@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
@@ -21,9 +22,9 @@ export function StatusCard({ status, amount, currency, dueDate, organizerName, c
   if (status === 'unpaid') {
     return (
       <View style={[styles.root, styles.unpaid]}>
-        <Text style={styles.label}>Amount due</Text>
-        <Text style={styles.amount}>{symbol}{amount.toFixed(2)}</Text>
-        {dueDate && <Text style={styles.sub}>Due {format(new Date(dueDate), 'EEEE, d MMM yyyy')}</Text>}
+        <AppText style={styles.label}>Amount due</AppText>
+        <AppText style={styles.amount}>{symbol}{amount.toFixed(2)}</AppText>
+        {dueDate && <AppText style={styles.sub}>Due {format(new Date(dueDate), 'EEEE, d MMM yyyy')}</AppText>}
       </View>
     );
   }
@@ -32,7 +33,7 @@ export function StatusCard({ status, amount, currency, dueDate, organizerName, c
     return (
       <View style={[styles.root, styles.pending]}>
         <ActivityIndicator color="#B45309" />
-        <Text style={[styles.label, { color: '#B45309' }]}>Waiting for {organizerName} to confirm</Text>
+        <AppText style={[styles.label, { color: '#B45309' }]}>Waiting for {organizerName} to confirm</AppText>
       </View>
     );
   }
@@ -41,8 +42,8 @@ export function StatusCard({ status, amount, currency, dueDate, organizerName, c
     return (
       <View style={[styles.root, styles.confirmed]}>
         <Feather name="check-circle" size={32} color="#059669" />
-        <Text style={[styles.amount, { color: '#059669' }]}>Paid ✓</Text>
-        {confirmedAt && <Text style={[styles.sub, { color: '#059669' }]}>on {format(new Date(confirmedAt), 'd MMM yyyy, HH:mm')}</Text>}
+        <AppText style={[styles.amount, { color: '#059669' }]}>Paid ✓</AppText>
+        {confirmedAt && <AppText style={[styles.sub, { color: '#059669' }]}>on {format(new Date(confirmedAt), 'd MMM yyyy, HH:mm')}</AppText>}
       </View>
     );
   }
@@ -51,8 +52,8 @@ export function StatusCard({ status, amount, currency, dueDate, organizerName, c
   return (
     <View style={[styles.root, styles.rejected]}>
       <Feather name="alert-circle" size={28} color="#DC2626" />
-      <Text style={[styles.label, { color: '#DC2626' }]}>Payment couldn't be confirmed</Text>
-      {rejectedReason && <Text style={styles.sub}>{rejectedReason}</Text>}
+      <AppText style={[styles.label, { color: '#DC2626' }]}>Payment couldn't be confirmed</AppText>
+      {rejectedReason && <AppText style={styles.sub}>{rejectedReason}</AppText>}
     </View>
   );
 }

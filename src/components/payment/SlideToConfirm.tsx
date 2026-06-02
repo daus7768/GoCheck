@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -65,7 +66,7 @@ export function SlideToConfirm({ label = 'Slide to confirm I paid', onConfirm, d
     >
       <View style={[styles.track, { width: trackWidth, opacity: disabled ? 0.5 : 1 }]}>
         <Animated.View style={[styles.fill, fillStyle]} />
-        <Text style={styles.label} numberOfLines={1}>{label}</Text>
+        <AppText style={styles.label} numberOfLines={1}>{label}</AppText>
         <GestureDetector gesture={gesture}>
           <Animated.View style={[styles.thumb, thumbStyle]}>
             <Feather name="chevrons-right" size={22} color="#FFF" />

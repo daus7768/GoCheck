@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import {
   View,
-  Text,
   Modal,
   TextInput,
   Pressable,
@@ -10,6 +9,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { AppText } from '../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { haptic, NotificationFeedbackType } from '../../lib/haptics';
@@ -142,7 +142,7 @@ export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: 
           <View style={styles.handle} />
 
           <View style={styles.header}>
-            <Text style={styles.title}>Add Participant</Text>
+            <AppText style={styles.title}>Add Participant</AppText>
             <Pressable
               onPress={handleClose}
               style={styles.closeBtn}
@@ -158,9 +158,9 @@ export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: 
           >
             {/* Name */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>
-                Name <Text style={styles.required}>*</Text>
-              </Text>
+              <AppText style={styles.label}>
+                Name <AppText style={styles.required}>*</AppText>
+              </AppText>
               <View style={[styles.inputWrapper, nameError ? styles.inputError : null]}>
                 <Feather name="user" size={16} color={nameError ? colors.error : colors.gray400} />
                 <TextInput
@@ -180,14 +180,14 @@ export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: 
                   maxLength={60}
                 />
               </View>
-              {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
+              {nameError ? <AppText style={styles.errorText}>{nameError}</AppText> : null}
             </View>
 
             {/* Phone */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>
-                Phone <Text style={styles.optional}>(for WhatsApp reminders)</Text>
-              </Text>
+              <AppText style={styles.label}>
+                Phone <AppText style={styles.optional}>(for WhatsApp reminders)</AppText>
+              </AppText>
               <View style={[styles.inputWrapper, phoneError ? styles.inputError : null]}>
                 <Feather name="phone" size={16} color={phoneError ? colors.error : colors.gray400} />
                 <TextInput
@@ -207,14 +207,14 @@ export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: 
                   maxLength={20}
                 />
               </View>
-              {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
+              {phoneError ? <AppText style={styles.errorText}>{phoneError}</AppText> : null}
             </View>
 
             {/* Email */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>
-                Email <Text style={styles.optional}>(optional)</Text>
-              </Text>
+              <AppText style={styles.label}>
+                Email <AppText style={styles.optional}>(optional)</AppText>
+              </AppText>
               <View style={styles.inputWrapper}>
                 <Feather name="mail" size={16} color={colors.gray400} />
                 <TextInput
@@ -239,7 +239,7 @@ export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: 
               onPress={handleAdd}
             >
               <Feather name="user-plus" size={18} color={colors.white} />
-              <Text style={styles.addBtnText}>Add Participant</Text>
+              <AppText style={styles.addBtnText}>Add Participant</AppText>
             </Pressable>
           </ScrollView>
         </View>

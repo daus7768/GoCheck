@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Pressable, Image, ActivityIndicator } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
 import { supabase } from '../../lib/supabase';
@@ -80,11 +81,11 @@ export function AISummaryBanner({ proofUrl, proofSummary, proofExtracted, onImag
       <View style={styles.info}>
         <View style={styles.titleRow}>
           <Feather name={ICONS[variant]} size={14} color={tint.icon} />
-          <Text style={[styles.summary, { color: tint.label }]} numberOfLines={3}>
+          <AppText style={[styles.summary, { color: tint.label }]} numberOfLines={3}>
             {proofSummary ?? 'Proof attached — tap to view'}
-          </Text>
+          </AppText>
         </View>
-        <Text style={[styles.viewHint, { color: tint.label }]}>Tap to view full receipt</Text>
+        <AppText style={[styles.viewHint, { color: tint.label }]}>Tap to view full receipt</AppText>
       </View>
       <Feather name="chevron-right" size={16} color={tint.icon} />
     </Pressable>

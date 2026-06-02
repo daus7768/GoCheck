@@ -1,4 +1,5 @@
-import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { View, Pressable, StyleSheet, Linking } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { haptic } from '../../lib/haptics';
 import { useReminderStore } from '../../store/reminderStore';
@@ -95,38 +96,38 @@ export function QueueRow({ item, remindersForItem }: Props) {
           <View style={styles.left}>
         {/* Avatar */}
         <View style={[styles.avatar, { backgroundColor: item.participantAvatarColor }]}>
-          <Text style={styles.avatarText}>{getInitials(item.participantName)}</Text>
+          <AppText style={styles.avatarText}>{getInitials(item.participantName)}</AppText>
         </View>
 
         {/* Info */}
         <View style={styles.info}>
           {/* Name row */}
           <View style={styles.nameRow}>
-            <Text style={styles.name} numberOfLines={1}>{item.participantName}</Text>
+            <AppText style={styles.name} numberOfLines={1}>{item.participantName}</AppText>
             {/* Fixed-width reliability slot */}
             <View style={styles.reliabilitySlot}>
               {reliabilityConfig ? (
                 <View style={[styles.chip, { backgroundColor: reliabilityConfig.bg }]}>
-                  <Text style={[styles.chipText, { color: reliabilityConfig.color }]}>
+                  <AppText style={[styles.chipText, { color: reliabilityConfig.color }]}>
                     {reliabilityConfig.label}
-                  </Text>
+                  </AppText>
                 </View>
               ) : null}
             </View>
             {askedCount > 0 && (
               <View style={styles.askedChip}>
-                <Text style={styles.askedText}>asked {askedCount}×</Text>
+                <AppText style={styles.askedText}>asked {askedCount}×</AppText>
               </View>
             )}
           </View>
 
           {/* Bill + amount */}
-          <Text style={styles.billMeta} numberOfLines={1}>
+          <AppText style={styles.billMeta} numberOfLines={1}>
             {item.billTitle} · {formatCurrency(item.amount, item.currency)}
-          </Text>
+          </AppText>
 
           {/* Due label */}
-          <Text style={[styles.dueLabel, { color: dueLabelColor }]}>{dueLabel}</Text>
+          <AppText style={[styles.dueLabel, { color: dueLabelColor }]}>{dueLabel}</AppText>
         </View>
       </View>
 
@@ -134,7 +135,7 @@ export function QueueRow({ item, remindersForItem }: Props) {
       <View style={styles.actions}>
         <Pressable style={styles.waBtn} onPress={handleWhatsApp}>
           <Feather name="message-circle" size={14} color="#25D366" />
-          <Text style={styles.waBtnText}>WhatsApp</Text>
+          <AppText style={styles.waBtnText}>WhatsApp</AppText>
         </Pressable>
         {item.participantEmail ? (
           <Pressable style={styles.emailBtn} onPress={handleEmail}>

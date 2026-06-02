@@ -1,4 +1,5 @@
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, FlatList, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { useReminderStore } from '../../store/reminderStore';
 import { SentRow } from './SentRow';
@@ -17,16 +18,16 @@ export function SentPane() {
         ListHeaderComponent={
           <View style={styles.infoNote}>
             <Feather name="info" size={14} color={colors.textSecondary} />
-            <Text style={styles.infoText}>
+            <AppText style={styles.infoText}>
               Reminders are logged when sent — confirm delivery in your WhatsApp or email outbox.
-            </Text>
+            </AppText>
           </View>
         }
         ListEmptyComponent={
           <View style={styles.empty}>
             <Feather name="send" size={48} color={colors.gray300} />
-            <Text style={styles.emptyTitle}>No reminders sent yet</Text>
-            <Text style={styles.emptyHint}>Send your first reminder from the Queue tab.</Text>
+            <AppText style={styles.emptyTitle}>No reminders sent yet</AppText>
+            <AppText style={styles.emptyHint}>Send your first reminder from the Queue tab.</AppText>
           </View>
         }
         renderItem={({ item }) => <SentRow row={item} />}

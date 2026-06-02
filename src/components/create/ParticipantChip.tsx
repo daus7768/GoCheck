@@ -1,4 +1,5 @@
-import { Pressable, View, Text, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -56,11 +57,11 @@ export function ParticipantChip({ participant, onRemove }: ChipProps) {
     >
       <View style={styles.chip}>
         <View style={[styles.avatar, { backgroundColor: participant.avatarColor }]}>
-          <Text style={styles.avatarText}>{getInitials(participant.name)}</Text>
+          <AppText style={styles.avatarText}>{getInitials(participant.name)}</AppText>
         </View>
-        <Text style={styles.name} numberOfLines={1}>
+        <AppText style={styles.name} numberOfLines={1}>
           {participant.name}
-        </Text>
+        </AppText>
         <Pressable
           onPress={handleRemove}
           style={styles.removeBtn}
@@ -103,7 +104,7 @@ export function AddParticipantChip({ onPress, overflowCount }: AddChipProps) {
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
-          <Text style={styles.overflowText}>+{overflowCount} more</Text>
+          <AppText style={styles.overflowText}>+{overflowCount} more</AppText>
         </Pressable>
       </Animated.View>
     );
@@ -120,7 +121,7 @@ export function AddParticipantChip({ onPress, overflowCount }: AddChipProps) {
         accessibilityLabel="Add participant"
       >
         <Feather name="plus" size={14} color={colors.primary} />
-        <Text style={styles.addLabel}>Add Person</Text>
+        <AppText style={styles.addLabel}>Add Person</AppText>
       </Pressable>
     </Animated.View>
   );

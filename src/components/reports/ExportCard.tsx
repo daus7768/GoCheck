@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
-  View, Text, Pressable, ActivityIndicator, StyleSheet, Alert,
+  View, Pressable, ActivityIndicator, StyleSheet, Alert,
 } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '../../theme/tokens';
 import { GlowingCard } from '../effects/GlowingCard';
@@ -51,8 +52,8 @@ export function ExportCard({ bills, currency }: Props) {
   return (
     <GlowingCard radius={radius['2xl']} background={colors.surface}>
       <View style={styles.card}>
-      <Text style={styles.title}>Export</Text>
-      <Text style={styles.sub}>Download a full breakdown for accounting or tax filing.</Text>
+      <AppText style={styles.title}>Export</AppText>
+      <AppText style={styles.sub}>Download a full breakdown for accounting or tax filing.</AppText>
       <View style={styles.btnRow}>
         <Pressable
           style={({ pressed }) => [
@@ -68,9 +69,9 @@ export function ExportCard({ bills, currency }: Props) {
           ) : (
             <Feather name="download" size={14} color={colors.primary} />
           )}
-          <Text style={[styles.btnLabel, styles.btnLabelPrimary]}>
+          <AppText style={[styles.btnLabel, styles.btnLabelPrimary]}>
             {isExportingCsv ? 'Preparing…' : 'Export CSV'}
-          </Text>
+          </AppText>
         </Pressable>
         <Pressable
           style={({ pressed }) => [
@@ -86,7 +87,7 @@ export function ExportCard({ bills, currency }: Props) {
           ) : (
             <Feather name="file-text" size={14} color={colors.gray600} />
           )}
-          <Text style={styles.btnLabel}>{isExportingPdf ? 'Preparing…' : 'Export PDF'}</Text>
+          <AppText style={styles.btnLabel}>{isExportingPdf ? 'Preparing…' : 'Export PDF'}</AppText>
         </Pressable>
       </View>
       </View>

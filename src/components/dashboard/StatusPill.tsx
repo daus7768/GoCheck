@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import { colors, typography, fontSize, radius, spacing } from '../../theme/tokens';
 
 type PillStatus = 'paid' | 'partial' | 'unpaid' | 'overdue';
@@ -38,7 +39,7 @@ export function StatusPill({ status }: StatusPillProps) {
 
   return (
     <View style={[styles.pill, { backgroundColor: bg }]}>
-      <Text style={[styles.label, { color: text }]}>{label}</Text>
+      <AppText style={[styles.label, { color: text }]}>{label}</AppText>
     </View>
   );
 }

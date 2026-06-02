@@ -1,4 +1,5 @@
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, TextInput, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -52,7 +53,7 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
       {/* Row header */}
       <View style={styles.header}>
         <View style={styles.indexBadge}>
-          <Text style={styles.indexText}>{index + 1}</Text>
+          <AppText style={styles.indexText}>{index + 1}</AppText>
         </View>
         <TextInput
           style={styles.descInput}
@@ -85,7 +86,7 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
           >
             <Feather name="minus" size={12} color={item.quantity <= 1 ? colors.textDisabled : colors.textSecondary} />
           </Pressable>
-          <Text style={styles.qtyText}>{item.quantity}</Text>
+          <AppText style={styles.qtyText}>{item.quantity}</AppText>
           <Pressable
             onPress={incrementQty}
             style={styles.stepBtn}
@@ -95,7 +96,7 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
           </Pressable>
         </View>
 
-        <Text style={styles.timesText}>×</Text>
+        <AppText style={styles.timesText}>×</AppText>
 
         {/* Unit price */}
         <View style={styles.priceInputWrapper}>
@@ -115,10 +116,10 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
 
         {/* Subtotal */}
         <View style={styles.subtotalWrapper}>
-          <Text style={styles.equalsText}>=</Text>
-          <Text style={styles.subtotalText}>
+          <AppText style={styles.equalsText}>=</AppText>
+          <AppText style={styles.subtotalText}>
             {subtotal.toFixed(2)}
-          </Text>
+          </AppText>
         </View>
       </View>
     </Animated.View>
@@ -147,7 +148,7 @@ export function AddLineItemButton({ onPress }: { onPress: () => void }) {
         <View style={styles.addBtnIcon}>
           <Feather name="plus" size={16} color={colors.primary} />
         </View>
-        <Text style={styles.addBtnText}>Add Line Item</Text>
+        <AppText style={styles.addBtnText}>Add Line Item</AppText>
       </Pressable>
     </Animated.View>
   );

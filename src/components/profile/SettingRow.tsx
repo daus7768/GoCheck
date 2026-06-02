@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
 import { useTheme } from '../../theme/ThemeContext';
@@ -23,11 +24,11 @@ export function SettingRow({ icon, label, sub, right, onPress, last }: SettingRo
         <Feather name={icon} size={18} color={colors.primary} />
       </View>
       <View style={styles.textWrap}>
-        <Text style={[styles.label, { color: c.textPrimary }]}>{label}</Text>
+        <AppText style={[styles.label, { color: c.textPrimary }]}>{label}</AppText>
         {sub ? (
-          <Text style={[styles.sub, { color: c.textSecondary }]} numberOfLines={1}>
+          <AppText style={[styles.sub, { color: c.textSecondary }]} numberOfLines={1}>
             {sub}
-          </Text>
+          </AppText>
         ) : null}
       </View>
       {right ? <View style={styles.right}>{right}</View> : null}

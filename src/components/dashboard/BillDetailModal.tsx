@@ -6,7 +6,6 @@ import {
   ScrollView,
   Share,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import Animated, {
@@ -37,6 +36,7 @@ import { useReminderStore } from '../../store/reminderStore';
 import { haptic } from '../../lib/haptics';
 import { participantUrl } from '../../lib/urls';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
+import { AppText } from '../AppText';
 import { AnimatedBar } from '../effects/AnimatedBar';
 
 const WHATSAPP = '#25D366';
@@ -203,7 +203,7 @@ export function BillDetailModal({ bill, allBills, visible, onClose }: BillDetail
                   accessibilityLabel="Open full bill"
                   style={({ pressed }) => [styles.openFullBtn, pressed && { opacity: 0.9 }]}
                 >
-                  <Text style={styles.openFullText}>Open full bill</Text>
+                  <AppText style={styles.openFullText}>Open full bill</AppText>
                   <Feather name="arrow-right" size={16} color={colors.white} />
                 </Pressable>
               </ScrollView>
@@ -237,12 +237,12 @@ function ExpandedHeader({
           {bill.isRecurring ? (
             <View style={styles.recurringChip}>
               <Feather name="repeat" size={10} color={colors.white} />
-              <Text style={styles.recurringChipText}>
+              <AppText style={styles.recurringChipText}>
                 {bill.isRecurring === 'yearly' ? 'YEARLY' : 'MONTHLY'}
-              </Text>
+              </AppText>
             </View>
           ) : null}
-          <Text style={styles.headerTitle} numberOfLines={2}>{bill.title}</Text>
+          <AppText style={styles.headerTitle} numberOfLines={2}>{bill.title}</AppText>
         </View>
         <View style={styles.headerActions}>
           <Pressable
@@ -265,12 +265,12 @@ function ExpandedHeader({
           </Pressable>
         </View>
       </View>
-      <Text style={styles.headerAmount}>
+      <AppText style={styles.headerAmount}>
         {sym} {fmt(bill.totalAmount)}
-      </Text>
-      <Text style={styles.headerSub}>
+      </AppText>
+      <AppText style={styles.headerSub}>
         Due {new Date(bill.dueDate).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-      </Text>
+      </AppText>
     </LinearGradient>
   );
 }
@@ -282,22 +282,22 @@ function ExpandedStats({ bill }: { bill: Bill }) {
     <View style={styles.statsCard}>
       <View style={styles.statsRow}>
         <View style={styles.statsCol}>
-          <Text style={styles.statsLabel}>Collected</Text>
-          <Text style={styles.statsValue}>
+          <AppText style={styles.statsLabel}>Collected</AppText>
+          <AppText style={styles.statsValue}>
             {sym} {fmt(stats.collected)}
-          </Text>
+          </AppText>
         </View>
         <View style={styles.statsCol}>
-          <Text style={styles.statsLabel}>Remaining</Text>
-          <Text style={[styles.statsValue, { color: stats.overdue ? colors.error : colors.textPrimary }]}>
+          <AppText style={styles.statsLabel}>Remaining</AppText>
+          <AppText style={[styles.statsValue, { color: stats.overdue ? colors.error : colors.textPrimary }]}>
             {sym} {fmt(stats.remaining)}
-          </Text>
+          </AppText>
         </View>
         <View style={styles.statsCol}>
-          <Text style={styles.statsLabel}>Paid</Text>
-          <Text style={styles.statsValue}>
+          <AppText style={styles.statsLabel}>Paid</AppText>
+          <AppText style={styles.statsValue}>
             {stats.paidCount}/{stats.totalCount}
-          </Text>
+          </AppText>
         </View>
       </View>
       <AnimatedBar
@@ -324,7 +324,7 @@ function ExpandedParticipants({
   const sym = CURRENCY_SYMBOLS[bill.currency] ?? bill.currency;
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Participants</Text>
+      <AppText style={styles.sectionTitle}>Participants</AppText>
       <View style={{ gap: spacing[2] }}>
         {bill.participants.map((p, i) => {
           const reliability: ReliabilityLabel | null = computeReliability(p.name, allBills);
@@ -333,7 +333,7 @@ function ExpandedParticipants({
           return (
             <View key={p.id} style={styles.partRow}>
               <View style={[styles.partAvatar, { backgroundColor: p.avatarColor }]}>
-                <Text style={styles.partAvatarText}>{initial}</Text>
+                <AppText style={styles.partAvatarText}>{initial}</AppText>
                 {p.isPaid && (
                   <View style={styles.partPaidBadge}>
                     <Feather name="check" size={9} color={colors.white} />
@@ -342,18 +342,18 @@ function ExpandedParticipants({
               </View>
               <View style={styles.partInfo}>
                 <View style={styles.partNameLine}>
-                  <Text style={styles.partName} numberOfLines={1}>{p.name}</Text>
+                  <AppText style={styles.partName} numberOfLines={1}>{p.name}</AppText>
                   <View style={[styles.relChip, { backgroundColor: chip.bg }]}>
-                    <Text style={[styles.relChipText, { color: chip.text }]}>{chip.label}</Text>
+                    <AppText style={[styles.relChipText, { color: chip.text }]}>{chip.label}</AppText>
                   </View>
                 </View>
-                <Text style={styles.partAmount}>
+                <AppText style={styles.partAmount}>
                   {sym}
                   {fmt(p.amount)}
-                  <Text style={styles.partAmountMeta}>
+                  <AppText style={styles.partAmountMeta}>
                     {p.isPaid ? '  ·  Paid' : '  ·  Unpaid'}
-                  </Text>
-                </Text>
+                  </AppText>
+                </AppText>
               </View>
               {!p.isPaid && (
                 <Pressable

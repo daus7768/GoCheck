@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import Animated, {
@@ -13,6 +12,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
+import { AppText } from '../AppText';
 import { colors, typography, fontSize, radius, shadow, spacing } from '../../theme/tokens';
 import { haptic } from '../../lib/haptics';
 import { CURRENCY_SYMBOLS } from '../../types';
@@ -72,9 +72,9 @@ export function AnimatedTooltipStack({
             },
           ]}
         >
-          <Text style={[styles.initial, styles.extraText, { fontSize: Math.round(size * 0.38) }]}>
+          <AppText style={[styles.initial, styles.extraText, { fontSize: Math.round(size * 0.38) }]}>
             +{extra}
-          </Text>
+          </AppText>
         </View>
       )}
     </View>
@@ -138,10 +138,10 @@ function AvatarBubble({ person, index, size, isActive, onToggle, sym }: AvatarBu
         style={[styles.tip, tipStyle, { bottom: size + 6 }]}
       >
         <View style={styles.tipBubble}>
-          <Text style={styles.tipName} numberOfLines={1}>{person.name}</Text>
-          <Text style={[styles.tipStatus, person.isPaid && { color: colors.secondary }]} numberOfLines={1}>
+          <AppText style={styles.tipName} numberOfLines={1}>{person.name}</AppText>
+          <AppText style={[styles.tipStatus, person.isPaid && { color: colors.secondary }]} numberOfLines={1}>
             {status}
-          </Text>
+          </AppText>
         </View>
         <View style={styles.tipArrow} />
       </Animated.View>
@@ -165,7 +165,7 @@ function AvatarBubble({ person, index, size, isActive, onToggle, sym }: AvatarBu
             bubbleStyle,
           ]}
         >
-          <Text style={[styles.initial, { fontSize: Math.round(size * 0.4) }]}>{initial}</Text>
+          <AppText style={[styles.initial, { fontSize: Math.round(size * 0.4) }]}>{initial}</AppText>
           {person.isPaid && (
             <View style={[styles.paidDot, { width: size * 0.38, height: size * 0.38, borderRadius: (size * 0.38) / 2 }]}>
               <Feather name="check" size={size * 0.22} color={colors.white} />

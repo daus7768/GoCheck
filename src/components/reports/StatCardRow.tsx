@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '../AppText';
 import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
 import { formatCurrency } from '../../lib/reminderTemplates';
 import { GlowingCard } from '../effects/GlowingCard';
@@ -30,18 +31,18 @@ export function StatCardRow({
       <View style={styles.cardSlot}>
         <GlowingCard radius={radius['2xl']} color="#16a34a" background={colors.surface}>
           <View style={styles.cardBody}>
-            <Text style={styles.eyebrowGreen}>COLLECTED (YTD)</Text>
-            <Text style={styles.bigNumber}>{formatCurrency(totalCollected, currency)}</Text>
+            <AppText style={styles.eyebrowGreen}>COLLECTED (YTD)</AppText>
+            <AppText style={styles.bigNumber}>{formatCurrency(totalCollected, currency)}</AppText>
             <View style={styles.metaRow}>
               {trendDirection !== null && trendPercent !== null ? (
                 <View style={trendDirection === 'up' ? styles.pillUp : styles.pillDown}>
-                  <Text style={trendDirection === 'up' ? styles.pillTextUp : styles.pillTextDown}>
+                  <AppText style={trendDirection === 'up' ? styles.pillTextUp : styles.pillTextDown}>
                     {trendDirection === 'up' ? '↗' : '↘'} {trendDirection === 'up' ? '+' : '−'}
                     {trendPercent}% vs last month
-                  </Text>
+                  </AppText>
                 </View>
               ) : (
-                <Text style={styles.rateSub}>{collectionRate}% collection rate</Text>
+                <AppText style={styles.rateSub}>{collectionRate}% collection rate</AppText>
               )}
             </View>
           </View>
@@ -52,9 +53,9 @@ export function StatCardRow({
       <View style={styles.cardSlot}>
         <GlowingCard radius={radius['2xl']} color="#d97706" background={colors.surface}>
           <View style={styles.cardBody}>
-            <Text style={styles.eyebrowAmber}>OUTSTANDING</Text>
-            <Text style={styles.bigNumber}>{formatCurrency(totalOutstanding, currency)}</Text>
-            <Text style={styles.sub}>across {outstandingCount} bills</Text>
+            <AppText style={styles.eyebrowAmber}>OUTSTANDING</AppText>
+            <AppText style={styles.bigNumber}>{formatCurrency(totalOutstanding, currency)}</AppText>
+            <AppText style={styles.sub}>across {outstandingCount} bills</AppText>
           </View>
         </GlowingCard>
       </View>

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Modal,
   View,
-  Text,
   StyleSheet,
   Pressable,
   Platform,
@@ -22,6 +21,7 @@ import Animated, {
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
+import { AppText } from '../AppText';
 import { SuccessCheck } from './SuccessCheck';
 import { SUCCESS_TOKENS } from './billCreatedTokens';
 import { ConfettiBurst } from '../common/ConfettiBurst';
@@ -230,23 +230,23 @@ export function BillCreatedSheet({
           />
 
           <Animated.View entering={enteringTitle} style={styles.textBlock}>
-            <Text style={styles.title}>Bill created! 🎉</Text>
+            <AppText style={styles.title}>Bill created! 🎉</AppText>
           </Animated.View>
 
           <Animated.View entering={enteringSub}>
-            <Text style={styles.subtitle}>
+            <AppText style={styles.subtitle}>
               &ldquo;{bill.title}&rdquo; is ready to share
-            </Text>
+            </AppText>
           </Animated.View>
 
           <Animated.View entering={enteringChip} style={styles.chip}>
-            <Text style={styles.chipLine1}>
+            <AppText style={styles.chipLine1}>
               {formatBillAmount(bill.totalAmount, bill.currency)} · {peopleLabel}
-            </Text>
-            {dueLabel ? <Text style={styles.chipLine2}>{dueLabel}</Text> : null}
+            </AppText>
+            {dueLabel ? <AppText style={styles.chipLine2}>{dueLabel}</AppText> : null}
             {recurringLabel ? (
               <View style={styles.recurringPill}>
-                <Text style={styles.recurringText}>🔁 {recurringLabel}</Text>
+                <AppText style={styles.recurringText}>🔁 {recurringLabel}</AppText>
               </View>
             ) : null}
           </Animated.View>
@@ -276,16 +276,16 @@ export function BillCreatedSheet({
                 ) : (
                   <>
                     <Feather name="link-2" size={18} color="#fff" />
-                    <Text style={styles.primaryLabel}>Share payment link</Text>
+                    <AppText style={styles.primaryLabel}>Share payment link</AppText>
                   </>
                 )}
               </LinearGradient>
             </Pressable>
 
             {!canShare && (
-              <Text style={styles.syncHint}>
+              <AppText style={styles.syncHint}>
                 Link available once synced.
-              </Text>
+              </AppText>
             )}
             </Animated.View>
 
@@ -300,7 +300,7 @@ export function BillCreatedSheet({
               accessibilityRole="button"
               accessibilityLabel="View bill"
             >
-              <Text style={styles.secondaryLabel}>View bill</Text>
+              <AppText style={styles.secondaryLabel}>View bill</AppText>
             </Pressable>
             </Animated.View>
 
@@ -312,7 +312,7 @@ export function BillCreatedSheet({
               accessibilityRole="button"
               accessibilityLabel="Create another bill"
             >
-              <Text style={styles.tertiaryLabel}>Create another</Text>
+              <AppText style={styles.tertiaryLabel}>Create another</AppText>
             </Pressable>
             </Animated.View>
           </View>
