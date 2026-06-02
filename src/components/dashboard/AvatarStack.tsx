@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { AppText } from '../effects/AppText';
 import { colors, typography, radius } from '../../theme/tokens';
 import type { Participant } from '../../types';
 
@@ -30,14 +31,14 @@ export function AvatarStack({ people, size = 28, max = 5 }: AvatarStackProps) {
               },
             ]}
           >
-            <Text
+            <AppText
               style={[
                 styles.initial,
                 { fontSize: Math.round(size * 0.4) },
               ]}
             >
               {person.name.charAt(0).toUpperCase()}
-            </Text>
+            </AppText>
           </View>
         );
       })}
@@ -54,9 +55,9 @@ export function AvatarStack({ people, size = 28, max = 5 }: AvatarStackProps) {
             },
           ]}
         >
-          <Text style={[styles.initial, styles.extraText, { fontSize: Math.round(size * 0.38) }]}>
+          <AppText style={[styles.initial, styles.extraText, { fontSize: Math.round(size * 0.38) }]}>
             +{extra}
-          </Text>
+          </AppText>
         </View>
       )}
     </View>

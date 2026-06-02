@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -9,6 +8,7 @@ import {
   Share,
   Image,
 } from 'react-native';
+import { AppText } from '../../../../src/components/effects/AppText';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -128,7 +128,7 @@ export default function InvoiceScreen() {
   if (!bill) {
     return (
       <View style={styles.loadingRoot}>
-        <Text style={styles.notFound}>Bill not found.</Text>
+        <AppText style={styles.notFound}>Bill not found.</AppText>
       </View>
     );
   }
@@ -144,7 +144,7 @@ export default function InvoiceScreen() {
         <Pressable onPress={() => router.back()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Go back">
           <Feather name="chevron-left" size={22} color={colors.textPrimary} />
         </Pressable>
-        <Text style={[styles.headerTitle, { marginLeft: spacing[3] }]}>Invoice</Text>
+        <AppText style={[styles.headerTitle, { marginLeft: spacing[3] }]}>Invoice</AppText>
       </View>
 
       <ScrollView
@@ -158,15 +158,15 @@ export default function InvoiceScreen() {
             <View style={styles.brandLeft}>
               <Image source={require('../../../../assets/logo.png')} style={styles.logo} />
               <View>
-                <Text style={styles.brandName}>GoCheck</Text>
-                <Text style={styles.brandUrl}>gocheck.app</Text>
+                <AppText style={styles.brandName}>GoCheck</AppText>
+                <AppText style={styles.brandUrl}>gocheck.app</AppText>
               </View>
             </View>
             <View style={styles.invoiceNumBlock}>
               {bill.invoiceNumber && (
-                <Text style={styles.invoiceNum}>{bill.invoiceNumber}</Text>
+                <AppText style={styles.invoiceNum}>{bill.invoiceNumber}</AppText>
               )}
-              <Text style={styles.invoiceDate}>{format(new Date(), 'dd MMM yyyy')}</Text>
+              <AppText style={styles.invoiceDate}>{format(new Date(), 'dd MMM yyyy')}</AppText>
             </View>
           </View>
 
@@ -182,22 +182,22 @@ export default function InvoiceScreen() {
           {!summaryLoading && aiSummary && (
             <Animated.View entering={FadeIn.duration(400)} style={styles.summaryBlock}>
               <View style={styles.summaryAccent} />
-              <Text style={styles.summaryText}>{aiSummary}</Text>
+              <AppText style={styles.summaryText}>{aiSummary}</AppText>
             </Animated.View>
           )}
 
           {/* From / To */}
           <View style={styles.fromToRow}>
             <View style={styles.fromToBlock}>
-              <Text style={styles.fromToLabel}>FROM</Text>
-              <Text style={styles.fromToName}>{profile?.displayName ?? 'Organizer'}</Text>
-              <Text style={styles.fromToSub}>{bill.category ?? 'GoCheck Bill'}</Text>
+              <AppText style={styles.fromToLabel}>FROM</AppText>
+              <AppText style={styles.fromToName}>{profile?.displayName ?? 'Organizer'}</AppText>
+              <AppText style={styles.fromToSub}>{bill.category ?? 'GoCheck Bill'}</AppText>
             </View>
             <View style={[styles.fromToBlock, { alignItems: 'flex-end' }]}>
-              <Text style={styles.fromToLabel}>BILL</Text>
-              <Text style={styles.fromToName} numberOfLines={1}>{bill.title}</Text>
+              <AppText style={styles.fromToLabel}>BILL</AppText>
+              <AppText style={styles.fromToName} numberOfLines={1}>{bill.title}</AppText>
               {bill.description && (
-                <Text style={styles.fromToSub} numberOfLines={2}>{bill.description}</Text>
+                <AppText style={styles.fromToSub} numberOfLines={2}>{bill.description}</AppText>
               )}
             </View>
           </View>
@@ -205,48 +205,48 @@ export default function InvoiceScreen() {
           <View style={styles.divider} />
 
           {/* Participants table */}
-          <Text style={styles.sectionLabel}>PARTICIPANTS & AMOUNTS</Text>
+          <AppText style={styles.sectionLabel}>PARTICIPANTS & AMOUNTS</AppText>
           <View style={styles.participantTable}>
             {/* Header */}
             <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableCell, styles.tableCellName, styles.tableHeaderText]}>Name</Text>
-              <Text style={[styles.tableCell, styles.tableCellAmt, styles.tableHeaderText]}>Amount</Text>
-              <Text style={[styles.tableCell, styles.tableCellStatus, styles.tableHeaderText]}>Status</Text>
+              <AppText style={[styles.tableCell, styles.tableCellName, styles.tableHeaderText]}>Name</AppText>
+              <AppText style={[styles.tableCell, styles.tableCellAmt, styles.tableHeaderText]}>Amount</AppText>
+              <AppText style={[styles.tableCell, styles.tableCellStatus, styles.tableHeaderText]}>Status</AppText>
             </View>
             {bill.participants.map((p) => (
               <View key={p.id} style={styles.tableRow}>
                 <View style={[styles.tableCell, styles.tableCellName, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
                   <View style={[styles.avatar, { backgroundColor: p.avatarColor }]}>
-                    <Text style={styles.avatarText}>{p.name.slice(0, 1).toUpperCase()}</Text>
+                    <AppText style={styles.avatarText}>{p.name.slice(0, 1).toUpperCase()}</AppText>
                   </View>
-                  <Text style={styles.participantName} numberOfLines={1}>{p.name}</Text>
+                  <AppText style={styles.participantName} numberOfLines={1}>{p.name}</AppText>
                 </View>
-                <Text style={[styles.tableCell, styles.tableCellAmt, styles.amountText]}>
+                <AppText style={[styles.tableCell, styles.tableCellAmt, styles.amountText]}>
                   {currencySymbol}{p.amount.toFixed(2)}
-                </Text>
+                </AppText>
                 <View style={[styles.tableCell, styles.tableCellStatus]}>
                   {p.paymentStatus === 'unpaid' && (
                     <Pressable onPress={() => handleShareParticipant(p)} style={styles.rowAction}>
                       <Feather name="send" size={14} color={colors.primary} />
-                      <Text style={styles.rowActionText}>Send link</Text>
+                      <AppText style={styles.rowActionText}>Send link</AppText>
                     </Pressable>
                   )}
                   {p.paymentStatus === 'pending' && (
                     <Pressable onPress={() => setReviewing(p)} style={[styles.rowAction, styles.rowActionPending]}>
                       <Feather name="eye" size={14} color="#B45309" />
-                      <Text style={[styles.rowActionText, { color: '#B45309' }]}>Review</Text>
+                      <AppText style={[styles.rowActionText, { color: '#B45309' }]}>Review</AppText>
                     </Pressable>
                   )}
                   {p.paymentStatus === 'confirmed' && (
                     <View style={[styles.rowAction, styles.rowActionDone]}>
                       <Feather name="check" size={14} color="#059669" />
-                      <Text style={[styles.rowActionText, { color: '#059669' }]}>Paid</Text>
+                      <AppText style={[styles.rowActionText, { color: '#059669' }]}>Paid</AppText>
                     </View>
                   )}
                   {p.paymentStatus === 'rejected' && (
                     <Pressable onPress={() => handleShareParticipant(p)} style={[styles.rowAction, styles.rowActionRejected]}>
                       <Feather name="rotate-cw" size={14} color="#DC2626" />
-                      <Text style={[styles.rowActionText, { color: '#DC2626' }]}>Re-send</Text>
+                      <AppText style={[styles.rowActionText, { color: '#DC2626' }]}>Re-send</AppText>
                     </Pressable>
                   )}
                 </View>
@@ -256,45 +256,45 @@ export default function InvoiceScreen() {
 
           {/* Progress summary */}
           <View style={styles.progressRow}>
-            <Text style={styles.progressText}>{paidCount}/{totalCount} paid</Text>
-            <Text style={styles.progressAmount}>
+            <AppText style={styles.progressText}>{paidCount}/{totalCount} paid</AppText>
+            <AppText style={styles.progressAmount}>
               {currencySymbol}{amountCollected.toFixed(2)} of {currencySymbol}{bill.totalAmount.toFixed(2)} collected
-            </Text>
+            </AppText>
           </View>
 
           {/* Line items (if any) */}
           {(bill.lineItems ?? []).length > 0 && (
             <>
               <View style={styles.divider} />
-              <Text style={styles.sectionLabel}>LINE ITEMS</Text>
+              <AppText style={styles.sectionLabel}>LINE ITEMS</AppText>
               {(bill.lineItems ?? []).map((li) => (
                 <View key={li.id} style={styles.lineItemRow}>
-                  <Text style={styles.lineItemName} numberOfLines={1}>{li.description}</Text>
-                  <Text style={styles.lineItemQty}>×{li.quantity}</Text>
-                  <Text style={styles.lineItemAmt}>{currencySymbol}{li.subtotal.toFixed(2)}</Text>
+                  <AppText style={styles.lineItemName} numberOfLines={1}>{li.description}</AppText>
+                  <AppText style={styles.lineItemQty}>×{li.quantity}</AppText>
+                  <AppText style={styles.lineItemAmt}>{currencySymbol}{li.subtotal.toFixed(2)}</AppText>
                 </View>
               ))}
               <View style={styles.divider} />
               <View style={styles.totalsBlock}>
                 <View style={styles.totalsRow}>
-                  <Text style={styles.totalsLabel}>Subtotal</Text>
-                  <Text style={styles.totalsValue}>{currencySymbol}{lineSubtotal.toFixed(2)}</Text>
+                  <AppText style={styles.totalsLabel}>Subtotal</AppText>
+                  <AppText style={styles.totalsValue}>{currencySymbol}{lineSubtotal.toFixed(2)}</AppText>
                 </View>
                 {bill.taxSst && (
                   <View style={styles.totalsRow}>
-                    <Text style={styles.totalsLabel}>SST (6%)</Text>
-                    <Text style={styles.totalsValue}>{currencySymbol}{sstAmount.toFixed(2)}</Text>
+                    <AppText style={styles.totalsLabel}>SST (6%)</AppText>
+                    <AppText style={styles.totalsValue}>{currencySymbol}{sstAmount.toFixed(2)}</AppText>
                   </View>
                 )}
                 {bill.taxService && (
                   <View style={styles.totalsRow}>
-                    <Text style={styles.totalsLabel}>Service ({bill.taxServiceRate ?? 10}%)</Text>
-                    <Text style={styles.totalsValue}>{currencySymbol}{serviceAmount.toFixed(2)}</Text>
+                    <AppText style={styles.totalsLabel}>Service ({bill.taxServiceRate ?? 10}%)</AppText>
+                    <AppText style={styles.totalsValue}>{currencySymbol}{serviceAmount.toFixed(2)}</AppText>
                   </View>
                 )}
                 <View style={[styles.totalsRow, styles.totalsFinalRow]}>
-                  <Text style={styles.totalsFinalLabel}>TOTAL</Text>
-                  <Text style={styles.totalsFinalValue}>{currencySymbol}{bill.totalAmount.toFixed(2)}</Text>
+                  <AppText style={styles.totalsFinalLabel}>TOTAL</AppText>
+                  <AppText style={styles.totalsFinalValue}>{currencySymbol}{bill.totalAmount.toFixed(2)}</AppText>
                 </View>
               </View>
             </>
@@ -304,22 +304,22 @@ export default function InvoiceScreen() {
           {(bill.paymentMethod || bill.paymentDetails) && (
             <>
               <View style={styles.divider} />
-              <Text style={styles.sectionLabel}>PAYMENT DETAILS</Text>
+              <AppText style={styles.sectionLabel}>PAYMENT DETAILS</AppText>
               {bill.paymentMethod && (
                 <View style={styles.paymentRow}>
                   <Feather name="credit-card" size={14} color={colors.textSecondary} />
-                  <Text style={styles.paymentMethodText}>
+                  <AppText style={styles.paymentMethodText}>
                     {{
                       duitnow: 'DuitNow QR',
                       bank_transfer: 'Bank Transfer',
                       ewallet: 'eWallet / TNG',
                       cash: 'Cash',
                     }[bill.paymentMethod]}
-                  </Text>
+                  </AppText>
                 </View>
               )}
               {bill.paymentDetails && (
-                <Text style={styles.paymentDetailsText}>{bill.paymentDetails}</Text>
+                <AppText style={styles.paymentDetailsText}>{bill.paymentDetails}</AppText>
               )}
             </>
           )}
@@ -330,9 +330,9 @@ export default function InvoiceScreen() {
               <View style={styles.divider} />
               <View style={styles.dueDateRow}>
                 <Feather name="calendar" size={14} color={colors.primary} />
-                <Text style={styles.dueDateText}>
+                <AppText style={styles.dueDateText}>
                   Due {format(new Date(bill.dueDate), 'EEEE, d MMMM yyyy')}
-                </Text>
+                </AppText>
               </View>
             </>
           )}

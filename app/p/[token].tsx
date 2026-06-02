@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Pressable, Image, useWindowDimensions } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Pressable, Image, useWindowDimensions } from 'react-native';
+import { AppText } from '../../src/components/effects/AppText';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -234,10 +235,10 @@ export default function ParticipantPage() {
       <View style={styles.centered}>
         <BeamBackdrop />
         <Feather name="alert-circle" size={48} color={colors.error} />
-        <Text style={styles.errorTitle}>Link unavailable</Text>
-        <Text style={styles.errorText}>{error ?? 'This link is no longer valid.'}</Text>
+        <AppText style={styles.errorTitle}>Link unavailable</AppText>
+        <AppText style={styles.errorText}>{error ?? 'This link is no longer valid.'}</AppText>
         <Pressable style={styles.retry} onPress={load}>
-          <Text style={styles.retryText}>Try again</Text>
+          <AppText style={styles.retryText}>Try again</AppText>
         </Pressable>
       </View>
     );
@@ -271,31 +272,31 @@ export default function ParticipantPage() {
                 duration={3600}
                 containerStyle={styles.brandNameRow}
               />
-              <Text style={styles.brandSub}>Secure payment request</Text>
+              <AppText style={styles.brandSub}>Secure payment request</AppText>
             </View>
           </View>
           <View style={[styles.statusPill, { backgroundColor: tone.bg }]}>
             <Feather name={tone.icon} size={13} color={tone.fg} />
-            <Text style={[styles.statusPillText, { color: tone.fg }]} numberOfLines={1}>
+            <AppText style={[styles.statusPillText, { color: tone.fg }]} numberOfLines={1}>
               {statusCopy(participant.paymentStatus)}
-            </Text>
+            </AppText>
           </View>
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(80).duration(350)} style={styles.invoiceCard}>
           <View style={styles.invoiceHeader}>
             <View style={styles.invoiceHeaderText}>
-              <Text style={styles.invoiceLabel}>PAYMENT INVOICE</Text>
-              <Text style={styles.invoiceTitle} numberOfLines={2}>{bill.title}</Text>
+              <AppText style={styles.invoiceLabel}>PAYMENT INVOICE</AppText>
+              <AppText style={styles.invoiceTitle} numberOfLines={2}>{bill.title}</AppText>
               {bill.description && (
-                <Text style={styles.invoiceDescription} numberOfLines={3}>{bill.description}</Text>
+                <AppText style={styles.invoiceDescription} numberOfLines={3}>{bill.description}</AppText>
               )}
             </View>
             <View style={styles.invoiceNumberBlock}>
-              <Text style={styles.invoiceNumberLabel}>Invoice</Text>
-              <Text style={styles.invoiceNumber} numberOfLines={1}>
+              <AppText style={styles.invoiceNumberLabel}>Invoice</AppText>
+              <AppText style={styles.invoiceNumber} numberOfLines={1}>
                 {bill.invoiceNumber ?? 'Pending'}
-              </Text>
+              </AppText>
             </View>
           </View>
 
@@ -306,35 +307,35 @@ export default function ParticipantPage() {
             style={styles.amountPanel}
           >
             <View style={styles.amountTopRow}>
-              <Text style={styles.amountLabel}>Amount due</Text>
-              <Text style={styles.amountDate}>{readableDate(bill.dueDate)}</Text>
+              <AppText style={styles.amountLabel}>Amount due</AppText>
+              <AppText style={styles.amountDate}>{readableDate(bill.dueDate)}</AppText>
             </View>
-            <Text style={styles.amount}>{money(participant.amount, bill.currency)}</Text>
+            <AppText style={styles.amount}>{money(participant.amount, bill.currency)}</AppText>
             {participant.confirmedAt ? (
-              <Text style={styles.amountSub}>Confirmed on {readableDate(participant.confirmedAt, 'd MMM yyyy, HH:mm')}</Text>
+              <AppText style={styles.amountSub}>Confirmed on {readableDate(participant.confirmedAt, 'd MMM yyyy, HH:mm')}</AppText>
             ) : participant.rejectedReason ? (
-              <Text style={styles.amountSub}>{participant.rejectedReason}</Text>
+              <AppText style={styles.amountSub}>{participant.rejectedReason}</AppText>
             ) : (
-              <Text style={styles.amountSub}>Your share for {organizer.displayName}'s bill</Text>
+              <AppText style={styles.amountSub}>Your share for {organizer.displayName}'s bill</AppText>
             )}
           </LinearGradient>
 
           <View style={styles.metaGrid}>
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>From</Text>
-              <Text style={styles.metaValue} numberOfLines={1}>{organizer.displayName}</Text>
+              <AppText style={styles.metaLabel}>From</AppText>
+              <AppText style={styles.metaValue} numberOfLines={1}>{organizer.displayName}</AppText>
             </View>
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Invoice to</Text>
-              <Text style={styles.metaValue} numberOfLines={1}>{participant.name}</Text>
+              <AppText style={styles.metaLabel}>Invoice to</AppText>
+              <AppText style={styles.metaValue} numberOfLines={1}>{participant.name}</AppText>
             </View>
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Due date</Text>
-              <Text style={styles.metaValue}>{readableDate(bill.dueDate)}</Text>
+              <AppText style={styles.metaLabel}>Due date</AppText>
+              <AppText style={styles.metaValue}>{readableDate(bill.dueDate)}</AppText>
             </View>
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Group progress</Text>
-              <Text style={styles.metaValue}>{paidCount}/{totalCount} paid</Text>
+              <AppText style={styles.metaLabel}>Group progress</AppText>
+              <AppText style={styles.metaValue}>{paidCount}/{totalCount} paid</AppText>
             </View>
           </View>
 
@@ -346,14 +347,14 @@ export default function ParticipantPage() {
                   <Feather name="credit-card" size={16} color={colors.primary} />
                 </View>
                 <View style={styles.paymentHeaderText}>
-                  <Text style={styles.sectionLabel}>Payment method</Text>
+                  <AppText style={styles.sectionLabel}>Payment method</AppText>
                   {bill.paymentMethod && (
-                    <Text style={styles.paymentMethod}>{paymentMethodLabel[bill.paymentMethod]}</Text>
+                    <AppText style={styles.paymentMethod}>{paymentMethodLabel[bill.paymentMethod]}</AppText>
                   )}
                 </View>
               </View>
               {bill.paymentDetails && (
-                <Text style={styles.paymentDetails}>{bill.paymentDetails}</Text>
+                <AppText style={styles.paymentDetails}>{bill.paymentDetails}</AppText>
               )}
             </>
           )}
@@ -373,13 +374,13 @@ export default function ParticipantPage() {
         {canSwipe && (
           <Animated.View entering={FadeInUp.delay(240).duration(350)} style={styles.swipeBlock}>
             <SlideToConfirm onConfirm={handleConfirm} disabled={submitting} />
-            <Text style={styles.swipeHint}>
+            <AppText style={styles.swipeHint}>
               By confirming, you're telling {organizer.displayName} you've paid your share.
-            </Text>
+            </AppText>
           </Animated.View>
         )}
 
-        <Text style={styles.footer}>Secure record by GoCheck</Text>
+        <AppText style={styles.footer}>Secure record by GoCheck</AppText>
       </ScrollView>
     </View>
   );
