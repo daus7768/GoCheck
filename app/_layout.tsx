@@ -16,6 +16,7 @@ import {
 } from '@expo-google-fonts/dm-mono';
 import { colors } from '../src/theme/tokens';
 import { ThemeProvider } from '../src/theme/ThemeContext';
+import { ColourfulClockProvider } from '../src/theme/ColourfulClockContext';
 import { useProfileStore } from '../src/store/profileStore';
 import { supabase } from '../src/lib/supabase';
 import * as Notifications from 'expo-notifications';
@@ -144,16 +145,18 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <ThemeProvider isDark={isDark}>
-        <AuthGuard>
-          <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={bgColor} />
-          {Platform.OS === 'web' ? (
-            <View style={styles.webContainer}>
-              <View style={[styles.webPhone, { backgroundColor: bgColor }]}>{app}</View>
-            </View>
-          ) : (
-            app
-          )}
-        </AuthGuard>
+        <ColourfulClockProvider>
+          <AuthGuard>
+            <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={bgColor} />
+            {Platform.OS === 'web' ? (
+              <View style={styles.webContainer}>
+                <View style={[styles.webPhone, { backgroundColor: bgColor }]}>{app}</View>
+              </View>
+            ) : (
+              app
+            )}
+          </AuthGuard>
+        </ColourfulClockProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
