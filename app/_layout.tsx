@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Platform, View, StyleSheet } from 'react-native';
+import Animated, { useAnimatedStyle, interpolateColor } from 'react-native-reanimated';
 import { Stack, useRouter, useSegments, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -15,7 +16,7 @@ import {
   DMMono_500Medium,
 } from '@expo-google-fonts/dm-mono';
 import { colors } from '../src/theme/tokens';
-import { ThemeProvider } from '../src/theme/ThemeContext';
+import { ThemeProvider, useTheme } from '../src/theme/ThemeContext';
 import { ColourfulClockProvider } from '../src/theme/ColourfulClockContext';
 import { useProfileStore } from '../src/store/profileStore';
 import { supabase } from '../src/lib/supabase';
@@ -73,6 +74,25 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
+  const { themeProgress } = useTheme();
+  const animStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      themeProgress.value,
+      [0, 1],
+      [colors.background, '#070710']
+    ),
+  }));
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.webContainer}>
+        <Animated.View style={[styles.webPhone, animStyle]}>{children}</Animated.View>
+      </View>
+    );
+  }
+  return <Animated.View style={[{ flex: 1 }, animStyle]}>{children}</Animated.View>;
+}
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     DMSans_400Regular,
@@ -95,13 +115,11 @@ export default function RootLayout() {
     return null;
   }
 
-  const bgColor = isDark ? '#0A0A0F' : colors.background;
-
   const app = (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: bgColor },
+        contentStyle: { backgroundColor: 'transparent' },
         animation: Platform.OS === 'web' ? 'none' : 'default',
       }}
     >
@@ -147,14 +165,8 @@ export default function RootLayout() {
       <ThemeProvider isDark={isDark}>
         <ColourfulClockProvider>
           <AuthGuard>
-            <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={bgColor} />
-            {Platform.OS === 'web' ? (
-              <View style={styles.webContainer}>
-                <View style={[styles.webPhone, { backgroundColor: bgColor }]}>{app}</View>
-              </View>
-            ) : (
-              app
-            )}
+            <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor="transparent" />
+            <AnimatedThemeRoot>{app}</AnimatedThemeRoot>
           </AuthGuard>
         </ColourfulClockProvider>
       </ThemeProvider>
