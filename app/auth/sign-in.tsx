@@ -273,8 +273,8 @@ const styles = StyleSheet.create({
     }),
   },
   logoIcon: {
-    width: 72,
-    height: 72,
+    width: 80,
+    height: 80,
     borderRadius: 36,
   },
   logoText: {

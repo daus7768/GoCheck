@@ -49,8 +49,8 @@ export function SignOutOverlay({ visible }: Props) {
 
       logoPulse.value = withRepeat(
         withSequence(
-          withTiming(1.07, { duration: 850, easing: Easing.inOut(Easing.sine) }),
-          withTiming(1.00, { duration: 850, easing: Easing.inOut(Easing.sine) }),
+          withTiming(1.07, { duration: 850, easing: Easing.inOut(Easing.sin) }),
+          withTiming(1.00, { duration: 850, easing: Easing.inOut(Easing.sin) }),
         ),
         -1,
         false
@@ -145,7 +145,7 @@ export function SignOutOverlay({ visible }: Props) {
 
             {/* Centre logo */}
             <Animated.View style={[styles.centerCircle, logoStyle]}>
-              <Image source={require('../../../assets/logo.png')} style={styles.logo} />
+              <Image source={require('../../../assets/logo_v2.png')} style={styles.logo} />
             </Animated.View>
           </View>
 
