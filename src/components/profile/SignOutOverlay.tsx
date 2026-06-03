@@ -120,8 +120,8 @@ export function SignOutOverlay({ visible }: Props) {
   const d2 = useAnimatedStyle(() => ({ opacity: dot2.value }));
   const d3 = useAnimatedStyle(() => ({ opacity: dot3.value }));
 
-  return (
-    <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
+  const content = (
+    <>
       <Animated.View style={[StyleSheet.absoluteFill, backdropStyle]} pointerEvents="none">
         <BlurView
           intensity={Platform.OS === 'web' ? 20 : 30}
@@ -134,16 +134,9 @@ export function SignOutOverlay({ visible }: Props) {
         <Animated.View style={contentStyle}>
           {/* ── Spinner rings ── */}
           <View style={styles.spinnerWrap}>
-            {/* Outer ring – slow, primaryLight */}
             <Animated.View style={[styles.ring, styles.ringOuter, r3Style]} />
-
-            {/* Middle ring – medium, primary with glow */}
             <Animated.View style={[styles.ring, styles.ringMid, r2Style]} />
-
-            {/* Inner ring – fast, white */}
             <Animated.View style={[styles.ring, styles.ringInner, r1Style]} />
-
-            {/* Centre logo */}
             <Animated.View style={[styles.centerCircle, logoStyle]}>
               <Image source={require('../../../assets/logo_v2.png')} style={styles.logo} />
             </Animated.View>
@@ -158,6 +151,21 @@ export function SignOutOverlay({ visible }: Props) {
           </View>
         </Animated.View>
       </View>
+    </>
+  );
+
+  if (Platform.OS === 'web') {
+    if (!visible) return null;
+    return (
+      <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+        {content}
+      </View>
+    );
+  }
+
+  return (
+    <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
+      {content}
     </Modal>
   );
 }
