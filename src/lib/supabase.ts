@@ -130,10 +130,16 @@ export async function getBillByShareLink(code: string) {
     tax_rate: number | null;
     created_at: string;
     updated_at: string;
+    invoice_number: string | null;
+    payment_method: string | null;
+    payment_details: string | null;
+    organizer_display_name: string;
     participants: Array<{
       id: string; name: string; email: string | null; phone: string | null;
       amount: number; is_paid: boolean; paid_at: string | null;
       avatar_color: string; shares: number | null; percent: number | null;
+      access_token: string | null;
+      payment_status: 'unpaid' | 'pending' | 'confirmed' | 'rejected';
     }>;
     line_items: Array<{
       id: string; description: string; quantity: number; unit_price: number;
