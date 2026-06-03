@@ -39,12 +39,17 @@ export async function shareBillLink(
   bill: Pick<Bill, 'title' | 'shareLink'>
 ): Promise<boolean> {
   const url = getBillShareUrl(bill.shareLink);
-  const message = `Pay your share for "${bill.title}": ${url}`;
+  // Newline before the URL helps WhatsApp / iMessage detect it as a link
+  // and render the preview card cleanly instead of running it into the sentence.
+  const message = `Hi! Here's your share for "${bill.title}" — tap to view and pay:\n${url}`;
 
   if (Platform.OS === 'web') {
     const nav = typeof globalThis !== 'undefined' ? globalThis.navigator : undefined;
     if (nav?.share) {
-      await nav.share({ title: bill.title, text: message, url });
+      // Pass only `text` — the message already contains the URL. Passing both
+      // `text` and `url` causes WhatsApp / share targets to concatenate them
+      // and the link appears twice.
+      await nav.share({ title: bill.title, text: message });
       return true;
     }
     if (nav?.clipboard?.writeText) {
@@ -54,10 +59,8 @@ export async function shareBillLink(
     return false;
   }
 
-  const result = await Share.share(
-    Platform.OS === 'ios'
-      ? { message, url }
-      : { message, title: bill.title }
-  );
+  // Same reasoning for iOS Share.share: { message, url } produces a duplicated
+  // link. The message already embeds the URL.
+  const result = await Share.share({ message, title: bill.title });
   return result.action !== Share.dismissedAction;
 }
