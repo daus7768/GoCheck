@@ -3,9 +3,16 @@ import Constants from 'expo-constants';
 import type { Bill, Currency } from '../types';
 import { CURRENCY_SYMBOLS } from '../types';
 
-function getShareBase(): string {
-  // Single source of truth across all share URLs (participant + bill).
-  // Priority: env var → app.json expoConfig.extra → hardcoded production default.
+/**
+ * Single source of truth for the canonical base URL used by every share
+ * surface (bill /share/{code}, participant /p/{token}, OG image URLs).
+ * Priority: env var → app.json expoConfig.extra → hardcoded production default.
+ *
+ * Exported so callers that need the bare origin (e.g., OG image URL) can avoid
+ * `window.location.origin`, which on Vercel preview deployments would poison
+ * the link-preview cache with the preview host.
+ */
+export function getCanonicalBase(): string {
   const envBase = process.env.EXPO_PUBLIC_WEB_BASE_URL;
   if (envBase) return envBase.replace(/\/+$/, '');
 
@@ -16,7 +23,7 @@ function getShareBase(): string {
 }
 
 export function getBillShareUrl(shareLink: string): string {
-  return `${getShareBase()}/share/${shareLink}`;
+  return `${getCanonicalBase()}/share/${shareLink}`;
 }
 
 export function formatBillAmount(amount: number, currency: Currency): string {

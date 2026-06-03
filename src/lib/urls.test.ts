@@ -10,10 +10,10 @@ describe('participantUrl', () => {
     jest.resetModules();
   });
 
-  it('uses localhost:8081 when env var is unset', () => {
+  it('falls through to the hardcoded production default when no env var and no expoConfig', () => {
     delete process.env.EXPO_PUBLIC_WEB_BASE_URL;
     const { participantUrl } = require('./urls');
-    expect(participantUrl('abc-123')).toBe('http://localhost:8081/p/abc-123');
+    expect(participantUrl('abc-123')).toBe('https://go-check.vercel.app/p/abc-123');
   });
 
   it('uses configured base URL when env var is set', () => {

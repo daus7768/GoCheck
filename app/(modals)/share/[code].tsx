@@ -22,6 +22,7 @@ import { AppText } from '../../../src/components/AppText';
 import { BeamBackdrop } from '../../../src/components/effects/BeamBackdrop';
 import { ColourfulText } from '../../../src/components/effects/ColourfulText';
 import { participantUrl } from '../../../src/lib/urls';
+import { getCanonicalBase } from '../../../src/lib/share';
 import { setOgTags } from '../../../src/lib/ogTags';
 
 interface BillData {
@@ -112,12 +113,14 @@ export default function ShareBillScreen() {
     const symbol = CURRENCY_SYMBOLS[bill.currency] ?? bill.currency;
     const paidCount = bill.participants.filter((p) => p.payment_status === 'confirmed').length;
     const totalCount = bill.participants.length;
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    // Use the canonical base (not window.location.origin) so Vercel preview
+    // deployments don't poison crawler caches with their preview host.
+    const canonical = getCanonicalBase();
     setOgTags({
       title: `${bill.title} — Split with ${bill.organizer_display_name} · GoCheck`,
       description: `${paidCount}/${totalCount} paid · ${symbol}${bill.total_amount.toFixed(2)} due ${readableDate(bill.due_date)}`,
-      image: origin ? `${origin}/assets/og-banner.png` : undefined,
-      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      image: `${canonical}/assets/og-banner.png`,
+      url: `${canonical}/share/${bill.share_link}`,
     });
   }, [bill]);
 
