@@ -16,6 +16,7 @@ import { useTheme } from '../../src/theme/ThemeContext';
 import { useReportsData } from '../../src/hooks/useReportsData';
 import type { ForecastRange } from '../../src/hooks/useReportsData';
 import { useBillStore } from '../../src/store/billStore';
+import { useProfileStore } from '../../src/store/profileStore';
 import { StatCardRow } from '../../src/components/reports/StatCardRow';
 import { ForecastCard } from '../../src/components/reports/ForecastCard';
 import { CategoryCard } from '../../src/components/reports/CategoryCard';
@@ -76,6 +77,7 @@ export default function ReportsScreen() {
   const { colors: c } = useTheme();
   const insets = useSafeAreaInsets();
   const { bills } = useBillStore();
+  const organizerName = useProfileStore(s => s.profile?.displayName) ?? 'Organizer';
   const [forecastRange, setForecastRange] = useState<ForecastRange>('6m');
 
   const {
@@ -177,10 +179,11 @@ export default function ReportsScreen() {
               currency={currency}
               range={forecastRange}
               onRangeChange={setForecastRange}
+              bills={bills}
             />
             <CategoryCard data={categoryData} currency={currency} />
             <ReliabilityCard data={reliabilityData} />
-            <ExportCard bills={bills} currency={currency} />
+            <ExportCard bills={bills} currency={currency} organizerName={organizerName} />
           </>
         )}
       </ScrollView>

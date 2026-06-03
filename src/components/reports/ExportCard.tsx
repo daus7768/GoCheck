@@ -14,9 +14,10 @@ import type { Bill, Currency } from '../../types';
 interface Props {
   bills: Bill[];
   currency: Currency;
+  organizerName?: string;
 }
 
-export function ExportCard({ bills, currency }: Props) {
+export function ExportCard({ bills, currency, organizerName }: Props) {
   const { colors: c } = useTheme();
   const [isExportingCsv, setIsExportingCsv] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -28,7 +29,7 @@ export function ExportCard({ bills, currency }: Props) {
     }
     setIsExportingCsv(true);
     try {
-      await exportCSV(bills, currency);
+      await exportCSV(bills, currency, { organizerName });
     } catch (e) {
       Alert.alert('Export failed', 'Could not export CSV. Please try again.');
     } finally {
@@ -43,7 +44,7 @@ export function ExportCard({ bills, currency }: Props) {
     }
     setIsExportingPdf(true);
     try {
-      await exportPDF(bills, currency);
+      await exportPDF(bills, currency, { organizerName });
     } catch (e) {
       Alert.alert('Export failed', 'Could not generate PDF. Please try again.');
     } finally {

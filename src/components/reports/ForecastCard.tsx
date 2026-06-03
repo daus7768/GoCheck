@@ -8,7 +8,7 @@ import { ForecastChart } from './ForecastChart';
 import { buildInsight, forecastPeriodTotal } from '../../lib/reportsCompute';
 import { formatCurrency } from '../../lib/reminderTemplates';
 import type { ForecastMonth } from '../../lib/reportsCompute';
-import type { Currency } from '../../types';
+import type { Bill, Currency } from '../../types';
 import type { ForecastRange } from '../../hooks/useReportsData';
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
   currency: Currency;
   range: ForecastRange;
   onRangeChange: (r: ForecastRange) => void;
+  bills?: Bill[];
 }
 
 const RANGES: { key: ForecastRange; label: string }[] = [
@@ -30,9 +31,9 @@ const RANGE_TITLES: Record<ForecastRange, string> = {
   '1y': '12-month forecast',
 };
 
-export function ForecastCard({ data, currency, range, onRangeChange }: Props) {
+export function ForecastCard({ data, currency, range, onRangeChange, bills }: Props) {
   const { colors: c } = useTheme();
-  const insight = buildInsight(data, currency);
+  const insight = buildInsight(data, currency, bills);
   const periodTotal = forecastPeriodTotal(data);
 
   return (

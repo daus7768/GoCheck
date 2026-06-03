@@ -279,14 +279,29 @@ describe('buildInsight', () => {
     expect(buildInsight([], 'MYR')).toBeNull();
   });
 
-  it('returns no-recurring copy when recurringTotal is 0', () => {
+  it('returns historical-baseline copy when recurring is 0 and no known future bills', () => {
     const data = [
       { label: 'Jun', year: 2026, monthIndex: 5, recurring: 0, expected: 1000 },
       { label: 'Jul', year: 2026, monthIndex: 6, recurring: 0, expected: 500 },
       { label: 'Aug', year: 2026, monthIndex: 7, recurring: 0, expected: 700 },
     ];
     const result = buildInsight(data, 'MYR');
-    expect(result).toContain('average monthly volume');
+    expect(result).toContain("last few months' average");
+  });
+
+  it('prioritises overdue insight when overdue bills are passed in', () => {
+    const overdueBill = makeBill({
+      status: 'active',
+      dueDate: subDays(new Date(), 5).toISOString(),
+      participants: [{ id: 'p1', name: 'A', amount: 250, isPaid: false, paidAt: null, avatarColor: '' }],
+    });
+    const data = [
+      { label: 'Jun', year: 2026, monthIndex: 5, recurring: 0, expected: 1000 },
+      { label: 'Jul', year: 2026, monthIndex: 6, recurring: 0, expected: 500 },
+      { label: 'Aug', year: 2026, monthIndex: 7, recurring: 0, expected: 700 },
+    ];
+    const result = buildInsight(data, 'MYR', [overdueBill]);
+    expect(result).toContain('overdue');
   });
 
   it('returns subscription-audit copy when recurring > 60% of total', () => {
@@ -297,7 +312,7 @@ describe('buildInsight', () => {
     ];
     const result = buildInsight(data, 'MYR');
     expect(result).toContain('recurring');
-    expect(result).toContain('auditing');
+    expect(result?.toLowerCase()).toContain('auditing');
   });
 
   it('returns heads-up copy when peak is more than 1.5x the median', () => {
