@@ -145,10 +145,10 @@ function FloatingTabBar({ state, descriptors, navigation, insets }: BottomTabBar
         styles.tabBarShadow,
         {
           shadowColor: '#4F46E5',
-          shadowOpacity: isDark ? 0.32 : 0.16,
-          shadowRadius: 24,
-          shadowOffset: { width: 0, height: -2 },
-          elevation: 20,
+          shadowOpacity: isDark ? 0.18 : 0.10,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 12,
         },
       ]}>
         {/* Clip wrapper — overflow hidden so BlurView/gradient clip to pill shape */}
