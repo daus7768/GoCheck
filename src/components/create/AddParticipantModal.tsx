@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { useWebEscape } from '../../hooks/useWebEscape';
 import { AppText } from '../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -122,6 +123,132 @@ export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: 
     onClose();
   };
 
+  useWebEscape(visible, handleClose);
+
+  const content = (
+    <KeyboardAvoidingView
+      style={styles.overlay}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <Pressable style={styles.backdrop} onPress={handleClose} />
+
+      <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing[6]) }]}>
+        <View style={styles.handle} />
+
+        <View style={styles.header}>
+          <AppText style={styles.title}>Add Participant</AppText>
+          <Pressable
+            onPress={handleClose}
+            style={styles.closeBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Feather name="x" size={20} color={colors.textSecondary} />
+          </Pressable>
+        </View>
+
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Name */}
+          <View style={styles.fieldGroup}>
+            <AppText style={styles.label}>
+              Name <AppText style={styles.required}>*</AppText>
+            </AppText>
+            <View style={[styles.inputWrapper, nameError ? styles.inputError : null]}>
+              <Feather name="user" size={16} color={nameError ? colors.error : colors.gray400} />
+              <TextInput
+                ref={nameRef}
+                style={styles.input}
+                value={name}
+                onChangeText={(v) => {
+                  setName(v);
+                  if (nameError) setNameError('');
+                }}
+                placeholder="e.g. Sarah Lim"
+                placeholderTextColor={colors.textTertiary}
+                autoCapitalize="words"
+                autoCorrect={false}
+                returnKeyType="next"
+                onSubmitEditing={() => phoneRef.current?.focus()}
+                maxLength={60}
+              />
+            </View>
+            {nameError ? <AppText style={styles.errorText}>{nameError}</AppText> : null}
+          </View>
+
+          {/* Phone */}
+          <View style={styles.fieldGroup}>
+            <AppText style={styles.label}>
+              Phone <AppText style={styles.optional}>(for WhatsApp reminders)</AppText>
+            </AppText>
+            <View style={[styles.inputWrapper, phoneError ? styles.inputError : null]}>
+              <Feather name="phone" size={16} color={phoneError ? colors.error : colors.gray400} />
+              <TextInput
+                ref={phoneRef}
+                style={styles.input}
+                value={phone}
+                onChangeText={(v) => {
+                  setPhone(v);
+                  if (phoneError) setPhoneError('');
+                }}
+                placeholder="e.g. 0123456789 or +60123456789"
+                placeholderTextColor={colors.textTertiary}
+                keyboardType="phone-pad"
+                autoCorrect={false}
+                returnKeyType="next"
+                onSubmitEditing={() => emailRef.current?.focus()}
+                maxLength={20}
+              />
+            </View>
+            {phoneError ? <AppText style={styles.errorText}>{phoneError}</AppText> : null}
+          </View>
+
+          {/* Email */}
+          <View style={styles.fieldGroup}>
+            <AppText style={styles.label}>
+              Email <AppText style={styles.optional}>(optional)</AppText>
+            </AppText>
+            <View style={styles.inputWrapper}>
+              <Feather name="mail" size={16} color={colors.gray400} />
+              <TextInput
+                ref={emailRef}
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="sarah@example.com"
+                placeholderTextColor={colors.textTertiary}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleAdd}
+                maxLength={100}
+              />
+            </View>
+          </View>
+
+          <Pressable
+            style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.9 }]}
+            onPress={handleAdd}
+          >
+            <Feather name="user-plus" size={18} color={colors.white} />
+            <AppText style={styles.addBtnText}>Add Participant</AppText>
+          </Pressable>
+        </ScrollView>
+      </View>
+    </KeyboardAvoidingView>
+  );
+
+  if (Platform.OS === 'web') {
+    if (!visible) return null;
+    return (
+      <View style={StyleSheet.absoluteFillObject} pointerEvents="auto">
+        {content}
+      </View>
+    );
+  }
+
   return (
     <Modal
       visible={visible}
@@ -132,118 +259,7 @@ export function AddParticipantModal({ visible, onClose, onAdd, existingNames }: 
         setTimeout(() => nameRef.current?.focus(), 100);
       }}
     >
-      <KeyboardAvoidingView
-        style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <Pressable style={styles.backdrop} onPress={handleClose} />
-
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing[6]) }]}>
-          <View style={styles.handle} />
-
-          <View style={styles.header}>
-            <AppText style={styles.title}>Add Participant</AppText>
-            <Pressable
-              onPress={handleClose}
-              style={styles.closeBtn}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Feather name="x" size={20} color={colors.textSecondary} />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Name */}
-            <View style={styles.fieldGroup}>
-              <AppText style={styles.label}>
-                Name <AppText style={styles.required}>*</AppText>
-              </AppText>
-              <View style={[styles.inputWrapper, nameError ? styles.inputError : null]}>
-                <Feather name="user" size={16} color={nameError ? colors.error : colors.gray400} />
-                <TextInput
-                  ref={nameRef}
-                  style={styles.input}
-                  value={name}
-                  onChangeText={(v) => {
-                    setName(v);
-                    if (nameError) setNameError('');
-                  }}
-                  placeholder="e.g. Sarah Lim"
-                  placeholderTextColor={colors.textTertiary}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  returnKeyType="next"
-                  onSubmitEditing={() => phoneRef.current?.focus()}
-                  maxLength={60}
-                />
-              </View>
-              {nameError ? <AppText style={styles.errorText}>{nameError}</AppText> : null}
-            </View>
-
-            {/* Phone */}
-            <View style={styles.fieldGroup}>
-              <AppText style={styles.label}>
-                Phone <AppText style={styles.optional}>(for WhatsApp reminders)</AppText>
-              </AppText>
-              <View style={[styles.inputWrapper, phoneError ? styles.inputError : null]}>
-                <Feather name="phone" size={16} color={phoneError ? colors.error : colors.gray400} />
-                <TextInput
-                  ref={phoneRef}
-                  style={styles.input}
-                  value={phone}
-                  onChangeText={(v) => {
-                    setPhone(v);
-                    if (phoneError) setPhoneError('');
-                  }}
-                  placeholder="e.g. 0123456789 or +60123456789"
-                  placeholderTextColor={colors.textTertiary}
-                  keyboardType="phone-pad"
-                  autoCorrect={false}
-                  returnKeyType="next"
-                  onSubmitEditing={() => emailRef.current?.focus()}
-                  maxLength={20}
-                />
-              </View>
-              {phoneError ? <AppText style={styles.errorText}>{phoneError}</AppText> : null}
-            </View>
-
-            {/* Email */}
-            <View style={styles.fieldGroup}>
-              <AppText style={styles.label}>
-                Email <AppText style={styles.optional}>(optional)</AppText>
-              </AppText>
-              <View style={styles.inputWrapper}>
-                <Feather name="mail" size={16} color={colors.gray400} />
-                <TextInput
-                  ref={emailRef}
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="sarah@example.com"
-                  placeholderTextColor={colors.textTertiary}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  onSubmitEditing={handleAdd}
-                  maxLength={100}
-                />
-              </View>
-            </View>
-
-            <Pressable
-              style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.9 }]}
-              onPress={handleAdd}
-            >
-              <Feather name="user-plus" size={18} color={colors.white} />
-              <AppText style={styles.addBtnText}>Add Participant</AppText>
-            </Pressable>
-          </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
+      {content}
     </Modal>
   );
 }

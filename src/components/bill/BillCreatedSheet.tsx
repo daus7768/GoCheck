@@ -192,67 +192,60 @@ export function BillCreatedSheet({
 
   if (!bill) return null;
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="none"
-      statusBarTranslucent
-      onRequestClose={() => dismissWithAnimation(onViewBill)}
-    >
-      <View style={styles.root} accessibilityViewIsModal>
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={() => dismissWithAnimation(onViewBill)}
-          accessibilityLabel="Close and view bill"
-        >
-          <Animated.View style={[styles.backdrop, backdropStyle]} />
-        </Pressable>
+  const content = (
+    <View style={styles.root} accessibilityViewIsModal>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={() => dismissWithAnimation(onViewBill)}
+        accessibilityLabel="Close and view bill"
+      >
+        <Animated.View style={[styles.backdrop, backdropStyle]} />
+      </Pressable>
 
-        <Animated.View
-          style={[styles.card, cardStyle]}
-          accessibilityRole="alert"
-          accessibilityLiveRegion="polite"
-          accessibilityLabel="Bill created successfully"
-        >
-          <ConfettiBurst
-            active={confettiActive}
-            reduceMotion={reduceMotion}
-            originX={170}
-            originY={36}
-          />
+      <Animated.View
+        style={[styles.card, cardStyle]}
+        accessibilityRole="alert"
+        accessibilityLiveRegion="polite"
+        accessibilityLabel="Bill created successfully"
+      >
+        <ConfettiBurst
+          active={confettiActive}
+          reduceMotion={reduceMotion}
+          originX={170}
+          originY={36}
+        />
 
-          <SuccessCheck
-            reduceMotion={reduceMotion}
-            onPulseStart={() => {
-              if (!reduceMotion) setConfettiActive(true);
-            }}
-          />
+        <SuccessCheck
+          reduceMotion={reduceMotion}
+          onPulseStart={() => {
+            if (!reduceMotion) setConfettiActive(true);
+          }}
+        />
 
-          <Animated.View entering={enteringTitle} style={styles.textBlock}>
-            <AppText style={styles.title}>Bill created! 🎉</AppText>
-          </Animated.View>
+        <Animated.View entering={enteringTitle} style={styles.textBlock}>
+          <AppText style={styles.title}>Bill created! 🎉</AppText>
+        </Animated.View>
 
-          <Animated.View entering={enteringSub}>
-            <AppText style={styles.subtitle}>
-              &ldquo;{bill.title}&rdquo; is ready to share
-            </AppText>
-          </Animated.View>
+        <Animated.View entering={enteringSub}>
+          <AppText style={styles.subtitle}>
+            &ldquo;{bill.title}&rdquo; is ready to share
+          </AppText>
+        </Animated.View>
 
-          <Animated.View entering={enteringChip} style={styles.chip}>
-            <AppText style={styles.chipLine1}>
-              {formatBillAmount(bill.totalAmount, bill.currency)} · {peopleLabel}
-            </AppText>
-            {dueLabel ? <AppText style={styles.chipLine2}>{dueLabel}</AppText> : null}
-            {recurringLabel ? (
-              <View style={styles.recurringPill}>
-                <AppText style={styles.recurringText}>🔁 {recurringLabel}</AppText>
-              </View>
-            ) : null}
-          </Animated.View>
+        <Animated.View entering={enteringChip} style={styles.chip}>
+          <AppText style={styles.chipLine1}>
+            {formatBillAmount(bill.totalAmount, bill.currency)} · {peopleLabel}
+          </AppText>
+          {dueLabel ? <AppText style={styles.chipLine2}>{dueLabel}</AppText> : null}
+          {recurringLabel ? (
+            <View style={styles.recurringPill}>
+              <AppText style={styles.recurringText}>🔁 {recurringLabel}</AppText>
+            </View>
+          ) : null}
+        </Animated.View>
 
-          <View style={styles.actions}>
-            <Animated.View entering={enteringBtnPrimary} style={styles.actionItem}>
+        <View style={styles.actions}>
+          <Animated.View entering={enteringBtnPrimary} style={styles.actionItem}>
             <Pressable
               onPress={handleShare}
               disabled={!canShare || sharing || dismissing}
@@ -287,9 +280,9 @@ export function BillCreatedSheet({
                 Link available once synced.
               </AppText>
             )}
-            </Animated.View>
+          </Animated.View>
 
-            <Animated.View entering={enteringBtnSecondary} style={styles.actionItem}>
+          <Animated.View entering={enteringBtnSecondary} style={styles.actionItem}>
             <Pressable
               onPress={() => dismissWithAnimation(onViewBill)}
               disabled={dismissing}
@@ -302,9 +295,9 @@ export function BillCreatedSheet({
             >
               <AppText style={styles.secondaryLabel}>View bill</AppText>
             </Pressable>
-            </Animated.View>
+          </Animated.View>
 
-            <Animated.View entering={enteringBtnTertiary}>
+          <Animated.View entering={enteringBtnTertiary}>
             <Pressable
               onPress={() => dismissWithAnimation(onCreateAnother)}
               disabled={dismissing}
@@ -314,10 +307,30 @@ export function BillCreatedSheet({
             >
               <AppText style={styles.tertiaryLabel}>Create another</AppText>
             </Pressable>
-            </Animated.View>
-          </View>
-        </Animated.View>
+          </Animated.View>
+        </View>
+      </Animated.View>
+    </View>
+  );
+
+  if (Platform.OS === 'web') {
+    if (!visible) return null;
+    return (
+      <View style={StyleSheet.absoluteFillObject} pointerEvents="auto">
+        {content}
       </View>
+    );
+  }
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={() => dismissWithAnimation(onViewBill)}
+    >
+      {content}
     </Modal>
   );
 }

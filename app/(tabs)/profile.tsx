@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useWebEscape } from '../../src/hooks/useWebEscape';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   View,
@@ -72,6 +73,9 @@ export default function ProfileScreen() {
   const notifWeeklyDigest = profile?.notifWeeklyDigest ?? false;
 
   const symbol = CURRENCY_SYMBOLS[defaultCurrency];
+
+  useWebEscape(editingName, () => setEditingName(false));
+  useWebEscape(pickingCurrency, () => setPickingCurrency(false));
 
   function openCurrencyPicker() {
     haptic.selection();
@@ -376,91 +380,125 @@ export default function ProfileScreen() {
       <SignOutOverlay visible={signingOut} />
 
       {/* Display name editor */}
-      <Modal
-        visible={editingName}
-        transparent
-        animationType={Platform.OS === 'web' ? 'fade' : 'fade'}
-        onRequestClose={() => setEditingName(false)}
-      >
-        <Pressable style={styles.modalBackdrop} onPress={() => setEditingName(false)}>
-          <Pressable style={[styles.modalCard, { backgroundColor: c.surface }]} onPress={() => {}}>
-            <AppText style={[styles.modalTitle, { color: c.textPrimary }]}>Display name</AppText>
-            <AppText style={[styles.modalSub, { color: c.textSecondary }]}>
-              Shown to people you split bills with.
-            </AppText>
-            <TextInput
-              value={nameDraft}
-              onChangeText={setNameDraft}
-              placeholder="Your name"
-              placeholderTextColor={c.textTertiary}
-              autoFocus
-              maxLength={50}
-              style={[styles.modalInput, { borderColor: c.border, color: c.textPrimary }]}
-              onSubmitEditing={saveDisplayName}
-              returnKeyType="done"
-            />
-            <View style={styles.modalRow}>
-              <Pressable style={styles.modalBtnGhost} onPress={() => setEditingName(false)}>
-                <AppText style={[styles.modalBtnText, { color: c.textSecondary }]}>Cancel</AppText>
-              </Pressable>
-              <Pressable
-                style={[styles.modalBtnPrimary, { backgroundColor: colors.primary }]}
-                onPress={saveDisplayName}
-              >
-                <AppText style={[styles.modalBtnText, { color: colors.white }]}>Save</AppText>
-              </Pressable>
-            </View>
+      {(() => {
+        const nameContent = (
+          <Pressable style={styles.modalBackdrop} onPress={() => setEditingName(false)}>
+            <Pressable style={[styles.modalCard, { backgroundColor: c.surface }]} onPress={() => {}}>
+              <AppText style={[styles.modalTitle, { color: c.textPrimary }]}>Display name</AppText>
+              <AppText style={[styles.modalSub, { color: c.textSecondary }]}>
+                Shown to people you split bills with.
+              </AppText>
+              <TextInput
+                value={nameDraft}
+                onChangeText={setNameDraft}
+                placeholder="Your name"
+                placeholderTextColor={c.textTertiary}
+                autoFocus
+                maxLength={50}
+                style={[styles.modalInput, { borderColor: c.border, color: c.textPrimary }]}
+                onSubmitEditing={saveDisplayName}
+                returnKeyType="done"
+              />
+              <View style={styles.modalRow}>
+                <Pressable style={styles.modalBtnGhost} onPress={() => setEditingName(false)}>
+                  <AppText style={[styles.modalBtnText, { color: c.textSecondary }]}>Cancel</AppText>
+                </Pressable>
+                <Pressable
+                  style={[styles.modalBtnPrimary, { backgroundColor: colors.primary }]}
+                  onPress={saveDisplayName}
+                >
+                  <AppText style={[styles.modalBtnText, { color: colors.white }]}>Save</AppText>
+                </Pressable>
+              </View>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        );
+
+        if (Platform.OS === 'web') {
+          if (!editingName) return null;
+          return (
+            <View style={StyleSheet.absoluteFillObject} pointerEvents="auto">
+              {nameContent}
+            </View>
+          );
+        }
+
+        return (
+          <Modal
+            visible={editingName}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setEditingName(false)}
+          >
+            {nameContent}
+          </Modal>
+        );
+      })()}
 
       {/* Currency picker */}
-      <Modal
-        visible={pickingCurrency}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPickingCurrency(false)}
-      >
-        <Pressable style={styles.modalBackdrop} onPress={() => setPickingCurrency(false)}>
-          <Pressable style={[styles.modalCard, { backgroundColor: c.surface }]} onPress={() => {}}>
-            <AppText style={[styles.modalTitle, { color: c.textPrimary }]}>Default currency</AppText>
-            <AppText style={[styles.modalSub, { color: c.textSecondary }]}>
-              Used as the default when you create a new bill.
-            </AppText>
-            <View style={styles.currencyList}>
-              {SUPPORTED_CURRENCIES.map((cur, i) => {
-                const isActive = cur === defaultCurrency;
-                return (
-                  <Pressable
-                    key={cur}
-                    onPress={() => selectCurrency(cur)}
-                    style={[
-                      styles.currencyRow,
-                      i !== SUPPORTED_CURRENCIES.length - 1 && {
-                        borderBottomWidth: StyleSheet.hairlineWidth,
-                        borderBottomColor: c.divider,
-                      },
-                    ]}
-                  >
-                    <View style={[styles.currencyBadge, { backgroundColor: c.primarySurface }]}>
-                      <AppText style={[styles.currencySymbol, { color: colors.primary }]}>
-                        {CURRENCY_SYMBOLS[cur]}
-                      </AppText>
-                    </View>
-                    <View style={styles.currencyTextWrap}>
-                      <AppText style={[styles.currencyName, { color: c.textPrimary }]}>
-                        {CURRENCY_LABELS[cur]}
-                      </AppText>
-                      <AppText style={[styles.currencyCode, { color: c.textSecondary }]}>{cur}</AppText>
-                    </View>
-                    {isActive && <Feather name="check" size={18} color={colors.primary} />}
-                  </Pressable>
-                );
-              })}
-            </View>
+      {(() => {
+        const currencyContent = (
+          <Pressable style={styles.modalBackdrop} onPress={() => setPickingCurrency(false)}>
+            <Pressable style={[styles.modalCard, { backgroundColor: c.surface }]} onPress={() => {}}>
+              <AppText style={[styles.modalTitle, { color: c.textPrimary }]}>Default currency</AppText>
+              <AppText style={[styles.modalSub, { color: c.textSecondary }]}>
+                Used as the default when you create a new bill.
+              </AppText>
+              <View style={styles.currencyList}>
+                {SUPPORTED_CURRENCIES.map((cur, i) => {
+                  const isActive = cur === defaultCurrency;
+                  return (
+                    <Pressable
+                      key={cur}
+                      onPress={() => selectCurrency(cur)}
+                      style={[
+                        styles.currencyRow,
+                        i !== SUPPORTED_CURRENCIES.length - 1 && {
+                          borderBottomWidth: StyleSheet.hairlineWidth,
+                          borderBottomColor: c.divider,
+                        },
+                      ]}
+                    >
+                      <View style={[styles.currencyBadge, { backgroundColor: c.primarySurface }]}>
+                        <AppText style={[styles.currencySymbol, { color: colors.primary }]}>
+                          {CURRENCY_SYMBOLS[cur]}
+                        </AppText>
+                      </View>
+                      <View style={styles.currencyTextWrap}>
+                        <AppText style={[styles.currencyName, { color: c.textPrimary }]}>
+                          {CURRENCY_LABELS[cur]}
+                        </AppText>
+                        <AppText style={[styles.currencyCode, { color: c.textSecondary }]}>{cur}</AppText>
+                      </View>
+                      {isActive && <Feather name="check" size={18} color={colors.primary} />}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        );
+
+        if (Platform.OS === 'web') {
+          if (!pickingCurrency) return null;
+          return (
+            <View style={StyleSheet.absoluteFillObject} pointerEvents="auto">
+              {currencyContent}
+            </View>
+          );
+        }
+
+        return (
+          <Modal
+            visible={pickingCurrency}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setPickingCurrency(false)}
+          >
+            {currencyContent}
+          </Modal>
+        );
+      })()}
     </ScrollView>
   );
 }

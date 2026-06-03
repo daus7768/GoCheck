@@ -7,12 +7,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { AppText } from '../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { haptic, ImpactFeedbackStyle } from '../../lib/haptics';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { useWebEscape } from '../../hooks/useWebEscape';
 import type { Currency } from '../../types';
 import { SUPPORTED_CURRENCIES, CURRENCY_SYMBOLS, CURRENCY_LABELS } from '../../types';
 import { gc, typography, fontSize, spacing, radius } from '../../theme/tokens';
@@ -39,6 +41,8 @@ export function CurrencySelector({ value, onChange }: Props) {
     setOpen(false);
   };
 
+  useWebEscape(open, () => setOpen(false));
+
   return (
     <>
       <Animated.View style={animStyle}>
@@ -59,54 +63,70 @@ export function CurrencySelector({ value, onChange }: Props) {
         </Pressable>
       </Animated.View>
 
-      <Modal
-        visible={open}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setOpen(false)}
-        statusBarTranslucent
-      >
-        <Pressable style={styles.overlay} onPress={() => setOpen(false)}>
-          <View
-            style={[styles.sheet, { paddingBottom: insets.bottom + spacing[4], maxHeight: SCREEN_HEIGHT * 0.82 }]}
-            onStartShouldSetResponder={() => true}
+      {(() => {
+        const sheetContent = (
+          <Pressable style={styles.overlay} onPress={() => setOpen(false)}>
+            <View
+              style={[styles.sheet, { paddingBottom: insets.bottom + spacing[4], maxHeight: SCREEN_HEIGHT * 0.82 }]}
+              onStartShouldSetResponder={() => true}
+            >
+              <View style={styles.handle} />
+
+              <AppText style={styles.sheetTitle}>Select Currency</AppText>
+
+              <FlatList
+                data={SUPPORTED_CURRENCIES}
+                keyExtractor={(item) => item}
+                style={styles.list}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.option, item === value && styles.optionSelected]}
+                    onPress={() => handleSelect(item)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.optionLeft}>
+                      <View style={styles.symbolWrap}>
+                        <AppText style={styles.optionSymbol}>{CURRENCY_SYMBOLS[item]}</AppText>
+                      </View>
+                      <View>
+                        <AppText style={styles.optionCode}>{item}</AppText>
+                        <AppText style={styles.optionLabel}>{CURRENCY_LABELS[item]}</AppText>
+                      </View>
+                    </View>
+                    {item === value && (
+                      <Feather name="check" size={18} color={gc.primary} />
+                    )}
+                  </TouchableOpacity>
+                )}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              />
+            </View>
+          </Pressable>
+        );
+
+        if (Platform.OS === 'web') {
+          if (!open) return null;
+          return (
+            <View style={StyleSheet.absoluteFillObject} pointerEvents="auto">
+              {sheetContent}
+            </View>
+          );
+        }
+
+        return (
+          <Modal
+            visible={open}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setOpen(false)}
+            statusBarTranslucent
           >
-            {/* Handle */}
-            <View style={styles.handle} />
-
-            <AppText style={styles.sheetTitle}>Select Currency</AppText>
-
-            <FlatList
-              data={SUPPORTED_CURRENCIES}
-              keyExtractor={(item) => item}
-              style={styles.list}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.option, item === value && styles.optionSelected]}
-                  onPress={() => handleSelect(item)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.optionLeft}>
-                    <View style={styles.symbolWrap}>
-                      <AppText style={styles.optionSymbol}>{CURRENCY_SYMBOLS[item]}</AppText>
-                    </View>
-                    <View>
-                      <AppText style={styles.optionCode}>{item}</AppText>
-                      <AppText style={styles.optionLabel}>{CURRENCY_LABELS[item]}</AppText>
-                    </View>
-                  </View>
-                  {item === value && (
-                    <Feather name="check" size={18} color={gc.primary} />
-                  )}
-                </TouchableOpacity>
-              )}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-              showsVerticalScrollIndicator={false}
-              bounces={false}
-            />
-          </View>
-        </Pressable>
-      </Modal>
+            {sheetContent}
+          </Modal>
+        );
+      })()}
     </>
   );
 }

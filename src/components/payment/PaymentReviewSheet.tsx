@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  Modal, View, StyleSheet, Pressable, ActivityIndicator, TextInput, Alert, Image,
+  Modal, View, StyleSheet, Pressable, ActivityIndicator, TextInput, Alert, Image, Platform,
 } from 'react-native';
+import { useWebEscape } from '../../hooks/useWebEscape';
 import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, cancelAnimation } from 'react-native-reanimated';
@@ -48,6 +49,9 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
     }
   }, [participant?.id]);
 
+  useWebEscape(!!participant, onClose);
+  useWebEscape(!!viewerUrl, () => setViewerUrl(null));
+
   if (!participant) return null;
 
   const symbol = CURRENCY_SYMBOLS[currency] ?? currency;
@@ -82,94 +86,115 @@ export function PaymentReviewSheet({ participant, currency, onClose, onChanged }
     }
   };
 
+  const reviewSheet = (
+    <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable style={styles.sheet} onPress={() => {}}>
+        <View style={styles.handle} />
+        <AppText style={styles.title}>Review payment</AppText>
+        <AppText style={styles.subtitle}>
+          {participant.name} • {symbol}{participant.amount.toFixed(2)}
+        </AppText>
+
+        <AISummaryBanner
+          proofUrl={participant.proofUrl}
+          proofSummary={participant.proofSummary}
+          proofExtracted={participant.proofExtracted}
+          onImageTap={setViewerUrl}
+        />
+
+        {participant.submittedAt && (
+          <AppText style={styles.meta}>
+            Submitted {new Date(participant.submittedAt).toLocaleString()}
+          </AppText>
+        )}
+
+        {!rejectMode ? (
+          <View style={styles.actions}>
+            <Pressable
+              style={[styles.btn, styles.rejectBtn]}
+              onPress={() => setRejectMode(true)}
+              disabled={busy !== null}
+            >
+              <Feather name="x" size={18} color="#DC2626" />
+              <AppText style={[styles.btnText, { color: '#DC2626' }]}>Reject</AppText>
+            </Pressable>
+            <Animated.View style={[{ flex: 1 }, approveAnimatedStyle]}>
+              <Pressable
+                style={[styles.btn, styles.approveBtn]}
+                onPress={handleApprove}
+                disabled={busy !== null}
+              >
+                {busy === 'approve'
+                  ? <ActivityIndicator color="#FFF" />
+                  : <>
+                      <Feather name="check" size={18} color="#FFF" />
+                      <AppText style={[styles.btnText, { color: '#FFF' }]}>Approve</AppText>
+                    </>}
+              </Pressable>
+            </Animated.View>
+          </View>
+        ) : (
+          <View style={styles.rejectBlock}>
+            <AppText style={styles.rejectLabel}>Reason</AppText>
+            <TextInput
+              style={styles.rejectInput}
+              placeholder="e.g. Amount looks short, try again"
+              value={reason}
+              onChangeText={setReason}
+              multiline
+            />
+            <View style={styles.actions}>
+              <Pressable style={[styles.btn, styles.cancelBtn]} onPress={() => setRejectMode(false)}>
+                <AppText style={[styles.btnText, { color: colors.textSecondary }]}>Cancel</AppText>
+              </Pressable>
+              <Pressable
+                style={[styles.btn, styles.rejectConfirmBtn]}
+                onPress={handleReject}
+                disabled={busy !== null}
+              >
+                {busy === 'reject'
+                  ? <ActivityIndicator color="#FFF" />
+                  : <AppText style={[styles.btnText, { color: '#FFF' }]}>Send rejection</AppText>}
+              </Pressable>
+            </View>
+          </View>
+        )}
+      </Pressable>
+    </Pressable>
+  );
+
+  const imageViewer = viewerUrl ? (
+    <Pressable style={styles.viewerBackdrop} onPress={() => setViewerUrl(null)}>
+      <Image source={{ uri: viewerUrl }} style={styles.viewerImage} resizeMode="contain" />
+      <Pressable onPress={() => setViewerUrl(null)} style={styles.viewerClose}>
+        <Feather name="x" size={24} color="#FFF" />
+      </Pressable>
+    </Pressable>
+  ) : null;
+
+  if (Platform.OS === 'web') {
+    return (
+      <>
+        <View style={StyleSheet.absoluteFillObject} pointerEvents="auto">
+          {reviewSheet}
+        </View>
+        {viewerUrl && (
+          <View style={StyleSheet.absoluteFillObject} pointerEvents="auto">
+            {imageViewer}
+          </View>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
       <Modal animationType="slide" transparent onRequestClose={onClose}>
-        <Pressable style={styles.backdrop} onPress={onClose}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <View style={styles.handle} />
-            <AppText style={styles.title}>Review payment</AppText>
-            <AppText style={styles.subtitle}>
-              {participant.name} • {symbol}{participant.amount.toFixed(2)}
-            </AppText>
-
-            <AISummaryBanner
-              proofUrl={participant.proofUrl}
-              proofSummary={participant.proofSummary}
-              proofExtracted={participant.proofExtracted}
-              onImageTap={setViewerUrl}
-            />
-
-            {participant.submittedAt && (
-              <AppText style={styles.meta}>
-                Submitted {new Date(participant.submittedAt).toLocaleString()}
-              </AppText>
-            )}
-
-            {!rejectMode ? (
-              <View style={styles.actions}>
-                <Pressable
-                  style={[styles.btn, styles.rejectBtn]}
-                  onPress={() => setRejectMode(true)}
-                  disabled={busy !== null}
-                >
-                  <Feather name="x" size={18} color="#DC2626" />
-                  <AppText style={[styles.btnText, { color: '#DC2626' }]}>Reject</AppText>
-                </Pressable>
-                <Animated.View style={[{ flex: 1 }, approveAnimatedStyle]}>
-                  <Pressable
-                    style={[styles.btn, styles.approveBtn]}
-                    onPress={handleApprove}
-                    disabled={busy !== null}
-                  >
-                    {busy === 'approve'
-                      ? <ActivityIndicator color="#FFF" />
-                      : <>
-                          <Feather name="check" size={18} color="#FFF" />
-                          <AppText style={[styles.btnText, { color: '#FFF' }]}>Approve</AppText>
-                        </>}
-                  </Pressable>
-                </Animated.View>
-              </View>
-            ) : (
-              <View style={styles.rejectBlock}>
-                <AppText style={styles.rejectLabel}>Reason</AppText>
-                <TextInput
-                  style={styles.rejectInput}
-                  placeholder="e.g. Amount looks short, try again"
-                  value={reason}
-                  onChangeText={setReason}
-                  multiline
-                />
-                <View style={styles.actions}>
-                  <Pressable style={[styles.btn, styles.cancelBtn]} onPress={() => setRejectMode(false)}>
-                    <AppText style={[styles.btnText, { color: colors.textSecondary }]}>Cancel</AppText>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.btn, styles.rejectConfirmBtn]}
-                    onPress={handleReject}
-                    disabled={busy !== null}
-                  >
-                    {busy === 'reject'
-                      ? <ActivityIndicator color="#FFF" />
-                      : <AppText style={[styles.btnText, { color: '#FFF' }]}>Send rejection</AppText>}
-                  </Pressable>
-                </View>
-              </View>
-            )}
-          </Pressable>
-        </Pressable>
+        {reviewSheet}
       </Modal>
 
       <Modal visible={!!viewerUrl} transparent animationType="fade" onRequestClose={() => setViewerUrl(null)}>
-        <Pressable style={styles.viewerBackdrop} onPress={() => setViewerUrl(null)}>
-          {viewerUrl && (
-            <Image source={{ uri: viewerUrl }} style={styles.viewerImage} resizeMode="contain" />
-          )}
-          <Pressable onPress={() => setViewerUrl(null)} style={styles.viewerClose}>
-            <Feather name="x" size={24} color="#FFF" />
-          </Pressable>
-        </Pressable>
+        {imageViewer}
       </Modal>
     </>
   );
