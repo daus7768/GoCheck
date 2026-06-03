@@ -1,33 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator, Pressable, Image, useWindowDimensions } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Pressable, Image } from 'react-native';
 import { AppText } from '../../src/components/AppText';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
-import Svg, { Defs, LinearGradient as SvgLinearGradient, Stop, Path } from 'react-native-svg';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  FadeIn,
-  FadeInUp,
-  interpolate,
-  useAnimatedProps,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { format } from 'date-fns';
 import { colors, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
 import { supabase, getParticipantView, submitPayment } from '../../src/lib/supabase';
 import { SlideToConfirm } from '../../src/components/payment/SlideToConfirm';
 import { ProofUpload } from '../../src/components/payment/ProofUpload';
 import { ColourfulText } from '../../src/components/effects/ColourfulText';
+import { BeamBackdrop } from '../../src/components/effects/BeamBackdrop';
 import { CURRENCY_SYMBOLS } from '../../src/types';
 import type { ParticipantView, PaymentFlowStatus } from '../../src/types';
-
-const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 const paymentMethodLabel: Record<NonNullable<ParticipantView['bill']['paymentMethod']>, string> = {
   duitnow: 'DuitNow',
@@ -60,110 +47,6 @@ function statusTone(status: PaymentFlowStatus) {
   return { bg: '#EEF2FF', fg: colors.primary, icon: 'credit-card' as const };
 }
 
-function BeamBackdrop() {
-  const { width, height } = useWindowDimensions();
-  const sweep = useSharedValue(0);
-  const pulse = useSharedValue(0.55);
-
-  useEffect(() => {
-    sweep.value = withRepeat(
-      withTiming(1, { duration: 9000, easing: Easing.linear }),
-      -1,
-      false
-    );
-    pulse.value = withRepeat(
-      withTiming(0.95, { duration: 4200, easing: Easing.inOut(Easing.quad) }),
-      -1,
-      true
-    );
-    return () => {
-      cancelAnimation(sweep);
-      cancelAnimation(pulse);
-    };
-  }, [pulse, sweep]);
-
-  const svgW = Math.max(width, 390);
-  const svgH = Math.max(height, 780);
-  const pathA = `M -80 ${svgH * 0.18} C ${svgW * 0.18} ${svgH * 0.02}, ${svgW * 0.34} ${svgH * 0.44}, ${svgW + 90} ${svgH * 0.14}`;
-  const pathB = `M -70 ${svgH * 0.54} C ${svgW * 0.2} ${svgH * 0.32}, ${svgW * 0.52} ${svgH * 0.76}, ${svgW + 80} ${svgH * 0.46}`;
-  const pathC = `M ${svgW + 70} ${svgH * 0.82} C ${svgW * 0.72} ${svgH * 0.58}, ${svgW * 0.22} ${svgH * 0.96}, -80 ${svgH * 0.68}`;
-
-  const beamAProps = useAnimatedProps(() => ({
-    strokeDashoffset: interpolate(sweep.value, [0, 1], [980, -980]),
-    opacity: pulse.value,
-  }));
-  const beamBProps = useAnimatedProps(() => ({
-    strokeDashoffset: interpolate(sweep.value, [0, 1], [520, -1320]),
-    opacity: interpolate(pulse.value, [0.55, 0.95], [0.35, 0.8]),
-  }));
-  const beamCProps = useAnimatedProps(() => ({
-    strokeDashoffset: interpolate(sweep.value, [0, 1], [1200, -760]),
-    opacity: interpolate(pulse.value, [0.55, 0.95], [0.25, 0.68]),
-  }));
-
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <LinearGradient
-        colors={['#070A16', '#11123A', '#061B2A', '#071512']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <Svg width={svgW} height={svgH} style={StyleSheet.absoluteFill}>
-        <Defs>
-          <SvgLinearGradient id="beamSoft" x1="0%" y1="0%" x2="100%" y2="0%">
-            <Stop offset="0%" stopColor="#38BDF8" stopOpacity="0" />
-            <Stop offset="30%" stopColor="#6366F1" stopOpacity="0.28" />
-            <Stop offset="62%" stopColor="#22C55E" stopOpacity="0.22" />
-            <Stop offset="100%" stopColor="#F59E0B" stopOpacity="0" />
-          </SvgLinearGradient>
-          <SvgLinearGradient id="beamHot" x1="0%" y1="0%" x2="100%" y2="0%">
-            <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0" />
-            <Stop offset="38%" stopColor="#A5B4FC" stopOpacity="0.95" />
-            <Stop offset="56%" stopColor="#67E8F9" stopOpacity="0.9" />
-            <Stop offset="72%" stopColor="#86EFAC" stopOpacity="0.75" />
-            <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-          </SvgLinearGradient>
-        </Defs>
-        <Path d={pathA} stroke="url(#beamSoft)" strokeWidth={54} strokeLinecap="round" fill="none" />
-        <Path d={pathB} stroke="url(#beamSoft)" strokeWidth={68} strokeLinecap="round" fill="none" opacity={0.7} />
-        <Path d={pathC} stroke="url(#beamSoft)" strokeWidth={58} strokeLinecap="round" fill="none" opacity={0.5} />
-        <AnimatedPath
-          d={pathA}
-          stroke="url(#beamHot)"
-          strokeWidth={3}
-          strokeLinecap="round"
-          fill="none"
-          strokeDasharray="180 760"
-          animatedProps={beamAProps}
-        />
-        <AnimatedPath
-          d={pathB}
-          stroke="url(#beamHot)"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          fill="none"
-          strokeDasharray="150 820"
-          animatedProps={beamBProps}
-        />
-        <AnimatedPath
-          d={pathC}
-          stroke="url(#beamHot)"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          fill="none"
-          strokeDasharray="130 780"
-          animatedProps={beamCProps}
-        />
-      </Svg>
-      <LinearGradient
-        colors={['rgba(7,10,22,0.12)', 'rgba(7,10,22,0.42)', 'rgba(248,250,252,0.08)']}
-        locations={[0, 0.58, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-    </View>
-  );
-}
 
 export default function ParticipantPage() {
   const { token } = useLocalSearchParams<{ token: string }>();
