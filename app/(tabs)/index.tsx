@@ -794,6 +794,7 @@ const styles = StyleSheet.create({
     marginTop: spacing[1],
     marginBottom: spacing[1],
     marginHorizontal: spacing[4],
+    borderRadius: radius['2xl'],
     ...shadow.indigoPulse,
   },
   hero: {
