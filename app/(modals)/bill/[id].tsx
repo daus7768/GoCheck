@@ -8,11 +8,20 @@ import {
   Alert,
   Share,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
+import { HoldToConfirm } from '../../../src/components/common/HoldToConfirm';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
-import { colors, typography, fontSize, spacing, radius, shadow } from '../../../src/theme/tokens';
+import { colors, typography, fontSize, spacing, radius } from '../../../src/theme/tokens';
 import { useBillStore } from '../../../src/store/billStore';
 import { supabase, updateBillStatus, deleteBill } from '../../../src/lib/supabase';
 import { useProfileStore } from '../../../src/store/profileStore';
@@ -68,6 +77,19 @@ export default function BillDetailScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bill?.id, sessionUserId]);
 
+  // Destructive finale: shared values must be declared unconditionally (Rules of Hooks),
+  // before the early-return guard below.
+  const dissolveProgress = useSharedValue(0);
+  const shakeX = useSharedValue(0);
+
+  const dissolveStyle = useAnimatedStyle(() => ({
+    opacity: 1 - dissolveProgress.value,
+    transform: [
+      { translateX: shakeX.value },
+      { scale: 1 - dissolveProgress.value * 0.08 },
+    ],
+  }));
+
   if (!bill) {
     return (
       <View style={styles.centered}>
@@ -107,58 +129,62 @@ export default function BillDetailScreen() {
     await shareBillLink(bill);
   };
 
-  const handleComplete = () => {
-    const stillOutstanding = bill.participants.filter((p) => p.paymentStatus !== 'confirmed').length;
-    const title = stillOutstanding > 0
-      ? `${stillOutstanding} participant${stillOutstanding > 1 ? 's' : ''} still unpaid`
-      : 'Mark bill as complete?';
-    const message = stillOutstanding > 0
-      ? 'Some participants haven\'t paid yet. Mark as complete anyway?'
-      : 'This will close the bill. You can still view it afterwards.';
-
-    Alert.alert(title, message, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Complete',
-        onPress: async () => {
-          setActionLoading(true);
-          try {
-            await updateBillStatus(bill.id, 'complete');
-            setBill((prev) => prev ? { ...prev, status: 'complete' } : prev);
-          } catch {
-            Alert.alert('Error', 'Could not update bill status.');
-          } finally {
-            setActionLoading(false);
-          }
-        },
-      },
-    ]);
+  const handleCompleteAsync = async () => {
+    setActionLoading(true);
+    try {
+      await updateBillStatus(bill.id, 'complete');
+      setBill((prev) => prev ? { ...prev, status: 'complete' } : prev);
+    } catch {
+      Alert.alert('Error', 'Could not update bill status.');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleDelete = () => {
-    Alert.alert('Delete Bill', 'This will permanently delete the bill. Continue?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          setActionLoading(true);
-          try {
-            const orgId = sessionUserId;
-            await deleteBill(bill.id, orgId);
-            await reload();
-            router.back();
-          } catch {
-            Alert.alert('Error', 'Could not delete bill.');
-            setActionLoading(false);
-          }
-        },
+  // Declare in order: performDelete first so the runDeleteFinaleAndDelete
+  // closure does not reference it before its declaration (lint rule
+  // no-use-before-define would otherwise flag this).
+  const performDelete = async () => {
+    setActionLoading(true);
+    try {
+      const orgId = sessionUserId;
+      await deleteBill(bill.id, orgId);
+      await reload();
+      router.back();
+    } catch {
+      // Restore the screen on error.
+      dissolveProgress.value = withTiming(0, { duration: 200 });
+      Alert.alert('Error', 'Could not delete bill.');
+      setActionLoading(false);
+    }
+  };
+
+  const runDeleteFinaleAndDelete = () => {
+    // 60ms shake then 280ms dissolve, then API call, then router.back().
+    shakeX.value = withSequence(
+      withTiming(-8, { duration: 60, easing: Easing.linear }),
+      withTiming(8,  { duration: 60, easing: Easing.linear }),
+      withTiming(-6, { duration: 50, easing: Easing.linear }),
+      withTiming(6,  { duration: 50, easing: Easing.linear }),
+      withTiming(-3, { duration: 40, easing: Easing.linear }),
+      withTiming(3,  { duration: 40, easing: Easing.linear }),
+      withTiming(0,  { duration: 30, easing: Easing.linear }),
+    );
+    dissolveProgress.value = withTiming(
+      1,
+      { duration: 280, easing: Easing.out(Easing.cubic) },
+      (finished) => {
+        if (finished) runOnJS(performDelete)();
       },
-    ]);
+    );
+  };
+
+  const handleDeleteAsync = () => {
+    runDeleteFinaleAndDelete();
   };
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <Animated.View style={[styles.root, { paddingTop: insets.top }, dissolveStyle]}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable
@@ -314,28 +340,26 @@ export default function BillDetailScreen() {
         {/* Actions */}
         {bill.status === 'active' && (
           <View style={styles.actions}>
-            <Pressable
-              style={[styles.completeBtn, actionLoading && { opacity: 0.6 }]}
-              onPress={handleComplete}
+            <HoldToConfirm
+              label="Hold to complete bill"
+              icon="check-circle"
+              variant="success"
+              holdDuration={1200}
+              onConfirm={handleCompleteAsync}
+              onConfirmAnimation="confetti"
               disabled={actionLoading}
-            >
-              {actionLoading ? (
-                <ActivityIndicator size="small" color={colors.white} />
-              ) : (
-                <>
-                  <Feather name="check-circle" size={16} color={colors.white} />
-                  <AppText style={styles.completeBtnText}>Mark as Complete</AppText>
-                </>
-              )}
-            </Pressable>
-            <Pressable
-              style={[styles.deleteBtn, actionLoading && { opacity: 0.6 }]}
-              onPress={handleDelete}
+              accessibilityHint="Press and hold for 1.2 seconds to mark this bill complete"
+            />
+            <HoldToConfirm
+              label="Hold to delete bill"
+              icon="trash-2"
+              variant="destructive"
+              holdDuration={1500}
+              onConfirm={handleDeleteAsync}
+              onConfirmAnimation="shake-dissolve"
               disabled={actionLoading}
-            >
-              <Feather name="trash-2" size={16} color={colors.error} />
-              <AppText style={styles.deleteBtnText}>Delete Bill</AppText>
-            </Pressable>
+              accessibilityHint="Press and hold for 1.5 seconds to permanently delete this bill"
+            />
           </View>
         )}
       </ScrollView>
@@ -346,7 +370,7 @@ export default function BillDetailScreen() {
         onClose={() => setReviewing(null)}
         onChanged={reload}
       />
-    </View>
+    </Animated.View>
   );
 }
 
@@ -600,36 +624,5 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: spacing[2],
-  },
-  completeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    backgroundColor: colors.secondary,
-    borderRadius: radius.xl,
-    paddingVertical: spacing[4],
-    ...shadow.sm,
-  },
-  completeBtnText: {
-    fontFamily: typography.sansSemiBold,
-    fontSize: fontSize.base,
-    color: colors.white,
-  },
-  deleteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    paddingVertical: spacing[4],
-    borderWidth: 1,
-    borderColor: colors.error,
-  },
-  deleteBtnText: {
-    fontFamily: typography.sansSemiBold,
-    fontSize: fontSize.base,
-    color: colors.error,
   },
 });
