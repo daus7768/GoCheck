@@ -6,6 +6,7 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { AppText } from '../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,7 +15,9 @@ import { haptic, ImpactFeedbackStyle } from '../../lib/haptics';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import type { Currency } from '../../types';
 import { SUPPORTED_CURRENCIES, CURRENCY_SYMBOLS, CURRENCY_LABELS } from '../../types';
-import { colors, typography, fontSize, spacing, radius, shadow } from '../../theme/tokens';
+import { gc, typography, fontSize, spacing, radius } from '../../theme/tokens';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 interface Props {
   value: Currency;
@@ -52,7 +55,7 @@ export function CurrencySelector({ value, onChange }: Props) {
         >
           <AppText style={styles.symbol}>{CURRENCY_SYMBOLS[value]}</AppText>
           <AppText style={styles.code}>{value}</AppText>
-          <Feather name="chevron-down" size={14} color={colors.textSecondary} />
+          <Feather name="chevron-down" size={14} color={gc.muted} />
         </Pressable>
       </Animated.View>
 
@@ -61,10 +64,11 @@ export function CurrencySelector({ value, onChange }: Props) {
         transparent
         animationType="slide"
         onRequestClose={() => setOpen(false)}
+        statusBarTranslucent
       >
         <Pressable style={styles.overlay} onPress={() => setOpen(false)}>
           <View
-            style={[styles.sheet, { paddingBottom: insets.bottom + spacing[4] }]}
+            style={[styles.sheet, { paddingBottom: insets.bottom + spacing[4], maxHeight: SCREEN_HEIGHT * 0.82 }]}
             onStartShouldSetResponder={() => true}
           >
             {/* Handle */}
@@ -75,6 +79,7 @@ export function CurrencySelector({ value, onChange }: Props) {
             <FlatList
               data={SUPPORTED_CURRENCIES}
               keyExtractor={(item) => item}
+              style={styles.list}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[styles.option, item === value && styles.optionSelected]}
@@ -82,19 +87,22 @@ export function CurrencySelector({ value, onChange }: Props) {
                   activeOpacity={0.7}
                 >
                   <View style={styles.optionLeft}>
-                    <AppText style={styles.optionSymbol}>{CURRENCY_SYMBOLS[item]}</AppText>
+                    <View style={styles.symbolWrap}>
+                      <AppText style={styles.optionSymbol}>{CURRENCY_SYMBOLS[item]}</AppText>
+                    </View>
                     <View>
                       <AppText style={styles.optionCode}>{item}</AppText>
                       <AppText style={styles.optionLabel}>{CURRENCY_LABELS[item]}</AppText>
                     </View>
                   </View>
                   {item === value && (
-                    <Feather name="check" size={18} color={colors.primary} />
+                    <Feather name="check" size={18} color={gc.primary} />
                   )}
                 </TouchableOpacity>
               )}
               ItemSeparatorComponent={() => <View style={styles.separator} />}
               showsVerticalScrollIndicator={false}
+              bounces={false}
             />
           </View>
         </Pressable>
@@ -108,50 +116,57 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[1],
-    backgroundColor: colors.surface,
+    backgroundColor: gc.surface3,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: gc.border,
     borderRadius: radius.xl,
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
-    ...shadow.sm,
   },
   symbol: {
     fontFamily: typography.monoMedium,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
+    color: gc.text,
   },
   code: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.sm,
-    color: colors.textPrimary,
+    color: gc.text,
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.65)',
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: colors.surface,
+    backgroundColor: gc.surface2,
     borderTopLeftRadius: radius['3xl'],
     borderTopRightRadius: radius['3xl'],
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: gc.border,
     paddingTop: spacing[2],
     paddingHorizontal: spacing[4],
-    maxHeight: '70%',
-    ...shadow.lg,
+    width: '100%',
+  },
+  list: {
+    flexGrow: 0,
   },
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: colors.gray200,
+    backgroundColor: gc.surface3,
     borderRadius: radius.full,
     alignSelf: 'center',
     marginBottom: spacing[5],
+    borderWidth: 1,
+    borderColor: gc.border,
   },
   sheetTitle: {
     fontFamily: typography.sansBold,
     fontSize: fontSize.lg,
-    color: colors.textPrimary,
+    color: gc.text,
     marginBottom: spacing[4],
   },
   option: {
@@ -163,34 +178,42 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
   },
   optionSelected: {
-    backgroundColor: colors.primarySurface,
+    backgroundColor: gc.primaryLight,
   },
   optionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[3],
   },
+  symbolWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    backgroundColor: gc.surface3,
+    borderWidth: 1,
+    borderColor: gc.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   optionSymbol: {
     fontFamily: typography.monoMedium,
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-    width: 32,
-    textAlign: 'center',
+    fontSize: fontSize.lg,
+    color: gc.text,
   },
   optionCode: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
+    color: gc.text,
   },
   optionLabel: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    color: gc.muted,
     marginTop: 1,
   },
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
+    backgroundColor: gc.border,
     marginHorizontal: spacing[3],
   },
 });

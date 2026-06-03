@@ -286,7 +286,7 @@ const PAYMENT_OPTIONS: { key: BillPaymentMethod; label: string; icon: React.Comp
 
 export default function CreateBillScreen() {
   const insets = useSafeAreaInsets();
-  const { createBill, isCreating } = useBillStore();
+  const { createBill, isCreating, setDraft } = useBillStore();
   const sessionUserId = useProfileStore(s => s.session?.user.id) ?? '';
   const scrollRef = useRef<ScrollView>(null);
   const titleRef = useRef<TextInput>(null);
@@ -324,6 +324,8 @@ export default function CreateBillScreen() {
   const [showSuccessSheet, setShowSuccessSheet] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<BillPaymentMethod | undefined>();
   const [paymentDetails, setPaymentDetails] = useState('');
+  const [descFocused, setDescFocused] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
 
   // ── Derived values ──
   const baseAmount = parseFloat(amountRaw) || 0;
@@ -486,7 +488,7 @@ export default function CreateBillScreen() {
       setAmountError('');
     }
 
-    if (participants.length < 2) { setParticipantsError('Add at least 2 participants'); valid = false; }
+    if (participants.length < 1) { setParticipantsError('Add at least 1 participant'); valid = false; }
     else if (splitType === 'percent') {
       const total = participants.reduce((s, p) => s + (p.percent ?? 0), 0);
       if (Math.abs(total - 100) > 0.01) { setParticipantsError(`Percentages must add up to 100% (currently ${total.toFixed(1)}%)`); valid = false; }
@@ -505,6 +507,28 @@ export default function CreateBillScreen() {
 
     return valid;
   };
+
+  const handleSaveDraft = useCallback(() => {
+    setDraft({
+      title: title.trim() || undefined,
+      description: description.trim() || undefined,
+      currency,
+      splitType,
+      participants,
+      lineItems,
+      taxSst,
+      taxService,
+      taxServiceRate,
+      dueDate,
+      reminderEnabled,
+      category,
+      paymentMethod,
+      paymentDetails: paymentDetails.trim() || undefined,
+    });
+    haptic.notification(NotificationFeedbackType.Success);
+    setDraftSaved(true);
+    setTimeout(() => setDraftSaved(false), 2000);
+  }, [title, description, currency, splitType, participants, lineItems, taxSst, taxService, taxServiceRate, dueDate, reminderEnabled, category, paymentMethod, paymentDetails, setDraft]);
 
   const resetForm = useCallback(() => {
     setTitle(''); setTitleError(''); setCurrency('MYR'); setAmountRaw(''); setAmountError('');
@@ -617,9 +641,22 @@ export default function CreateBillScreen() {
           </AppText>
         </View>
 
-        <View style={styles.draftBtn}>
-          <AppText style={styles.draftBtnText}>Draft</AppText>
-        </View>
+        <Pressable
+          style={[styles.draftBtn, draftSaved && styles.draftBtnSaved]}
+          onPress={handleSaveDraft}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Save draft"
+        >
+          {draftSaved ? (
+            <Feather name="check" size={12} color={gc.primary} />
+          ) : (
+            <Feather name="bookmark" size={11} color={gc.muted} />
+          )}
+          <AppText style={[styles.draftBtnText, draftSaved && styles.draftBtnTextSaved]}>
+            {draftSaved ? 'Saved' : 'Draft'}
+          </AppText>
+        </Pressable>
       </View>
 
       {/* ── Scrollable body ─────────────────────────────────────────── */}
@@ -682,12 +719,14 @@ export default function CreateBillScreen() {
 
             {/* Description */}
             <Field label="Description" icon="align-left" hint="What's this bill for? (optional)">
-              <View style={[styles.inputBox, description.length > 0 && styles.inputBoxFilled]}>
+              <View style={[styles.inputBox, descFocused ? styles.inputBoxFocused : description.length > 0 && styles.inputBoxFilled]}>
                 <TextInput
                   ref={descRef}
                   style={[styles.inputText, styles.textArea]}
                   value={description}
                   onChangeText={setDescription}
+                  onFocus={() => setDescFocused(true)}
+                  onBlur={() => setDescFocused(false)}
                   placeholder="e.g. End-of-quarter team gathering at The Pavilion, Level 6"
                   placeholderTextColor={colors.textTertiary}
                   multiline
@@ -695,6 +734,7 @@ export default function CreateBillScreen() {
                   maxLength={500}
                   returnKeyType="done"
                   blurOnSubmit
+                  underlineColorAndroid="transparent"
                 />
               </View>
               {showSuggestTitle && (
@@ -1123,8 +1163,8 @@ export default function CreateBillScreen() {
 
             <View style={styles.reminderRow}>
               <View style={styles.reminderInfo}>
-                <Feather name="bell" size={16} color={reminderEnabled ? colors.primary : colors.gray400} />
-                <View>
+                <Feather name="bell" size={16} color={reminderEnabled ? gc.primary : gc.muted} />
+                <View style={styles.reminderTextBlock}>
                   <AppText style={styles.reminderLabel}>Send Reminders</AppText>
                   <AppText style={styles.reminderHint}>Notify unpaid participants 2 days before due date</AppText>
                 </View>
@@ -1132,9 +1172,9 @@ export default function CreateBillScreen() {
               <Switch
                 value={reminderEnabled}
                 onValueChange={(v) => { haptic.selection(); setReminderEnabled(v); }}
-                trackColor={{ false: colors.gray200, true: colors.primaryLight }}
-                thumbColor={reminderEnabled ? colors.primary : colors.gray400}
-                ios_backgroundColor={colors.gray200}
+                trackColor={{ false: gc.surface2, true: gc.primaryGlow }}
+                thumbColor={reminderEnabled ? gc.primary : gc.muted}
+                ios_backgroundColor={gc.surface2}
               />
             </View>
           </Section>
@@ -1155,7 +1195,7 @@ export default function CreateBillScreen() {
           <CreateBillCTA
             onPress={handleCreate}
             state={ctaState}
-            disabled={showSuccessSheet || ctaState !== 'idle' || isCreating || title.trim().length < 3 || participants.length < 2}
+            disabled={showSuccessSheet || ctaState !== 'idle' || isCreating || title.trim().length < 3 || participants.length < 1}
           />
         </View>
       </KeyboardAvoidingView>
@@ -1200,12 +1240,15 @@ const styles = StyleSheet.create({
   headerTitle: { fontFamily: typography.sansBold, fontSize: fontSize.md, color: gc.text },
   headerSub: { fontFamily: typography.sansRegular, fontSize: 10, color: gc.hint, marginTop: 2 },
   draftBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing[1],
     paddingHorizontal: spacing[2.5], paddingVertical: spacing[1],
     borderRadius: radius.full, backgroundColor: gc.surface2,
     borderWidth: 1, borderColor: gc.border,
-    minWidth: 44, alignItems: 'center',
+    minWidth: 52,
   },
+  draftBtnSaved: { borderColor: gc.borderEm, backgroundColor: gc.primaryLight },
   draftBtnText: { fontFamily: typography.sansMedium, fontSize: 11, color: gc.muted },
+  draftBtnTextSaved: { color: gc.primary },
   kav: { flex: 1 },
   scroll: { paddingHorizontal: spacing[4], paddingTop: spacing[4] },
 
@@ -1277,6 +1320,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[3], minHeight: 48,
   },
   inputBoxFilled: { borderColor: gc.borderEm, backgroundColor: gc.surface3 },
+  inputBoxFocused: { borderColor: 'transparent', backgroundColor: gc.surface3 },
   inputBoxError: { borderColor: gc.danger, backgroundColor: gc.dangerSurface },
   inputText: { flex: 1, fontFamily: typography.sansRegular, fontSize: 14, color: gc.text, paddingVertical: spacing[2.5] },
   textArea: { minHeight: 72, textAlignVertical: 'top' },
@@ -1420,12 +1464,14 @@ const styles = StyleSheet.create({
   // Reminder
   reminderRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: gc.surface3, borderRadius: radius.md, padding: spacing[3],
-    borderWidth: 1, borderColor: gc.border,
+    backgroundColor: gc.surface3, borderRadius: radius.md,
+    paddingVertical: spacing[3], paddingLeft: spacing[3], paddingRight: spacing[2],
+    borderWidth: 1, borderColor: gc.border, gap: spacing[3],
   },
-  reminderInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[3], flex: 1, marginRight: spacing[3] },
+  reminderInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing[2.5], flex: 1, minWidth: 0 },
+  reminderTextBlock: { flex: 1, minWidth: 0 },
   reminderLabel: { fontFamily: typography.sansBold, fontSize: fontSize.sm, color: gc.text },
-  reminderHint: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: gc.muted, marginTop: 2, lineHeight: fontSize.xs * 1.5 },
+  reminderHint: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: gc.muted, marginTop: 2, lineHeight: fontSize.xs * 1.6, flexWrap: 'wrap' },
 
   // Category
   fieldGroup: { marginBottom: 16 },
