@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "dev": "expo start --web --offline",
-    "build": "expo export --platform web"
+    "build": "expo export --platform web && node scripts/inject-og-tags.js"
   },
   "dependencies": {
     "@expo-google-fonts/dm-mono": "^0.2.3",
