@@ -61,7 +61,7 @@ export default function RemindersScreen() {
   const badgeCount = queueItems.length;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top + spacing[4] }]}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable

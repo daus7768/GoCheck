@@ -174,7 +174,7 @@ export default function ProfileScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + spacing[5] }]}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing[6] }]}>
         <LinearGradient
           colors={['rgba(99,102,241,0.13)', 'transparent']}
           start={{ x: 0, y: 0 }}
