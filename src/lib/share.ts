@@ -4,13 +4,19 @@ import type { Bill, Currency } from '../types';
 import { CURRENCY_SYMBOLS } from '../types';
 
 function getShareBase(): string {
-  const configured = (Constants.expoConfig?.extra?.shareBaseUrl as string | undefined);
-  if (configured) return configured.replace(/\/$/, '');
-  return 'https://gocheck.app/share';
+  // Single source of truth across all share URLs (participant + bill).
+  // Priority: env var → app.json expoConfig.extra → hardcoded production default.
+  const envBase = process.env.EXPO_PUBLIC_WEB_BASE_URL;
+  if (envBase) return envBase.replace(/\/+$/, '');
+
+  const configured = Constants.expoConfig?.extra?.shareBaseUrl as string | undefined;
+  if (configured) return configured.replace(/\/+$/, '');
+
+  return 'https://go-check.vercel.app';
 }
 
 export function getBillShareUrl(shareLink: string): string {
-  return `${getShareBase()}/${shareLink}`;
+  return `${getShareBase()}/share/${shareLink}`;
 }
 
 export function formatBillAmount(amount: number, currency: Currency): string {
