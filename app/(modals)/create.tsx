@@ -24,6 +24,7 @@ import { SplitTypeControl } from '../../src/components/create/SplitTypeControl';
 import { ParticipantChip, AddParticipantChip } from '../../src/components/create/ParticipantChip';
 import { LineItemRow, AddLineItemButton } from '../../src/components/create/LineItemRow';
 import { CurrencySelector } from '../../src/components/create/CurrencySelector';
+import { CategorySelector } from '../../src/components/create/CategorySelector';
 import { CreateBillCTA } from '../../src/components/create/CreateBillCTA';
 import { BillCreatedSheet } from '../../src/components/bill/BillCreatedSheet';
 import type { Bill } from '../../src/types';
@@ -171,9 +172,9 @@ function AiBadge({ loading, label, onPress }: { loading: boolean; label: string;
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
       {loading ? (
-        <ActivityIndicator size={10} color={colors.primary} />
+        <ActivityIndicator size={10} color={gc.primary} />
       ) : (
-        <Feather name="zap" size={11} color={colors.primary} />
+        <Feather name="zap" size={11} color={gc.primary} />
       )}
       <AppText style={aiStyles.label}>{loading ? 'Thinking…' : label}</AppText>
     </Pressable>
@@ -747,33 +748,8 @@ export default function CreateBillScreen() {
               <SuggestionChips items={titleSuggestions} onSelect={handleApplyTitleSuggestion} />
             </Field>
 
-            {/* Category — 6 pills */}
-            <View style={styles.fieldGroup}>
-              <AppText style={styles.fieldLabel}>Category</AppText>
-              <View style={styles.chipRow}>
-                {(
-                  [
-                    { key: 'travel', label: '✈ Travel', color: '#4F46E5' },
-                    { key: 'food', label: '🍜 Food', color: '#f59e0b' },
-                    { key: 'housing', label: '🏠 Housing', color: '#10B981' },
-                    { key: 'sports', label: '⚽ Sports', color: '#3B82F6' },
-                    { key: 'events', label: '🎉 Events', color: '#EC4899' },
-                    { key: 'other', label: '○ Other', color: '#94a3b8' },
-                  ] as const
-                ).map((item) => (
-                  <Pressable
-                    key={item.key}
-                    style={[styles.chip, category === item.key && { backgroundColor: item.color, borderColor: item.color }]}
-                    onPress={() => { setCategory(item.key); haptic.selection(); }}
-                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                  >
-                    <AppText style={[styles.chipLabel, category === item.key && { color: '#fff' }]}>
-                      {item.label}
-                    </AppText>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
+            {/* Category — animated icon cards */}
+            <CategorySelector value={category} onChange={(c) => { setCategory(c); haptic.selection(); }} />
 
             {/* Receipt photo */}
             <Field label="Receipt" badge="NEW" icon="file">
@@ -785,14 +761,14 @@ export default function CreateBillScreen() {
               >
                 {scanState === 'scanning' || scanState === 'converting' ? (
                   <>
-                    <ActivityIndicator size="small" color={colors.primary} />
+                    <ActivityIndicator size="small" color={gc.primary} />
                     <AppText style={styles.receiptBtnText}>
                       {scanState === 'converting' ? 'Preparing…' : 'Scanning receipt with AI…'}
                     </AppText>
                   </>
                 ) : receiptUri ? (
                   <>
-                    <Feather name="check-circle" size={16} color={colors.primary} />
+                    <Feather name="check-circle" size={16} color={gc.primary} />
                     <AppText style={styles.receiptBtnText}>Receipt attached · tap to change</AppText>
                     <Pressable
                       onPress={() => { setReceiptUri(undefined); resetScan(); }}
@@ -804,7 +780,7 @@ export default function CreateBillScreen() {
                   </>
                 ) : (
                   <>
-                    <Feather name="camera" size={16} color={colors.primary} />
+                    <Feather name="camera" size={16} color={gc.primary} />
                     <AppText style={styles.receiptBtnText}>Scan or upload receipt</AppText>
                     <Feather name="zap" size={13} color={colors.textSecondary} />
                   </>
@@ -813,7 +789,7 @@ export default function CreateBillScreen() {
 
               {scanState === 'review' && scanResult && (
                 <Animated.View entering={FadeIn.duration(300)} style={styles.scanBanner}>
-                  <Feather name="check-circle" size={13} color={colors.primary} />
+                  <Feather name="check-circle" size={13} color={gc.primary} />
                   <AppText style={styles.scanBannerText}>
                     Receipt scanned ({Math.round(scanResult.confidence * 100)}% confidence) · review the filled fields
                   </AppText>
@@ -918,7 +894,7 @@ export default function CreateBillScreen() {
             {/* Per-person preview */}
             {participants.length >= 2 && effectiveTotal > 0 && (
               <Animated.View entering={FadeIn.duration(300)} style={styles.perPersonBadge}>
-                <Feather name="users" size={13} color={colors.primary} />
+                <Feather name="users" size={13} color={gc.primary} />
                 <AppText style={styles.perPersonText}>
                   {currencySymbol}{perPerson.toFixed(2)} per person
                 </AppText>
@@ -936,7 +912,7 @@ export default function CreateBillScreen() {
               <Animated.View entering={FadeIn.duration(300)} style={styles.splitSuggestionCard}>
                 <View style={styles.splitSuggestionLeft}>
                   <View style={styles.splitSuggestionHeader}>
-                    <Feather name="zap" size={12} color={colors.primary} />
+                    <Feather name="zap" size={12} color={gc.primary} />
                     <AppText style={styles.splitSuggestionTag}>AI Recommendation</AppText>
                   </View>
                   <AppText style={styles.splitSuggestionRec}>{splitSuggestion.recommended} split</AppText>
@@ -1029,7 +1005,7 @@ export default function CreateBillScreen() {
           <Section title="Line Items" icon="list" delay={250}>
             <AppText style={styles.lineItemsHint}>Break down costs by item for invoice-grade tracking.</AppText>
             {lineItems.map((item, index) => (
-              <LineItemRow key={item.id} item={item} index={index} onUpdate={handleUpdateLineItem} onRemove={handleRemoveLineItem} />
+              <LineItemRow key={item.id} item={item} index={index} currencySymbol={currencySymbol} onUpdate={handleUpdateLineItem} onRemove={handleRemoveLineItem} />
             ))}
             <AddLineItemButton onPress={handleAddLineItem} />
             {showLineItemsMismatch && (
@@ -1118,18 +1094,21 @@ export default function CreateBillScreen() {
           <Section title="Due Date & Reminders" icon="calendar" delay={350}>
             <Field label="Due Date" required icon="calendar">
               <Pressable
-                style={styles.dateChip}
-                onPress={() => { haptic.impact(ImpactFeedbackStyle.Light); setShowDatePicker(true); }}
+                style={[styles.dateChip, showDatePicker && styles.dateChipActive]}
+                onPress={() => { haptic.impact(ImpactFeedbackStyle.Light); setShowDatePicker(v => !v); }}
                 accessibilityRole="button"
-                accessibilityLabel={`Due date: ${format(dueDate, 'dd MMM yyyy')}`}
+                accessibilityLabel={`Due date: ${format(dueDate, 'dd MMM yyyy')}. Tap to ${showDatePicker ? 'close' : 'open'} calendar`}
               >
-                <Feather name="calendar" size={16} color={colors.primary} />
-                <AppText style={styles.dateChipText}>{format(dueDate, 'EEEE, dd MMMM yyyy')}</AppText>
-                <View style={styles.dateBadge}>
-                  <AppText style={styles.dateBadgeText}>
-                    {Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
+                <View style={styles.dateChipIcon}>
+                  <Feather name="calendar" size={15} color={gc.primary} />
+                </View>
+                <View style={styles.dateChipTextWrap}>
+                  <AppText style={styles.dateChipText}>{format(dueDate, 'EEEE, dd MMMM yyyy')}</AppText>
+                  <AppText style={styles.dateChipSub} palette={[gc.muted, gc.muted]}>
+                    {Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days from now
                   </AppText>
                 </View>
+                <Feather name={showDatePicker ? 'chevron-up' : 'chevron-down'} size={18} color={gc.muted} />
               </Pressable>
             </Field>
 
@@ -1448,13 +1427,19 @@ const styles = StyleSheet.create({
 
   // Date
   dateChip: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing[2],
-    backgroundColor: gc.primaryLight, borderWidth: 1, borderColor: gc.borderEm,
-    borderRadius: radius.md, paddingHorizontal: spacing[3], paddingVertical: spacing[3],
+    flexDirection: 'row', alignItems: 'center', gap: spacing[3],
+    backgroundColor: gc.surface3, borderWidth: 1, borderColor: gc.border,
+    borderRadius: radius.lg, paddingHorizontal: spacing[3], paddingVertical: spacing[3],
   },
-  dateChipText: { flex: 1, fontFamily: typography.sansMedium, fontSize: fontSize.sm, color: gc.text },
-  dateBadge: { backgroundColor: gc.primary, borderRadius: radius.full, paddingHorizontal: spacing[2], paddingVertical: 2 },
-  dateBadgeText: { fontFamily: typography.sansBold, fontSize: 10, color: gc.white },
+  dateChipActive: { backgroundColor: gc.primaryLight, borderColor: gc.borderEm },
+  dateChipIcon: {
+    width: 36, height: 36, borderRadius: radius.md,
+    backgroundColor: gc.primaryLight, borderWidth: 1, borderColor: gc.borderEm,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  dateChipTextWrap: { flex: 1 },
+  dateChipText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.sm, color: gc.text },
+  dateChipSub: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: gc.muted, marginTop: 1 },
   presets: { flexDirection: 'row', gap: spacing[2], marginTop: spacing[3], marginBottom: spacing[4] },
   presetChip: { paddingHorizontal: spacing[3], paddingVertical: spacing[2], borderRadius: radius.full, backgroundColor: gc.surface3, borderWidth: 1, borderColor: gc.border },
   presetChipActive: { backgroundColor: gc.primary, borderColor: gc.primary },
@@ -1472,19 +1457,6 @@ const styles = StyleSheet.create({
   reminderTextBlock: { flex: 1, minWidth: 0 },
   reminderLabel: { fontFamily: typography.sansBold, fontSize: fontSize.sm, color: gc.text },
   reminderHint: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: gc.muted, marginTop: 2, lineHeight: fontSize.xs * 1.6, flexWrap: 'wrap' },
-
-  // Category
-  fieldGroup: { marginBottom: 16 },
-  fieldLabel: {
-    fontFamily: typography.sansMedium, fontSize: 11, color: gc.muted,
-    marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5,
-  },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.full,
-    borderWidth: 1, borderColor: gc.border, backgroundColor: gc.surface3,
-  },
-  chipLabel: { fontFamily: typography.sansMedium, fontSize: 12, color: gc.muted },
 
   // CTA
   ctaBar: {

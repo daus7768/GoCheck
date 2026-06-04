@@ -1,6 +1,4 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Platform } from 'react-native';
-import { colors } from '../../theme/tokens';
+import { PremiumCalendar } from './PremiumCalendar';
 
 interface Props {
   value: Date;
@@ -8,18 +6,6 @@ interface Props {
   onChange: (date: Date) => void;
 }
 
-export function DatePickerField({ value, minimumDate, onChange }: Props) {
-  return (
-    <DateTimePicker
-      value={value}
-      mode="date"
-      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-      minimumDate={minimumDate}
-      onChange={(_, selected) => {
-        if (selected) onChange(selected);
-      }}
-      accentColor={colors.primary}
-      textColor={colors.textPrimary}
-    />
-  );
+export function DatePickerField(props: Props) {
+  return <PremiumCalendar {...props} />;
 }

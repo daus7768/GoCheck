@@ -10,16 +10,17 @@ import Animated, {
 import { Feather } from '@expo/vector-icons';
 import { haptic, ImpactFeedbackStyle } from '../../lib/haptics';
 import type { LineItem } from '../../types';
-import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { gc, typography, fontSize, spacing, radius } from '../../theme/tokens';
 
 interface Props {
   item: LineItem;
   index: number;
+  currencySymbol?: string;
   onUpdate: (id: string, field: keyof LineItem, value: string | number) => void;
   onRemove: (id: string) => void;
 }
 
-export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
+export function LineItemRow({ item, index, currencySymbol = 'RM', onUpdate, onRemove }: Props) {
   const subtotal = item.quantity * item.unitPrice;
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
@@ -53,14 +54,14 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
       {/* Row header */}
       <View style={styles.header}>
         <View style={styles.indexBadge}>
-          <AppText style={styles.indexText}>{index + 1}</AppText>
+          <AppText style={styles.indexText} palette={[gc.primary, gc.primary]}>{index + 1}</AppText>
         </View>
         <TextInput
           style={styles.descInput}
           value={item.description}
           onChangeText={(v) => onUpdate(item.id, 'description', v)}
           placeholder="Item description"
-          placeholderTextColor={colors.textTertiary}
+          placeholderTextColor={gc.hint}
           returnKeyType="done"
           maxLength={80}
         />
@@ -70,7 +71,7 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityLabel="Remove line item"
         >
-          <Feather name="trash-2" size={14} color={colors.error} />
+          <Feather name="trash-2" size={14} color={gc.danger} />
         </Pressable>
       </View>
 
@@ -84,22 +85,23 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
             disabled={item.quantity <= 1}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}
           >
-            <Feather name="minus" size={12} color={item.quantity <= 1 ? colors.textDisabled : colors.textSecondary} />
+            <Feather name="minus" size={13} color={item.quantity <= 1 ? gc.hint : gc.text} />
           </Pressable>
-          <AppText style={styles.qtyText}>{item.quantity}</AppText>
+          <AppText style={styles.qtyText} palette={[gc.text, gc.text]}>{item.quantity}</AppText>
           <Pressable
             onPress={incrementQty}
             style={styles.stepBtn}
             hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
           >
-            <Feather name="plus" size={12} color={colors.textSecondary} />
+            <Feather name="plus" size={13} color={gc.primary} />
           </Pressable>
         </View>
 
-        <AppText style={styles.timesText}>×</AppText>
+        <AppText style={styles.timesText} palette={[gc.muted, gc.muted]}>×</AppText>
 
         {/* Unit price */}
         <View style={styles.priceInputWrapper}>
+          <AppText style={styles.priceUnit} palette={[gc.muted, gc.muted]}>{currencySymbol}</AppText>
           <TextInput
             style={styles.priceInput}
             value={item.unitPrice === 0 ? '' : String(item.unitPrice)}
@@ -108,16 +110,17 @@ export function LineItemRow({ item, index, onUpdate, onRemove }: Props) {
               onUpdate(item.id, 'unitPrice', n);
             }}
             placeholder="0.00"
-            placeholderTextColor={colors.textTertiary}
+            placeholderTextColor={gc.hint}
             keyboardType="decimal-pad"
             returnKeyType="done"
+            textAlign="right"
           />
         </View>
 
         {/* Subtotal */}
         <View style={styles.subtotalWrapper}>
-          <AppText style={styles.equalsText}>=</AppText>
-          <AppText style={styles.subtotalText}>
+          <AppText style={styles.equalsText} palette={[gc.muted, gc.muted]}>=</AppText>
+          <AppText style={styles.subtotalText} palette={[gc.primary, gc.primary]}>
             {subtotal.toFixed(2)}
           </AppText>
         </View>
@@ -146,9 +149,9 @@ export function AddLineItemButton({ onPress }: { onPress: () => void }) {
         accessibilityRole="button"
       >
         <View style={styles.addBtnIcon}>
-          <Feather name="plus" size={16} color={colors.primary} />
+          <Feather name="plus" size={16} color={gc.primary} />
         </View>
-        <AppText style={styles.addBtnText}>Add Line Item</AppText>
+        <AppText style={styles.addBtnText} palette={[gc.primary, gc.primary]}>Add Line Item</AppText>
       </Pressable>
     </Animated.View>
   );
@@ -156,9 +159,9 @@ export function AddLineItemButton({ onPress }: { onPress: () => void }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.surface,
+    backgroundColor: gc.surface3,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: gc.border,
     borderRadius: radius.lg,
     padding: spacing[3],
     marginBottom: spacing[2],
@@ -167,36 +170,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
-    marginBottom: spacing[2],
+    marginBottom: spacing[3],
   },
   indexBadge: {
     width: 22,
     height: 22,
     borderRadius: radius.full,
-    backgroundColor: colors.primarySurface,
+    backgroundColor: gc.primaryLight,
+    borderWidth: 1,
+    borderColor: gc.borderEm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   indexText: {
     fontFamily: typography.sansBold,
     fontSize: 10,
-    color: colors.primary,
+    color: gc.primary,
   },
   descInput: {
     flex: 1,
     fontFamily: typography.sansRegular,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
+    color: gc.text,
     height: 36,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: gc.border,
     paddingBottom: spacing[1],
   },
   removeBtn: {
     width: 28,
     height: 28,
     borderRadius: radius.md,
-    backgroundColor: colors.errorSurface,
+    backgroundColor: gc.dangerSurface,
+    borderWidth: 1,
+    borderColor: 'rgba(226,75,74,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -208,17 +215,18 @@ const styles = StyleSheet.create({
   stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.gray50,
+    backgroundColor: gc.surface,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    height: 34,
+    borderColor: gc.border,
+    height: 36,
     paddingHorizontal: spacing[2],
     gap: spacing[2],
   },
   stepBtn: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -228,45 +236,55 @@ const styles = StyleSheet.create({
   qtyText: {
     fontFamily: typography.monoMedium,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
+    color: gc.text,
     minWidth: 20,
     textAlign: 'center',
   },
   timesText: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.base,
-    color: colors.textSecondary,
+    color: gc.muted,
   },
   priceInputWrapper: {
     flex: 1,
-    height: 34,
-    backgroundColor: colors.gray50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    height: 36,
+    backgroundColor: gc.surface,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    justifyContent: 'center',
-    paddingHorizontal: spacing[2],
+    borderColor: gc.border,
+    paddingHorizontal: spacing[2.5],
+  },
+  priceUnit: {
+    fontFamily: typography.monoRegular,
+    fontSize: fontSize.xs,
+    color: gc.muted,
   },
   priceInput: {
-    fontFamily: typography.monoRegular,
+    flex: 1,
+    fontFamily: typography.monoMedium,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
+    color: gc.text,
+    textAlign: 'right',
   },
   subtotalWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[1],
-    minWidth: 70,
+    minWidth: 72,
+    justifyContent: 'flex-end',
   },
   equalsText: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.base,
-    color: colors.textSecondary,
+    color: gc.muted,
   },
   subtotalText: {
     fontFamily: typography.monoMedium,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
+    color: gc.primary,
   },
   addBtn: {
     flexDirection: 'row',
@@ -275,22 +293,25 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[4],
     borderWidth: 1.5,
-    borderColor: colors.primaryBorder,
+    borderColor: gc.borderEm,
     borderStyle: 'dashed',
     borderRadius: radius.lg,
+    backgroundColor: gc.primaryLight,
     justifyContent: 'center',
   },
   addBtnIcon: {
     width: 24,
     height: 24,
     borderRadius: radius.full,
-    backgroundColor: colors.primarySurface,
+    backgroundColor: gc.surface2,
+    borderWidth: 1,
+    borderColor: gc.borderEm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addBtnText: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.base,
-    color: colors.primary,
+    color: gc.primary,
   },
 });
