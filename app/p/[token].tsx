@@ -146,7 +146,7 @@ export default function ParticipantPage() {
       >
         <Animated.View entering={FadeIn.duration(300)} style={styles.brand}>
           <View style={styles.brandLeft}>
-            <Image source={require('../../assets/logo.png')} style={styles.logo} />
+            <Image source={require('../../assets/logo_v2.png')} style={styles.logo} />
             <View style={styles.brandTextBlock}>
               <ColourfulText
                 text="GoCheck"
