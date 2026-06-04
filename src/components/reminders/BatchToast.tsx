@@ -73,7 +73,7 @@ export function BatchToast() {
   };
 
   return (
-    <Animated.View style={[styles.toast, { backgroundColor: colors.textPrimary }, toastStyle]}>
+    <Animated.View style={[styles.toast, { backgroundColor: '#1C1C2E' }, toastStyle]}>
       <View style={styles.toastContent}>
         <Feather name="send" size={16} color={colors.white} />
         <AppText style={[styles.toastText, { color: colors.white }]}>

@@ -657,7 +657,7 @@ export default function HomeScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={`${t.label} bills`}
                     accessibilityState={{ selected: active }}
-                    style={[styles.filterPill, active ? styles.filterPillActive : [styles.filterPillIdle, { backgroundColor: c.surface }]]}
+                    style={[styles.filterPill, active ? [styles.filterPillActive, { backgroundColor: c.gray900 }] : [styles.filterPillIdle, { backgroundColor: c.surface }]]}
                   >
                     <AppText style={[styles.filterPillText, { color: c.textSecondary }, active && styles.filterPillTextActive]}>
                       {t.label}
@@ -956,7 +956,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[1.5],
     borderRadius: radius.full,
   },
-  filterPillActive: { backgroundColor: colors.gray900 },
+  filterPillActive: {},
   filterPillIdle: {},
   filterPillText: { fontFamily: typography.sansSemiBold, fontSize: fontSize.xs },
   filterPillTextActive: { color: colors.white },

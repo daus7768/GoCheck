@@ -16,13 +16,6 @@ function getInitials(name: string): string {
   return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-const RELIABILITY_CONFIG: Record<ReliabilityLabel, { label: string; color: string; bg: string }> = {
-  reliable: { label: 'Reliable', color: '#059669', bg: '#ECFDF5' },
-  'on-time': { label: 'On-time', color: '#4F46E5', bg: '#EEF2FF' },
-  slow: { label: 'Slow', color: '#D97706', bg: '#FFFBEB' },
-  'at-risk': { label: 'At-risk', color: '#DC2626', bg: '#FEF2F2' },
-};
-
 // WhatsApp brand colors (fixed across all themes)
 const WA_BTN_BG = '#F0FDF4';
 const WA_BTN_BORDER = '#BBF7D0';
@@ -35,6 +28,15 @@ interface Props {
 
 export function QueueRow({ item, remindersForItem }: Props) {
   const { colors } = useTheme();
+  const c = colors;
+
+  const RELIABILITY_CONFIG: Record<ReliabilityLabel, { label: string; color: string; bg: string }> = {
+    reliable: { label: 'Reliable', color: c.secondaryDark, bg: c.secondarySurface },
+    'on-time': { label: 'On-time', color: c.primary,       bg: c.primarySurface },
+    slow:      { label: 'Slow',    color: c.warning,       bg: c.warningSurface },
+    'at-risk': { label: 'At-risk', color: c.errorDark,     bg: c.errorSurface },
+  };
+
   const { settings, sendReminder } = useReminderStore();
   const { bills } = useBillStore();
 
