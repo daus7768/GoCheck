@@ -4,7 +4,8 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { colors, typography, fontSize, spacing, radius, animation } from '../../src/theme/tokens';
+import { typography, fontSize, spacing, radius, animation } from '../../src/theme/tokens';
+import { useTheme } from '../../src/theme/ThemeContext';
 import { useReminderStore } from '../../src/store/reminderStore';
 import { useBillStore } from '../../src/store/billStore';
 import { buildQueueItems } from '../../src/lib/queueUtils';
@@ -27,6 +28,8 @@ export default function RemindersScreen() {
   const organizerId = useProfileStore(s => s.session?.user.id) ?? '';
   const { sent, settings, loadReminders, loadSettings } = useReminderStore();
   const { bills } = useBillStore();
+
+  const { colors } = useTheme();
 
   const segWidth = useSharedValue(0);
   const pillX = useSharedValue(0);
@@ -63,7 +66,7 @@ export default function RemindersScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing[4] }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <Pressable
           onPress={() => router.back()}
           style={styles.backBtn}
@@ -71,14 +74,14 @@ export default function RemindersScreen() {
         >
           <Feather name="arrow-left" size={22} color={colors.textPrimary} />
         </Pressable>
-        <AppText style={styles.title}>Reminders</AppText>
+        <AppText style={[styles.title, { color: colors.textPrimary }]}>Reminders</AppText>
         <View style={styles.headerRight} />
       </View>
 
       {/* Segmented tabs */}
-      <View style={styles.tabBar}>
-        <View style={styles.tabContainer} onLayout={onLayout}>
-          <Animated.View style={[styles.tabPill, pillStyle]} />
+      <View style={[styles.tabBar, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <View style={[styles.tabContainer, { backgroundColor: colors.gray100 }]} onLayout={onLayout}>
+          <Animated.View style={[styles.tabPill, { backgroundColor: colors.surface }, pillStyle]} />
           {TABS.map((tab) => {
             const isActive = tab.value === activeTab;
             return (
@@ -89,7 +92,11 @@ export default function RemindersScreen() {
                 accessibilityRole="tab"
                 accessibilityState={{ selected: isActive }}
               >
-                <AppText style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+                <AppText style={[
+                  styles.tabLabel,
+                  { color: isActive ? colors.textPrimary : colors.textSecondary },
+                  isActive && styles.tabLabelActive,
+                ]}>
                   {tab.value === 'queue' && badgeCount > 0
                     ? `Queue (${badgeCount})`
                     : tab.label}
@@ -101,7 +108,7 @@ export default function RemindersScreen() {
       </View>
 
       {/* Pane */}
-      <View style={styles.pane}>
+      <View style={[styles.pane, { borderTopColor: colors.border }]}>
         {activeTab === 'queue' && <QueuePane organizerId={organizerId} />}
         {activeTab === 'sent' && <SentPane />}
         {activeTab === 'settings' && <SettingsPane organizerId={organizerId} />}
@@ -119,9 +126,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
-    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   backBtn: {
     width: 36,
@@ -135,19 +140,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: typography.sansBold,
     fontSize: fontSize.lg,
-    color: colors.textPrimary,
   },
   headerRight: { width: 36 },
   tabBar: {
-    backgroundColor: colors.surface,
     paddingHorizontal: spacing[4],
     paddingBottom: spacing[3],
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: colors.gray100,
     borderRadius: radius.lg,
     padding: 4,
     position: 'relative',
@@ -157,7 +158,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     bottom: 4,
-    backgroundColor: colors.surface,
     borderRadius: radius.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -174,11 +174,9 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
   },
   tabLabelActive: {
     fontFamily: typography.sansSemiBold,
-    color: colors.textPrimary,
   },
   pane: { flex: 1 },
 });
