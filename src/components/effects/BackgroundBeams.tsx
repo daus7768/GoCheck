@@ -6,8 +6,8 @@
  * Layout: dark gradient base → 5 thick static glow strokes → 5 thin animated
  * bright strokes → subtle content-readability overlay.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LayoutChangeEvent, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { LayoutChangeEvent, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, LinearGradient as SvgGrad, Stop, Path } from 'react-native-svg';
 import Animated, {
@@ -174,21 +174,21 @@ export function BackgroundBeams({
               // Guaranteed to exist — GRADIENT_STOPS is keyed by BEAMS[*].id
               const stops = GRADIENT_STOPS[id]!;
               return (
-                <>
-                  <SvgGrad key={`soft${id}`} id={`soft${id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                <Fragment key={id}>
+                  <SvgGrad id={`soft${id}`} x1="0%" y1="0%" x2="100%" y2="0%">
                     <Stop offset="0%"   stopColor={stops.soft[0]!} stopOpacity="0" />
                     <Stop offset="30%"  stopColor={stops.soft[1]!} stopOpacity={String(0.3  * opacityScale)} />
                     <Stop offset="62%"  stopColor={stops.soft[2]!} stopOpacity={String(0.22 * opacityScale)} />
                     <Stop offset="100%" stopColor={stops.soft[3]!} stopOpacity="0" />
                   </SvgGrad>
-                  <SvgGrad key={`hot${id}`} id={`hot${id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                  <SvgGrad id={`hot${id}`} x1="0%" y1="0%" x2="100%" y2="0%">
                     <Stop offset="0%"   stopColor={stops.hot[0]!} stopOpacity="0" />
                     <Stop offset="28%"  stopColor={stops.hot[1]!} stopOpacity={String(0.95 * opacityScale)} />
                     <Stop offset="54%"  stopColor={stops.hot[2]!} stopOpacity={String(0.90 * opacityScale)} />
                     <Stop offset="76%"  stopColor={stops.hot[3]!} stopOpacity={String(0.75 * opacityScale)} />
                     <Stop offset="100%" stopColor={stops.hot[4]!} stopOpacity="0" />
                   </SvgGrad>
-                </>
+                </Fragment>
               );
             })}
           </Defs>
