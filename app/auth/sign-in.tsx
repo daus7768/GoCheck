@@ -81,7 +81,7 @@ export default function SignInScreen() {
           {/* Brand */}
           <FadeInUp index={0} style={styles.logoContainer}>
             <View style={styles.logoGlow}>
-              <Image source={require('../../assets/logo_v2.png')} style={styles.logoIcon} />
+              <Image source={require('../../assets/logo_v3.png')} style={styles.logoIcon} />
             </View>
             <AppText style={styles.logoText}>GoCheck</AppText>
             <AppText style={styles.tagline}>Bill splitting, beautifully simple</AppText>
