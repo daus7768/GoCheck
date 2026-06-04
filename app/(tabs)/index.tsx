@@ -391,7 +391,7 @@ export default function HomeScreen() {
                 />
                 <Animated.View style={[styles.topAvatarDisc, logoInnerStyle]}>
                   <Image
-                    source={require('../../assets/logo_v5.jpg')}
+                    source={require('../../assets/logo_v6.png')}
                     style={styles.topAvatarLogo}
                     resizeMode="contain"
                   />
