@@ -32,11 +32,17 @@ const darkColors = {
 
 export const DARK_BACKGROUND = '#070710';
 
-// Light mode gets the same extra tokens so ThemeColors stays consistent
+// Light mode — premium pearl palette
 const lightColors = {
   ...colors,
-  surface2: colors.gray50,
-  tabBarBg: 'rgba(255,255,255,0.92)',
+  background: '#FAFBFF',
+  textPrimary: '#0F0F1A',
+  textSecondary: '#4B5563',
+  border: 'rgba(99,102,241,0.10)',
+  divider: 'rgba(99,102,241,0.06)',
+  primaryBorder: 'rgba(99,102,241,0.20)',
+  surface2: '#F4F5FF',
+  tabBarBg: 'rgba(250,251,255,0.95)',
 } as const;
 
 export type ThemeColors = typeof lightColors;
