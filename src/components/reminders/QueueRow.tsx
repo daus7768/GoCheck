@@ -23,6 +23,11 @@ const RELIABILITY_CONFIG: Record<ReliabilityLabel, { label: string; color: strin
   'at-risk': { label: 'At-risk', color: '#DC2626', bg: '#FEF2F2' },
 };
 
+// WhatsApp brand colors (fixed across all themes)
+const WA_BTN_BG = '#F0FDF4';
+const WA_BTN_BORDER = '#BBF7D0';
+const WA_BTN_TEXT = '#15803D';
+
 interface Props {
   item: QueueItem;
   remindersForItem: ReminderRow[];
@@ -211,9 +216,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[1],
-    backgroundColor: '#F0FDF4',
+    backgroundColor: WA_BTN_BG,
     borderWidth: 1,
-    borderColor: '#BBF7D0',
+    borderColor: WA_BTN_BORDER,
     borderRadius: radius.md,
     paddingHorizontal: spacing[2],
     paddingVertical: spacing[1.5],
@@ -221,7 +226,7 @@ const styles = StyleSheet.create({
   waBtnText: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize.xs,
-    color: '#15803D',
+    color: WA_BTN_TEXT,
   },
   emailBtn: {
     width: 34,
