@@ -156,7 +156,7 @@ export default function InvoiceScreen() {
           {/* Brand row */}
           <View style={styles.brandRow}>
             <View style={styles.brandLeft}>
-              <Image source={require('../../../../assets/logo.png')} style={styles.logo} />
+              <Image source={require('../../../../assets/logo_v2.png')} style={styles.logo} />
               <View>
                 <AppText style={styles.brandName}>GoCheck</AppText>
                 <AppText style={styles.brandUrl}>gocheck.app</AppText>
