@@ -7,7 +7,8 @@ import { useBillStore } from '../../store/billStore';
 import { buildWhen, renderTemplate, formatCurrency } from '../../lib/reminderTemplates';
 import { participantUrl } from '../../lib/urls';
 import { computeReliability } from '../../lib/queueUtils';
-import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { GlowingCard } from '../effects/GlowingCard';
 import type { QueueItem, ReminderRow, ReliabilityLabel } from '../../types';
 
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export function QueueRow({ item, remindersForItem }: Props) {
+  const { colors } = useTheme();
   const { settings, sendReminder } = useReminderStore();
   const { bills } = useBillStore();
 
@@ -96,14 +98,14 @@ export function QueueRow({ item, remindersForItem }: Props) {
           <View style={styles.left}>
         {/* Avatar */}
         <View style={[styles.avatar, { backgroundColor: item.participantAvatarColor }]}>
-          <AppText style={styles.avatarText}>{getInitials(item.participantName)}</AppText>
+          <AppText style={[styles.avatarText, { color: colors.white }]}>{getInitials(item.participantName)}</AppText>
         </View>
 
         {/* Info */}
         <View style={styles.info}>
           {/* Name row */}
           <View style={styles.nameRow}>
-            <AppText style={styles.name} numberOfLines={1}>{item.participantName}</AppText>
+            <AppText style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>{item.participantName}</AppText>
             {/* Fixed-width reliability slot */}
             <View style={styles.reliabilitySlot}>
               {reliabilityConfig ? (
@@ -115,14 +117,14 @@ export function QueueRow({ item, remindersForItem }: Props) {
               ) : null}
             </View>
             {askedCount > 0 && (
-              <View style={styles.askedChip}>
-                <AppText style={styles.askedText}>asked {askedCount}×</AppText>
+              <View style={[styles.askedChip, { backgroundColor: colors.gray100 }]}>
+                <AppText style={[styles.askedText, { color: colors.textSecondary }]}>asked {askedCount}×</AppText>
               </View>
             )}
           </View>
 
           {/* Bill + amount */}
-          <AppText style={styles.billMeta} numberOfLines={1}>
+          <AppText style={[styles.billMeta, { color: colors.textSecondary }]} numberOfLines={1}>
             {item.billTitle} · {formatCurrency(item.amount, item.currency)}
           </AppText>
 
@@ -138,7 +140,7 @@ export function QueueRow({ item, remindersForItem }: Props) {
           <AppText style={styles.waBtnText}>WhatsApp</AppText>
         </Pressable>
         {item.participantEmail ? (
-          <Pressable style={styles.emailBtn} onPress={handleEmail}>
+          <Pressable style={[styles.emailBtn, { backgroundColor: colors.primarySurface, borderColor: colors.primaryBorder }]} onPress={handleEmail}>
             <Feather name="mail" size={14} color={colors.primary} />
           </Pressable>
         ) : null}
@@ -171,14 +173,12 @@ const styles = StyleSheet.create({
   avatarText: {
     fontFamily: typography.sansBold,
     fontSize: fontSize.sm,
-    color: colors.white,
   },
   info: { flex: 1, gap: 2 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], flexWrap: 'wrap' },
   name: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
     flexShrink: 1,
   },
   reliabilitySlot: { width: 60, height: 20 },
@@ -190,7 +190,6 @@ const styles = StyleSheet.create({
   },
   chipText: { fontFamily: typography.sansMedium, fontSize: fontSize['2xs'] },
   askedChip: {
-    backgroundColor: colors.gray100,
     borderRadius: radius.full,
     paddingHorizontal: spacing[2],
     paddingVertical: 2,
@@ -198,12 +197,10 @@ const styles = StyleSheet.create({
   askedText: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize['2xs'],
-    color: colors.textSecondary,
   },
   billMeta: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
   },
   dueLabel: {
     fontFamily: typography.sansMedium,
@@ -230,9 +227,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: radius.md,
-    backgroundColor: colors.primarySurface,
     borderWidth: 1,
-    borderColor: colors.primaryBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },

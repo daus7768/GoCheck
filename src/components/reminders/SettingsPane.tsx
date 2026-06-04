@@ -4,7 +4,8 @@ import { useReminderStore } from '../../store/reminderStore';
 import { useBillStore } from '../../store/billStore';
 import { buildQueueItems } from '../../lib/queueUtils';
 import { REMINDER_PREVIEWS } from '../../lib/reminderTemplates';
-import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import { GlowingCard } from '../effects/GlowingCard';
 import type { ReminderCadence, ReminderTone } from '../../types';
 
@@ -21,6 +22,7 @@ const TONE_OPTIONS: { value: ReminderTone; label: string }[] = [
 ];
 
 export function SettingsPane({ organizerId }: { organizerId: string }) {
+  const { colors } = useTheme();
   const { settings, setSetting, sent } = useReminderStore();
   const { bills } = useBillStore();
 
@@ -36,21 +38,29 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
       {/* Card 1: Cadence */}
       <GlowingCard radius={radius.xl} background={colors.surface}>
       <View style={styles.card}>
-        <AppText style={styles.cardTitle}>Cadence</AppText>
+        <AppText style={[styles.cardTitle, { color: colors.textPrimary }]}>Cadence</AppText>
         <View style={styles.segmentRow}>
           {CADENCE_OPTIONS.map((opt) => (
             <Pressable
               key={opt.value}
-              style={[styles.pill, settings.cadence === opt.value && styles.pillActive]}
+              style={[
+                styles.pill,
+                { backgroundColor: colors.gray100 },
+                settings.cadence === opt.value && { backgroundColor: colors.primary },
+              ]}
               onPress={() => setSetting('cadence', opt.value)}
             >
-              <AppText style={[styles.pillText, settings.cadence === opt.value && styles.pillTextActive]}>
+              <AppText style={[
+                styles.pillText,
+                { color: colors.textSecondary },
+                settings.cadence === opt.value && { color: colors.white, fontFamily: typography.sansSemiBold },
+              ]}>
                 {opt.label}
               </AppText>
             </Pressable>
           ))}
         </View>
-        <AppText style={styles.helperText}>
+        <AppText style={[styles.helperText, { color: colors.textSecondary }]}>
           {CADENCE_OPTIONS.find((o) => o.value === settings.cadence)?.helper}
         </AppText>
       </View>
@@ -59,7 +69,7 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
       {/* Card 2: Message Tone */}
       <GlowingCard radius={radius.xl} background={colors.surface}>
       <View style={styles.card}>
-        <AppText style={styles.cardTitle}>Message Tone</AppText>
+        <AppText style={[styles.cardTitle, { color: colors.textPrimary }]}>Message Tone</AppText>
         <View style={styles.segmentRow}>
           {TONE_OPTIONS.map((opt) => {
             const isFinal = opt.value === 'final';
@@ -70,13 +80,19 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
                 key={opt.value}
                 style={[
                   styles.pill,
-                  isActive && styles.pillActive,
+                  { backgroundColor: colors.gray100 },
+                  isActive && { backgroundColor: colors.primary },
                   disabled && styles.pillDisabled,
                 ]}
                 onPress={() => !disabled && setSetting('tone', opt.value)}
                 disabled={disabled}
               >
-                <AppText style={[styles.pillText, isActive && styles.pillTextActive, disabled && styles.pillTextDisabled]}>
+                <AppText style={[
+                  styles.pillText,
+                  { color: colors.textSecondary },
+                  isActive && { color: colors.white, fontFamily: typography.sansSemiBold },
+                  disabled && { color: colors.textTertiary },
+                ]}>
                   {opt.label}
                 </AppText>
               </Pressable>
@@ -84,10 +100,10 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
           })}
         </View>
         {!hasOverdue && (
-          <AppText style={styles.finalNote}>Final tone available when at least one participant is overdue.</AppText>
+          <AppText style={[styles.finalNote, { color: colors.warning }]}>Final tone available when at least one participant is overdue.</AppText>
         )}
-        <View style={styles.previewBox}>
-          <AppText style={styles.previewText}>{REMINDER_PREVIEWS[settings.tone]}</AppText>
+        <View style={[styles.previewBox, { backgroundColor: colors.gray50, borderColor: colors.border }]}>
+          <AppText style={[styles.previewText, { color: colors.textSecondary }]}>{REMINDER_PREVIEWS[settings.tone]}</AppText>
         </View>
       </View>
       </GlowingCard>
@@ -95,10 +111,10 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
       {/* Card 3: Skip + Frequency Cap */}
       <GlowingCard radius={radius.xl} background={colors.surface}>
       <View style={styles.card}>
-        <AppText style={styles.cardTitle}>Skip &amp; Frequency Cap</AppText>
+        <AppText style={[styles.cardTitle, { color: colors.textPrimary }]}>Skip &amp; Frequency Cap</AppText>
 
         <View style={styles.toggleRow}>
-          <AppText style={styles.toggleTitle}>Skip already-paid people</AppText>
+          <AppText style={[styles.toggleTitle, { color: colors.textPrimary }]}>Skip already-paid people</AppText>
           <Switch
             value={settings.skipPaid}
             onValueChange={(v) => setSetting('skipPaid', v)}
@@ -108,22 +124,22 @@ export function SettingsPane({ organizerId }: { organizerId: string }) {
         </View>
 
         <View style={styles.stepperRow}>
-          <AppText style={styles.sliderLabel}>Max reminders per person per week</AppText>
-          <View style={styles.stepper}>
+          <AppText style={[styles.sliderLabel, { color: colors.textPrimary }]}>Max reminders per person per week</AppText>
+          <View style={[styles.stepper, { backgroundColor: colors.gray50, borderColor: colors.border }]}>
             <Pressable
-              style={[styles.stepBtn, settings.maxPerWeek <= 1 && styles.stepBtnDisabled]}
+              style={[styles.stepBtn, { backgroundColor: colors.gray100 }, settings.maxPerWeek <= 1 && styles.stepBtnDisabled]}
               onPress={() => settings.maxPerWeek > 1 && setSetting('maxPerWeek', settings.maxPerWeek - 1)}
               disabled={settings.maxPerWeek <= 1}
             >
-              <AppText style={styles.stepBtnText}>−</AppText>
+              <AppText style={[styles.stepBtnText, { color: colors.textPrimary }]}>−</AppText>
             </Pressable>
-            <AppText style={styles.stepValue}>{settings.maxPerWeek}</AppText>
+            <AppText style={[styles.stepValue, { color: colors.textPrimary }]}>{settings.maxPerWeek}</AppText>
             <Pressable
-              style={[styles.stepBtn, settings.maxPerWeek >= 7 && styles.stepBtnDisabled]}
+              style={[styles.stepBtn, { backgroundColor: colors.gray100 }, settings.maxPerWeek >= 7 && styles.stepBtnDisabled]}
               onPress={() => settings.maxPerWeek < 7 && setSetting('maxPerWeek', settings.maxPerWeek + 1)}
               disabled={settings.maxPerWeek >= 7}
             >
-              <AppText style={styles.stepBtnText}>+</AppText>
+              <AppText style={[styles.stepBtnText, { color: colors.textPrimary }]}>+</AppText>
             </Pressable>
           </View>
         </View>
@@ -143,47 +159,36 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
   },
   segmentRow: { flexDirection: 'row', gap: spacing[2] },
   pill: {
     flex: 1,
     paddingVertical: spacing[2],
     borderRadius: radius.md,
-    backgroundColor: colors.gray100,
     alignItems: 'center',
   },
-  pillActive: { backgroundColor: colors.primary },
   pillDisabled: { opacity: 0.4 },
   pillText: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
   },
-  pillTextActive: { color: colors.white, fontFamily: typography.sansSemiBold },
-  pillTextDisabled: { color: colors.textTertiary },
   helperText: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
     lineHeight: 20,
   },
   finalNote: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.xs,
-    color: colors.warning,
   },
   previewBox: {
-    backgroundColor: colors.gray50,
     borderRadius: radius.md,
     padding: spacing[3],
     borderWidth: 1,
-    borderColor: colors.border,
   },
   previewText: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
     fontStyle: 'italic',
     lineHeight: 20,
   },
@@ -195,7 +200,6 @@ const styles = StyleSheet.create({
   toggleTitle: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
     flex: 1,
   },
   stepperRow: { gap: spacing[2] },
@@ -204,10 +208,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[4],
     alignSelf: 'flex-start',
-    backgroundColor: colors.gray50,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
   },
@@ -215,16 +217,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: radius.md,
-    backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepBtnDisabled: { opacity: 0.4 },
-  stepBtnText: { fontFamily: typography.sansBold, fontSize: fontSize.md, color: colors.textPrimary },
-  stepValue: { fontFamily: typography.monoMedium, fontSize: fontSize.lg, color: colors.textPrimary, minWidth: 32, textAlign: 'center' },
+  stepBtnText: { fontFamily: typography.sansBold, fontSize: fontSize.md },
+  stepValue: { fontFamily: typography.monoMedium, fontSize: fontSize.lg, minWidth: 32, textAlign: 'center' },
   sliderLabel: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize.sm,
-    color: colors.textPrimary,
   },
 });

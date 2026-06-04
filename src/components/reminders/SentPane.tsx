@@ -3,9 +3,11 @@ import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { useReminderStore } from '../../store/reminderStore';
 import { SentRow } from './SentRow';
-import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 
 export function SentPane() {
+  const { colors } = useTheme();
   const { sent } = useReminderStore();
 
   return (
@@ -16,9 +18,9 @@ export function SentPane() {
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          <View style={styles.infoNote}>
+          <View style={[styles.infoNote, { backgroundColor: colors.gray50, borderColor: colors.border }]}>
             <Feather name="info" size={14} color={colors.textSecondary} />
-            <AppText style={styles.infoText}>
+            <AppText style={[styles.infoText, { color: colors.textSecondary }]}>
               Reminders are logged when sent — confirm delivery in your WhatsApp or email outbox.
             </AppText>
           </View>
@@ -26,8 +28,8 @@ export function SentPane() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Feather name="send" size={48} color={colors.gray300} />
-            <AppText style={styles.emptyTitle}>No reminders sent yet</AppText>
-            <AppText style={styles.emptyHint}>Send your first reminder from the Queue tab.</AppText>
+            <AppText style={[styles.emptyTitle, { color: colors.textPrimary }]}>No reminders sent yet</AppText>
+            <AppText style={[styles.emptyHint, { color: colors.textSecondary }]}>Send your first reminder from the Queue tab.</AppText>
           </View>
         }
         renderItem={({ item }) => <SentRow row={item} />}
@@ -43,18 +45,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing[2],
-    backgroundColor: colors.gray50,
     borderRadius: radius.md,
     padding: spacing[3],
     marginBottom: spacing[3],
     borderWidth: 1,
-    borderColor: colors.border,
   },
   infoText: {
     flex: 1,
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
     lineHeight: 18,
   },
   empty: {
@@ -66,12 +65,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.lg,
-    color: colors.textPrimary,
   },
   emptyHint: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.base,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
 });

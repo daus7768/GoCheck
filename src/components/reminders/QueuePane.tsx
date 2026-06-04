@@ -8,10 +8,12 @@ import { buildQueueItems } from '../../lib/queueUtils';
 import { renderTemplate, formatCurrency, buildWhen } from '../../lib/reminderTemplates';
 import { QueueRow } from './QueueRow';
 import { BatchToast } from './BatchToast';
-import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import type { QueueItem, ReminderRow } from '../../types';
 
 export function QueuePane({ organizerId }: { organizerId: string }) {
+  const { colors } = useTheme();
   const { sent, settings, sendReminder, startBatch, advanceBatch } = useReminderStore();
   const { bills } = useBillStore();
 
@@ -54,8 +56,8 @@ export function QueuePane({ organizerId }: { organizerId: string }) {
     return (
       <View style={styles.empty}>
         <Feather name="check-circle" size={48} color={colors.gray300} />
-        <AppText style={styles.emptyTitle}>All caught up</AppText>
-        <AppText style={styles.emptyHint}>Nobody to nudge right now.</AppText>
+        <AppText style={[styles.emptyTitle, { color: colors.textPrimary }]}>All caught up</AppText>
+        <AppText style={[styles.emptyHint, { color: colors.textSecondary }]}>Nobody to nudge right now.</AppText>
       </View>
     );
   }
@@ -69,14 +71,14 @@ export function QueuePane({ organizerId }: { organizerId: string }) {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           items.length > 0 ? (
-            <View style={styles.batchCard}>
+            <View style={[styles.batchCard, { backgroundColor: colors.primary }]}>
               <View style={styles.batchInfo}>
-                <AppText style={styles.batchTitle}>Send all {items.length} reminders</AppText>
+                <AppText style={[styles.batchTitle, { color: colors.white }]}>Send all {items.length} reminders</AppText>
                 <AppText style={styles.batchSub}>{settings.tone} tone · via WhatsApp</AppText>
               </View>
               <Pressable style={styles.batchBtn} onPress={handleSendAll}>
                 <Feather name="send" size={14} color={colors.white} />
-                <AppText style={styles.batchBtnText}>Send all</AppText>
+                <AppText style={[styles.batchBtnText, { color: colors.white }]}>Send all</AppText>
               </Pressable>
             </View>
           ) : null
@@ -87,13 +89,13 @@ export function QueuePane({ organizerId }: { organizerId: string }) {
             return (
               <View style={styles.limitRow}>
                 <View style={[styles.limitAvatar, { backgroundColor: item.participantAvatarColor }]}>
-                  <AppText style={styles.limitAvatarText}>
+                  <AppText style={[styles.limitAvatarText, { color: colors.white }]}>
                     {item.participantName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
                   </AppText>
                 </View>
-                <AppText style={styles.limitName}>{item.participantName}</AppText>
-                <View style={styles.limitBadge}>
-                  <AppText style={styles.limitBadgeText}>Limit reached</AppText>
+                <AppText style={[styles.limitName, { color: colors.textSecondary }]}>{item.participantName}</AppText>
+                <View style={[styles.limitBadge, { backgroundColor: colors.gray100 }]}>
+                  <AppText style={[styles.limitBadgeText, { color: colors.textSecondary }]}>Limit reached</AppText>
                 </View>
               </View>
             );
@@ -124,12 +126,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.lg,
-    color: colors.textPrimary,
   },
   emptyHint: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.base,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
   batchCard: {
@@ -139,13 +139,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.primary,
   },
   batchInfo: { gap: 4, flex: 1 },
   batchTitle: {
     fontFamily: typography.sansBold,
     fontSize: fontSize.base,
-    color: colors.white,
   },
   batchSub: {
     fontFamily: typography.sansRegular,
@@ -166,7 +164,6 @@ const styles = StyleSheet.create({
   batchBtnText: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.sm,
-    color: colors.white,
   },
   limitRow: {
     flexDirection: 'row',
@@ -187,16 +184,13 @@ const styles = StyleSheet.create({
   limitAvatarText: {
     fontFamily: typography.sansBold,
     fontSize: 10,
-    color: colors.white,
   },
   limitName: {
     flex: 1,
     fontFamily: typography.sansMedium,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
   },
   limitBadge: {
-    backgroundColor: colors.gray100,
     borderRadius: radius.full,
     paddingHorizontal: spacing[2],
     paddingVertical: 2,
@@ -204,6 +198,5 @@ const styles = StyleSheet.create({
   limitBadgeText: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize['2xs'],
-    color: colors.textSecondary,
   },
 });

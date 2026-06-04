@@ -11,9 +11,11 @@ import { Feather } from '@expo/vector-icons';
 import { haptic } from '../../lib/haptics';
 import { useReminderStore } from '../../store/reminderStore';
 import { renderTemplate, formatCurrency, buildWhen } from '../../lib/reminderTemplates';
-import { colors, typography, fontSize, spacing, radius, animation } from '../../theme/tokens';
+import { typography, fontSize, spacing, radius, animation } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 
 export function BatchToast() {
+  const { colors } = useTheme();
   const { batchQueue, batchPointer, settings, sendReminder, advanceBatch, clearBatch } =
     useReminderStore();
 
@@ -71,18 +73,18 @@ export function BatchToast() {
   };
 
   return (
-    <Animated.View style={[styles.toast, toastStyle]}>
+    <Animated.View style={[styles.toast, { backgroundColor: colors.textPrimary }, toastStyle]}>
       <View style={styles.toastContent}>
         <Feather name="send" size={16} color={colors.white} />
-        <AppText style={styles.toastText}>
+        <AppText style={[styles.toastText, { color: colors.white }]}>
           {isDone
             ? `All ${batchQueue.length} reminders sent 🎉`
             : `${batchPointer} of ${batchQueue.length} sent — tap to continue`}
         </AppText>
       </View>
       {!isDone && (
-        <Pressable style={styles.nextBtn} onPress={handleSendNext}>
-          <AppText style={styles.nextBtnText}>Send next</AppText>
+        <Pressable style={[styles.nextBtn, { backgroundColor: colors.white }]} onPress={handleSendNext}>
+          <AppText style={[styles.nextBtnText, { color: colors.primary }]}>Send next</AppText>
           <Feather name="chevron-right" size={14} color={colors.primary} />
         </Pressable>
       )}
@@ -96,7 +98,6 @@ const styles = StyleSheet.create({
     bottom: spacing[6],
     left: spacing[4],
     right: spacing[4],
-    backgroundColor: colors.textPrimary,
     borderRadius: radius.xl,
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
@@ -114,14 +115,12 @@ const styles = StyleSheet.create({
   toastText: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize.sm,
-    color: colors.white,
     flex: 1,
   },
   nextBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[1],
-    backgroundColor: colors.white,
     borderRadius: radius.md,
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[1.5],
@@ -129,6 +128,5 @@ const styles = StyleSheet.create({
   nextBtnText: {
     fontFamily: typography.sansSemiBold,
     fontSize: fontSize.sm,
-    color: colors.primary,
   },
 });

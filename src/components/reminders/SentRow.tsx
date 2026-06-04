@@ -2,7 +2,8 @@ import { View, StyleSheet } from 'react-native';
 import { AppText } from '../AppText';
 import { Feather } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
-import { colors, typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { typography, fontSize, spacing, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 import type { ReminderRow } from '../../types';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function SentRow({ row }: Props) {
+  const { colors } = useTheme();
   const isWhatsApp = row.channel === 'whatsapp';
   const iconColor = isWhatsApp ? '#25D366' : colors.primary;
   const iconBg = isWhatsApp ? '#F0FDF4' : colors.primarySurface;
@@ -25,18 +27,18 @@ export function SentRow({ row }: Props) {
   })();
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, { borderBottomColor: colors.border }]}>
       <View style={[styles.iconCircle, { backgroundColor: iconBg }]}>
         <Feather name={iconName} size={18} color={iconColor} />
       </View>
       <View style={styles.info}>
         <View style={styles.nameRow}>
-          <AppText style={styles.name} numberOfLines={1}>{row.recipientName}</AppText>
+          <AppText style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>{row.recipientName}</AppText>
           {row.syncFailed && (
             <Feather name="alert-triangle" size={14} color={colors.warning} />
           )}
         </View>
-        <AppText style={styles.meta}>via {channelLabel} · {timeAgo}</AppText>
+        <AppText style={[styles.meta, { color: colors.textSecondary }]}>via {channelLabel} · {timeAgo}</AppText>
       </View>
     </View>
   );
@@ -49,7 +51,6 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     paddingVertical: spacing[3],
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   iconCircle: {
     width: 40,
@@ -64,12 +65,10 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: typography.sansMedium,
     fontSize: fontSize.base,
-    color: colors.textPrimary,
     flex: 1,
   },
   meta: {
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
   },
 });
