@@ -15,7 +15,7 @@ import {
   DMMono_400Regular,
   DMMono_500Medium,
 } from '@expo-google-fonts/dm-mono';
-import { ThemeProvider } from '../src/theme/ThemeContext';
+import { ThemeProvider, useTheme } from '../src/theme/ThemeContext';
 import { ColourfulClockProvider } from '../src/theme/ColourfulClockContext';
 import { useProfileStore } from '../src/store/profileStore';
 import { supabase } from '../src/lib/supabase';
@@ -23,20 +23,9 @@ import * as Notifications from 'expo-notifications';
 import {
   ThemeProvider as NavigationThemeProvider,
   DarkTheme as NavigationDarkTheme,
+  DefaultTheme as NavigationLightTheme,
 } from '@react-navigation/native';
-
-// Custom navigation theme — overrides @react-navigation/elements' Background
-// (which otherwise paints every screen with the LIGHT default theme bg). We
-// extend DarkTheme so navigation chrome stays dark and "background" matches
-// our cosmic void, ensuring the BackgroundBeams are never obscured.
-const COSMIC_NAV_THEME = {
-  ...NavigationDarkTheme,
-  colors: {
-    ...NavigationDarkTheme.colors,
-    background: 'transparent',
-    card: 'transparent',
-  },
-};
+import { LightBackgroundBeams } from '../src/components/effects/LightBackgroundBeams';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -91,33 +80,35 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
-  // Cosmic background beams are always-on and theme-independent. The bright
-  // SVG beams + dark gradient base become THE app backdrop; cards (light or
-  // dark per theme) float above it.
-  //
-  // Web-only hard reset: react-native-web does not paint the <html> / <body>
-  // element, so the browser default (white) leaks through any transparent
-  // descendant — including @react-navigation/elements' Background, which
-  // defaults to the light navigation theme colour. Forcing the document
-  // background to the cosmic void colour guarantees nothing leaks through.
+  const { isDark } = useTheme();
+
+  const LIGHT_BG = '#FAFBFF';
+  const DARK_BG  = '#070710';
+
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof document === 'undefined') return;
     const prevHtml = document.documentElement.style.backgroundColor;
     const prevBody = document.body.style.backgroundColor;
-    document.documentElement.style.backgroundColor = '#03030D';
-    document.body.style.backgroundColor = '#03030D';
+    document.documentElement.style.backgroundColor = isDark ? '#03030D' : '#F0F4FF';
+    document.body.style.backgroundColor = isDark ? '#03030D' : '#F0F4FF';
     return () => {
       document.documentElement.style.backgroundColor = prevHtml;
       document.body.style.backgroundColor = prevBody;
     };
-  }, []);
+  }, [isDark]);
+
+  const navTheme = isDark
+    ? { ...NavigationDarkTheme,  colors: { ...NavigationDarkTheme.colors,  background: 'transparent', card: 'transparent' } }
+    : { ...NavigationLightTheme, colors: { ...NavigationLightTheme.colors, background: 'transparent', card: 'transparent' } };
+
+  const Background = isDark ? BackgroundBeams : LightBackgroundBeams;
 
   if (Platform.OS === 'web') {
     return (
-      <View style={styles.webContainer}>
-        <View style={styles.webPhone}>
-          <BackgroundBeams opacityScale={1} showBase />
-          <NavigationThemeProvider value={COSMIC_NAV_THEME}>
+      <View style={[styles.webContainer, { backgroundColor: isDark ? '#03030D' : '#F0F4FF' }]}>
+        <View style={[styles.webPhone, { backgroundColor: isDark ? DARK_BG : LIGHT_BG }]}>
+          <Background opacityScale={1} showBase />
+          <NavigationThemeProvider value={navTheme}>
             {children}
           </NavigationThemeProvider>
         </View>
@@ -125,9 +116,9 @@ function AnimatedThemeRoot({ children }: { children: React.ReactNode }) {
     );
   }
   return (
-    <View style={styles.nativeRoot}>
-      <BackgroundBeams opacityScale={0.95} showBase />
-      <NavigationThemeProvider value={COSMIC_NAV_THEME}>
+    <View style={[styles.nativeRoot, { backgroundColor: isDark ? DARK_BG : LIGHT_BG }]}>
+      <Background opacityScale={0.95} showBase />
+      <NavigationThemeProvider value={navTheme}>
         {children}
       </NavigationThemeProvider>
     </View>
@@ -206,8 +197,7 @@ export default function RootLayout() {
       <ThemeProvider isDark={isDark}>
         <ColourfulClockProvider>
           <AuthGuard>
-            {/* Status bar icons are always light because the cosmic backdrop is permanently dark */}
-            <StatusBar style="light" backgroundColor="transparent" />
+            <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor="transparent" />
             <AnimatedThemeRoot>{app}</AnimatedThemeRoot>
           </AuthGuard>
         </ColourfulClockProvider>
