@@ -701,9 +701,11 @@ export default function HomeScreen() {
                     speedMax={5}
                     maxDots={260}
                   />
-                  <View style={styles.emptyIconCircle}>
-                    <Feather name="check-circle" size={36} color={colors.secondary} />
-                  </View>
+                  <Image
+                    source={require('../../assets/logo_v6.png')}
+                    style={styles.emptyIconCircle}
+                    resizeMode="contain"
+                  />
                 </View>
                 <View style={styles.emptyTitleRow}>
                   <AppText style={[styles.emptyTitle, { color: COSMIC_TEXT_PRIMARY }]}>All </AppText>
@@ -1014,12 +1016,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing[1],
   },
   emptyIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: radius.full,
-    backgroundColor: colors.secondarySurface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 80,
+    height: 80,
   },
   emptyTitleRow: { flexDirection: 'row', alignItems: 'baseline' },
   emptyTitle: { fontFamily: typography.sansSemiBold, fontSize: fontSize.md },
