@@ -48,13 +48,6 @@ import type { Bill, QueueItem, ReliabilityLabel } from '../../src/types';
 const WHATSAPP = '#25D366';
 const WHATSAPP_SHADOW = 'rgba(37,211,102,0.4)';
 
-// ── Text colours that always pop against the cosmic dark BackgroundBeams ─────
-// Because the cosmic backdrop is permanent (independent of light/dark theme),
-// page-level text outside opaque cards must use these fixed light tones so
-// it stays readable in both theme modes.
-const COSMIC_TEXT_PRIMARY = '#F0F0FF';
-const COSMIC_TEXT_SECONDARY = 'rgba(240,240,255,0.62)';
-
 function fmt(amount: number): string {
   return amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -73,17 +66,6 @@ function reliabilityScore(label: ReliabilityLabel | null): number {
       return 75;
   }
 }
-
-const RELIABILITY_CHIP: Record<
-  'reliable' | 'on-time' | 'slow' | 'at-risk' | 'new',
-  { label: string; bg: string; text: string }
-> = {
-  reliable: { label: 'Reliable', bg: colors.secondarySurface, text: colors.secondaryDark },
-  'on-time': { label: 'On-time', bg: colors.primarySurface, text: colors.primary },
-  slow: { label: 'Slow', bg: colors.warningSurface, text: colors.warning },
-  'at-risk': { label: 'At risk', bg: colors.errorSurface, text: colors.error },
-  new: { label: 'New', bg: colors.gray100, text: colors.textSecondary },
-};
 
 type FilterId = 'active' | 'overdue' | 'recurring' | 'all';
 
@@ -201,6 +183,16 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
 
 export default function HomeScreen() {
   const { colors: c } = useTheme();
+  const RELIABILITY_CHIP: Record<
+    'reliable' | 'on-time' | 'slow' | 'at-risk' | 'new',
+    { label: string; bg: string; text: string }
+  > = {
+    reliable: { label: 'Reliable', bg: c.secondarySurface, text: c.secondaryDark },
+    'on-time': { label: 'On-time', bg: c.primarySurface,   text: c.primary },
+    slow:      { label: 'Slow',    bg: c.warningSurface,   text: c.warning },
+    'at-risk': { label: 'At risk', bg: c.errorSurface,     text: c.error },
+    new:       { label: 'New',     bg: c.gray100,          text: c.textSecondary },
+  };
   const insets = useSafeAreaInsets();
   const { bills, fetchBills, isLoading } = useBillStore();
   const { sendReminder } = useReminderStore();
@@ -538,7 +530,7 @@ export default function HomeScreen() {
             <FadeInUp index={2}>
               <View style={styles.sectionHead}>
                 <View style={styles.sectionHeadLeft}>
-                  <AppText style={[styles.sectionTitle, { color: COSMIC_TEXT_PRIMARY }]}>Needs a nudge</AppText>
+                  <AppText style={[styles.sectionTitle, { color: c.textPrimary }]}>Needs a nudge</AppText>
                   <View style={styles.nudgeCount}>
                     <AppText style={styles.nudgeCountText}>{needsNudge.length}</AppText>
                   </View>
@@ -635,7 +627,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <FadeInUp index={needsNudge.length > 0 ? 4 : 2}>
             <View style={styles.billsHead}>
-              <AppText style={[styles.sectionTitle, { color: COSMIC_TEXT_PRIMARY }]}>Your bills</AppText>
+              <AppText style={[styles.sectionTitle, { color: c.textPrimary }]}>Your bills</AppText>
               <SheenButton
                 onPress={() => router.push('/(modals)/create')}
                 accessibilityLabel="Create new bill"
@@ -708,10 +700,10 @@ export default function HomeScreen() {
                   />
                 </View>
                 <View style={styles.emptyTitleRow}>
-                  <AppText style={[styles.emptyTitle, { color: COSMIC_TEXT_PRIMARY }]}>All </AppText>
-                  <ColourfulText text="settled" style={[styles.emptyTitle, { color: COSMIC_TEXT_PRIMARY }]} />
+                  <AppText style={[styles.emptyTitle, { color: c.textPrimary }]}>All </AppText>
+                  <ColourfulText text="settled" style={[styles.emptyTitle, { color: c.textPrimary }]} />
                 </View>
-                <AppText style={[styles.emptySub, { color: COSMIC_TEXT_SECONDARY }]}>You're all caught up. Time to relax.</AppText>
+                <AppText style={[styles.emptySub, { color: c.textSecondary }]}>You're all caught up. Time to relax.</AppText>
               </View>
             </FadeInUp>
           ) : (
