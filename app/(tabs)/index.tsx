@@ -35,7 +35,7 @@ import { GlowingCard } from '../../src/components/effects/GlowingCard';
 import { FadeInUp } from '../../src/components/effects/FadeInUp';
 import { CountUp } from '../../src/components/effects/CountUp';
 import { AnimatedBar } from '../../src/components/effects/AnimatedBar';
-import { AnimatedDonut } from '../../src/components/effects/AnimatedDonut';
+import { AnimatedDonut, LIQUID_ARC_COLORS } from '../../src/components/effects/AnimatedDonut';
 import { ColourfulText } from '../../src/components/effects/ColourfulText';
 import { DottedGlowBackground } from '../../src/components/effects/DottedGlowBackground';
 import { SheenButton } from '../../src/components/effects/SheenButton';
@@ -163,6 +163,7 @@ function BillRowV2({ bill, onPress }: { bill: Bill; onPress: () => void }) {
               height={5}
               trackColor={c.gray100}
               fillColor={barColor}
+              liquid
               duration={780}
               delay={120}
             />
@@ -449,9 +450,11 @@ export default function HomeScreen() {
                   {/* Eyebrow row with date */}
                   <View style={styles.heroEyebrowRow}>
                     <AppText style={styles.heroEyebrow}>Still to collect</AppText>
-                    <AppText style={styles.heroDateLabel}>
-                      {new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
-                    </AppText>
+                    <View style={styles.heroDatePill}>
+                      <AppText style={styles.heroDateLabel}>
+                        {new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
+                      </AppText>
+                    </View>
                   </View>
 
                   {/* Amount + donut */}
@@ -477,7 +480,7 @@ export default function HomeScreen() {
                         across {activeBills.length} active {activeBills.length === 1 ? 'bill' : 'bills'}
                       </AppText>
                     </View>
-                    <AnimatedDonut pct={overallPct} size={82} stroke={6} />
+                    <AnimatedDonut pct={overallPct} size={92} stroke={6} />
                   </View>
 
                   {/* Separator */}
@@ -489,6 +492,8 @@ export default function HomeScreen() {
                     height={6}
                     trackColor="rgba(255,255,255,0.22)"
                     fillColor={colors.white}
+                    gradientColors={LIQUID_ARC_COLORS}
+                    liquid
                     delay={220}
                     duration={950}
                   />
@@ -821,15 +826,26 @@ const styles = StyleSheet.create({
   },
   heroEyebrow: {
     fontFamily: typography.sansBold,
-    fontSize: fontSize.xs,
-    color: 'rgba(255,255,255,0.85)',
-    letterSpacing: 1,
+    fontSize: fontSize.sm,
+    color: '#FFFFFF',
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
+    textShadowColor: 'rgba(30,27,75,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  heroDatePill: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing[2.5],
+    paddingVertical: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   heroDateLabel: {
-    fontFamily: typography.sansRegular,
+    fontFamily: typography.sansSemiBold,
     fontSize: fontSize['2xs'],
-    color: 'rgba(255,255,255,0.55)',
+    color: '#FFFFFF',
     letterSpacing: 0.4,
   },
   heroMainRow: {

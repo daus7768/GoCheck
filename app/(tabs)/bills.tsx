@@ -132,6 +132,7 @@ function BillCard({ bill, index, onPress }: { bill: Bill; index: number; onPress
             height={4}
             trackColor={isDark ? 'rgba(255,255,255,0.06)' : colors.gray100}
             fillColor={barColor}
+            liquid
             duration={780}
             delay={120 + index * 60}
             style={styles.cardBar}

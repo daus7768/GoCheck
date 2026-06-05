@@ -333,6 +333,7 @@ function ExpandedStats({ bill }: { bill: Bill }) {
         height={6}
         trackColor={c.gray100}
         fillColor={stats.done ? colors.secondary : stats.overdue ? colors.error : colors.primary}
+        liquid
         delay={150}
         style={{ marginTop: spacing[3] }}
       />
