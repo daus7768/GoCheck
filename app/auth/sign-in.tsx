@@ -87,15 +87,17 @@ export default function SignInScreen() {
             <AppText style={styles.tagline}>Snap. Split. Get paid back.</AppText>
 
             <View style={styles.trustRow}>
-              {TRUST_BADGES.map((b) => (
-                <View key={b.label} style={styles.trustPill}>
-                  <Feather
-                    name={b.icon as keyof typeof Feather.glyphMap}
-                    size={11}
-                    color="#A5B4FC"
-                  />
-                  <AppText style={styles.trustPillText}>{b.label}</AppText>
-                </View>
+              {TRUST_BADGES.map((b, i) => (
+                <FadeInUp key={b.label} index={i} delay={300} distance={8} staggerMs={70}>
+                  <View style={styles.trustPill}>
+                    <Feather
+                      name={b.icon as keyof typeof Feather.glyphMap}
+                      size={11}
+                      color="#A5B4FC"
+                    />
+                    <AppText style={styles.trustPillText}>{b.label}</AppText>
+                  </View>
+                </FadeInUp>
               ))}
             </View>
           </FadeInUp>
