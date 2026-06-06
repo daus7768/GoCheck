@@ -247,6 +247,8 @@ const styles = StyleSheet.create({
   },
   priceInputWrapper: {
     flex: 1,
+    minWidth: 0,
+    overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[1],
@@ -264,6 +266,7 @@ const styles = StyleSheet.create({
   },
   priceInput: {
     flex: 1,
+    minWidth: 0,
     fontFamily: typography.monoMedium,
     fontSize: fontSize.base,
     color: gc.text,
