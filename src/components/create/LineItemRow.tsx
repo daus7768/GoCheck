@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { View, TextInput, Pressable, StyleSheet } from 'react-native';
 import { AppText } from '../AppText';
 import Animated, {
@@ -24,6 +25,33 @@ export function LineItemRow({ item, index, currencySymbol = 'RM', onUpdate, onRe
   const subtotal = item.quantity * item.unitPrice;
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
+
+  // Keep the raw text the user is typing in local state so mid-entry values
+  // like "44." or "44.50" survive — deriving the input value straight from
+  // the parsed number would strip the decimal point as soon as it's typed.
+  const [priceText, setPriceText] = useState(item.unitPrice === 0 ? '' : String(item.unitPrice));
+
+  // Resync if the price changes from outside (draft load, reset) and no longer
+  // matches what's shown; ignores in-progress edits like a trailing dot.
+  useEffect(() => {
+    const shown = parseFloat(priceText);
+    if ((Number.isNaN(shown) ? 0 : shown) !== item.unitPrice) {
+      setPriceText(item.unitPrice === 0 ? '' : String(item.unitPrice));
+    }
+  }, [item.unitPrice]);
+
+  const handlePriceChange = (raw: string) => {
+    // Allow only digits and a single decimal point, max 2 decimals (sen).
+    let cleaned = raw.replace(/[^0-9.]/g, '');
+    const dot = cleaned.indexOf('.');
+    if (dot !== -1) {
+      cleaned =
+        cleaned.slice(0, dot + 1) + cleaned.slice(dot + 1).replace(/\./g, '').slice(0, 2);
+    }
+    setPriceText(cleaned);
+    const n = parseFloat(cleaned);
+    onUpdate(item.id, 'unitPrice', Number.isNaN(n) ? 0 : n);
+  };
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -104,11 +132,8 @@ export function LineItemRow({ item, index, currencySymbol = 'RM', onUpdate, onRe
           <AppText style={styles.priceUnit} palette={[gc.muted, gc.muted]}>{currencySymbol}</AppText>
           <TextInput
             style={styles.priceInput}
-            value={item.unitPrice === 0 ? '' : String(item.unitPrice)}
-            onChangeText={(v) => {
-              const n = parseFloat(v) || 0;
-              onUpdate(item.id, 'unitPrice', n);
-            }}
+            value={priceText}
+            onChangeText={handlePriceChange}
             placeholder="0.00"
             placeholderTextColor={gc.hint}
             keyboardType="decimal-pad"
