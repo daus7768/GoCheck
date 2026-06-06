@@ -29,7 +29,7 @@ export function useReduceMotion(): boolean {
     );
     return () => {
       mounted = false;
-      sub.remove();
+      sub?.remove();
     };
   }, []);
 
