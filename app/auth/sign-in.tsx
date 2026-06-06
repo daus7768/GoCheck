@@ -84,7 +84,20 @@ export default function SignInScreen() {
               <Image source={require('../../assets/logo_v6.png')} style={styles.logoIcon} />
             </View>
             <AppText style={styles.logoText}>GoCheck</AppText>
-            <AppText style={styles.tagline}>Bill splitting, beautifully simple</AppText>
+            <AppText style={styles.tagline}>Snap. Split. Get paid back.</AppText>
+
+            <View style={styles.trustRow}>
+              {TRUST_BADGES.map((b) => (
+                <View key={b.label} style={styles.trustPill}>
+                  <Feather
+                    name={b.icon as keyof typeof Feather.glyphMap}
+                    size={11}
+                    color="#A5B4FC"
+                  />
+                  <AppText style={styles.trustPillText}>{b.label}</AppText>
+                </View>
+              ))}
+            </View>
           </FadeInUp>
 
           {/* Hero */}
@@ -221,6 +234,12 @@ function GoogleLogo() {
   );
 }
 
+const TRUST_BADGES = [
+  { icon: 'zap', label: 'AI-powered' },
+  { icon: 'shield', label: 'Proof-verified' },
+  { icon: 'globe', label: 'Multi-currency' },
+];
+
 const FEATURES = [
   { icon: 'camera', text: 'Snap the receipt — AI splits it instantly' },
   { icon: 'bell', text: 'Smart reminders nudge unpaid members for you' },
@@ -287,6 +306,32 @@ const styles = StyleSheet.create({
     fontFamily: typography.sansRegular,
     fontSize: fontSize.sm,
     color: 'rgba(226,232,255,0.7)',
+    letterSpacing: 0.2,
+  },
+
+  // Trust badges
+  trustRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing[2],
+    marginTop: spacing[2],
+  },
+  trustPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    paddingVertical: 6,
+    paddingHorizontal: spacing[3],
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(165,180,252,0.28)',
+  },
+  trustPillText: {
+    fontFamily: typography.sansMedium,
+    fontSize: fontSize['2xs'],
+    color: 'rgba(226,232,255,0.85)',
     letterSpacing: 0.2,
   },
 
