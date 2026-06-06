@@ -161,8 +161,11 @@ export function CurrencySelector({ value, onChange }: Props) {
 
         if (Platform.OS === 'web') {
           if (!open) return null;
+          // RN's absolute-fill alone sits in normal flow, so sibling form
+          // fields (the amount box, tax chips) paint over the sheet. A high
+          // zIndex lifts the whole overlay above them — matches BillDetailModal.
           return (
-            <View style={StyleSheet.absoluteFillObject} pointerEvents="auto">
+            <View style={styles.webOverlay} pointerEvents="auto">
               {sheetContent}
             </View>
           );
@@ -213,6 +216,12 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: gc.primary,
     letterSpacing: 0.5,
+  },
+  // Web-only: contained overlay that stays inside the phone frame and above
+  // sibling form fields. Native uses a real <Modal>, which already stacks on top.
+  webOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
   },
   overlay: {
     flex: 1,

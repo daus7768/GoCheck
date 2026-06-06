@@ -34,6 +34,7 @@ import { useBillStore } from '../../src/store/billStore';
 import { useProfileStore } from '../../src/store/profileStore';
 import type { Participant, LineItem, Currency, SplitType, BillCategory, BillPaymentMethod } from '../../src/types';
 import { CURRENCY_SYMBOLS } from '../../src/types';
+import { fetchRate, convertAmount } from '../../src/lib/fx';
 import { colors, gc, typography, fontSize, spacing, radius, shadow } from '../../src/theme/tokens';
 import { useReceiptScan } from '../../src/hooks/useReceiptScan';
 import { useTitleSuggest } from '../../src/hooks/useTitleSuggest';
@@ -305,6 +306,8 @@ export default function CreateBillScreen() {
   const [currency, setCurrency] = useState<Currency>('MYR');
   const [amountRaw, setAmountRaw] = useState('');
   const [amountError, setAmountError] = useState('');
+  const [fxLoading, setFxLoading] = useState(false);
+  const [fxNote, setFxNote] = useState<string | null>(null);
   const [splitType, setSplitType] = useState<SplitType>('equal');
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [participantsError, setParticipantsError] = useState('');
@@ -447,6 +450,43 @@ export default function CreateBillScreen() {
     setLineItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  // ── Currency change → live-rate convert every amount on the bill ──
+  const handleCurrencyChange = useCallback(async (next: Currency) => {
+    const from = currency;
+    if (next === from) return;
+
+    // Nothing entered yet (e.g. picking the currency up-front) → just relabel.
+    const hasAmounts =
+      (parseFloat(amountRaw) || 0) > 0 ||
+      lineItems.some((li) => li.unitPrice > 0) ||
+      participants.some((p) => p.amount > 0);
+    if (!hasAmounts) {
+      setCurrency(next);
+      setFxNote(null);
+      return;
+    }
+
+    setFxLoading(true);
+    try {
+      const rate = await fetchRate(from, next);
+      setAmountRaw((raw) => {
+        const n = parseFloat(raw);
+        return isNaN(n) ? raw : convertAmount(n, rate).toFixed(2);
+      });
+      setLineItems((prev) => prev.map((li) => ({ ...li, unitPrice: convertAmount(li.unitPrice, rate) })));
+      setParticipants((prev) => prev.map((p) => ({ ...p, amount: convertAmount(p.amount, rate) })));
+      setCurrency(next);
+      haptic.notification(NotificationFeedbackType.Success);
+      setFxNote(`Converted ${CURRENCY_SYMBOLS[from]} → ${CURRENCY_SYMBOLS[next]} at ${rate.toFixed(4)}`);
+    } catch {
+      // Live rate unavailable — relabel only, leave the numbers untouched.
+      setCurrency(next);
+      setFxNote(`Live rate unavailable — amounts kept, only the ${next} label was applied.`);
+    } finally {
+      setFxLoading(false);
+    }
+  }, [currency, amountRaw, lineItems, participants]);
+
   // ── AI actions ──
   const handleSuggestTitle = async () => {
     await suggestTitle(description, category);
@@ -533,6 +573,7 @@ export default function CreateBillScreen() {
 
   const resetForm = useCallback(() => {
     setTitle(''); setTitleError(''); setCurrency('MYR'); setAmountRaw(''); setAmountError('');
+    setFxLoading(false); setFxNote(null);
     setSplitType('equal'); setParticipants([]); setParticipantsError(''); setLineItems([]);
     setTaxSst(false); setTaxService(false); setDueDate(addDays(new Date(), 7));
     setShowDatePicker(false); setDescription(''); setReminderEnabled(true);
@@ -833,7 +874,7 @@ export default function CreateBillScreen() {
           {/* ── Amount Block ──────────────────────────────────────── */}
           <Section title="Amount & Tax" icon="dollar-sign" delay={100}>
             <View style={styles.amountRow}>
-              <CurrencySelector value={currency} onChange={setCurrency} />
+              <CurrencySelector value={currency} onChange={handleCurrencyChange} />
               <View style={[styles.amountInputWrapper, amountError ? styles.inputBoxError : null, parseFloat(amountRaw) > 0 && styles.inputBoxFilled]}>
                 <TextInput
                   style={styles.amountInput}
@@ -856,6 +897,14 @@ export default function CreateBillScreen() {
               </View>
             </View>
             {amountError && <AppText style={styles.amountError}>{amountError}</AppText>}
+            {fxLoading ? (
+              <View style={styles.fxNoteRow}>
+                <ActivityIndicator size="small" color={gc.primary} />
+                <AppText style={styles.fxNote} palette={[gc.muted, gc.muted]}>Converting amounts…</AppText>
+              </View>
+            ) : fxNote ? (
+              <AppText style={styles.fxNote} palette={[gc.muted, gc.muted]}>{fxNote}</AppText>
+            ) : null}
 
             {/* Tax toggles */}
             <View style={styles.taxRow}>
@@ -1314,6 +1363,8 @@ const styles = StyleSheet.create({
   },
   amountInput: { fontFamily: typography.sansBold, fontSize: 24, color: gc.text, textAlign: 'right' },
   amountError: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: gc.danger, marginTop: spacing[1] },
+  fxNoteRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[2], marginTop: spacing[1] },
+  fxNote: { fontFamily: typography.sansRegular, fontSize: fontSize.xs, color: gc.muted, marginTop: spacing[1] },
 
   // Tax
   taxRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[3], marginTop: spacing[3] },
