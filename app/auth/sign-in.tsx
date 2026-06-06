@@ -222,9 +222,9 @@ function GoogleLogo() {
 }
 
 const FEATURES = [
-  { icon: 'users', text: 'Split bills with any group, instantly' },
-  { icon: 'bell', text: 'Auto-reminders for unpaid members' },
-  { icon: 'bar-chart-2', text: 'Track who owes what in real time' },
+  { icon: 'camera', text: 'Snap the receipt — AI splits it instantly' },
+  { icon: 'bell', text: 'Smart reminders nudge unpaid members for you' },
+  { icon: 'shield', text: 'AI verifies every payment, tracked in real time' },
 ];
 
 const styles = StyleSheet.create({
